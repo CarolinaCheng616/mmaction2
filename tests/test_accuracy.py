@@ -4,10 +4,10 @@ import numpy as np
 import pytest
 from numpy.testing import assert_array_almost_equal, assert_array_equal
 
-from mmaction.core import (average_recall_at_avg_proposals, confusion_matrix,
-                           get_weighted_score, mean_class_accuracy,
-                           mmit_mean_average_precision, pairwise_temporal_iou,
-                           top_k_accuracy)
+from mmaction.core import (area2d, average_recall_at_avg_proposals,
+                           confusion_matrix, get_weighted_score, iou2d,
+                           mean_class_accuracy, mmit_mean_average_precision,
+                           overlap2d, pairwise_temporal_iou, top_k_accuracy)
 
 
 def gt_confusion_matrix(gt_labels, pred_labels, normalize=None):
@@ -235,3 +235,9 @@ def test_get_weighted_score():
         x * coeff_a + y * coeff_b for x, y in zip(score_a, score_b)
     ]
     assert np.all(np.isclose(np.array(ground_truth), np.array(weighted_score)))
+
+
+def test_pass():
+    area2d
+    iou2d
+    overlap2d
