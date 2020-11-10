@@ -110,13 +110,11 @@ class BaseRecognizer(nn.Module, metaclass=ABCMeta):
     @abstractmethod
     def forward_train(self, imgs, labels, **kwargs):
         """Defines the computation performed at every call when training."""
-        pass
 
     @abstractmethod
     def forward_test(self, imgs):
         """Defines the computation performed at every call when evaluation and
         testing."""
-        pass
 
     @staticmethod
     def _parse_losses(losses):

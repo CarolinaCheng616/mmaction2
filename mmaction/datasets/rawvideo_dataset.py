@@ -159,4 +159,3 @@ class RawVideoDataset(BaseDataset):
         Returns:
             dict: Evaluation results dict.
         """
-        pass
