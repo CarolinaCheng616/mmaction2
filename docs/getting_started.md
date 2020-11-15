@@ -93,41 +93,6 @@ Assume that you have already downloaded the checkpoints to the directory `checkp
         --launcher slurm --eval top_k_accuracy
     ```
 
-### Demo to predict different labels in a long video
-
-We provide a demo script to predict different labels using a single long video.
-
-```shell
-python demo/long_video_demo.py ${CONFIG_FILE} ${CHECKPOINT_FILE} ${VIDEO_FILE} ${LABEL_FILE} \
-    ${OUT_FILE} [--input-step ${INPUT_STEP}] [--device ${DEVICE_TYPE}] [--threshold ${THRESHOLD}]
-```
-
-Optional arguments:
-- `OUT_FILE`: Path to the output video file.
-- `INPUT_STEP`: Input step for sampling frames, which can help to get more spare input. If not specified , it will be set to 1.
-- `DEVICE_TYPE`: Type of device to run the demo. Allowed values are cuda device like `cuda:0` or `cpu`. If not specified, it will be set to `cuda:0`.
-- `THRESHOLD`: Threshold of prediction score for action recognition. Only label with score higher than the threshold will be shown. If not specified, it will be set to 0.01.
-
-Examples:
-
-Assume that you are located at `$MMACTION2` and have already downloaded the checkpoints to the directory `checkpoints/`
-
-1. Predict different labels in a long video by using a TSN model on cpu, with 3 frames for input steps (that is, random sample one from each 3 frames)
-and outputting result labels with score higher than 0.2.
-
-    ```shell
-    python demo/long_video_demo.py configs/recognition/tsn/tsn_r50_video_inference_1x1x3_100e_kinetics400_rgb.py \
-      checkpoints/tsn_r50_1x1x3_100e_kinetics400_rgb_20200614-e508be42.pth PATH_TO_LONG_VIDEO demo/label_map.txt PATH_TO_SAVED_VIDEO \
-      --input-step 3 --device cpu --threshold 0.2
-    ```
-
-2. Predict different labels in a long video by using a I3D model on gpu, with input_step=1 and threshold=0.01 as default.
-
-    ```shell
-    python demo/long_video_demo.py configs/recognition/i3d/i3d_r50_video_inference_32x2x1_100e_kinetics400_rgb.py \
-      checkpoints/i3d_r50_256p_32x2x1_100e_kinetics400_rgb_20200801-7d9f44de.pth PATH_TO_LONG_VIDEO demo/label_map.txt PATH_TO_SAVED_VIDEO \
-    ```
-
 
 ### High-level APIs for testing a video and rawframes.
 

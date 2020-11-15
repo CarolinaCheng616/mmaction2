@@ -29,8 +29,8 @@ def parse_args():
     parser = argparse.ArgumentParser(
         description='MMAction2 predict different labels in a long video demo')
     parser.add_argument('config', help='test config file path')
-    parser.add_argument('checkpoint', help='checkpoint file')
-    parser.add_argument('video', help='video file')
+    parser.add_argument('checkpoint', help='checkpoint file/url')
+    parser.add_argument('video', help='video file/url')
     parser.add_argument('label', help='label file')
     parser.add_argument('out_file', help='output filename')
     parser.add_argument(
