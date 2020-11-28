@@ -24,7 +24,7 @@ def downsample_basic_block(x, planes, stride):
     return out
 
 
-class BottleneckP3D(nn.module):
+class BottleneckP3D(nn.Module):
     expansion = 4
 
     def __init__(self,
@@ -40,11 +40,12 @@ class BottleneckP3D(nn.module):
                  act_cfg=dict(type='ReLU'),
                  p3d_style_seq=('A', 'B', 'C'),
                  with_cp=False):
+        super().__init__()
         self.inplanes = inplanes
         self.planes = planes
         self.spatial_stride = spatial_stride
         self.temporal_stride = temporal_stride
-        self.p3d_style = list(p3d_style_seq)[count_block % len(self.p3d_style)]
+        self.p3d_style = list(p3d_style_seq)[count_block % len(p3d_style_seq)]
         self.layer_index = layer_index
         self.count_block = count_block
         self.conv_cfg = conv_cfg
@@ -321,7 +322,7 @@ class ResNetP3D(nn.Module):
                         norm_cfg=norm_cfg,
                         act_cfg=None)
 
-        layers = []
+        layers = list()
         layers.append(
             block(
                 inplanes,
@@ -347,9 +348,9 @@ class ResNetP3D(nn.Module):
                     planes,
                     self.count_block,
                     layer_index,
-                    spatial_stride=spatial_stride,
-                    temporal_stride=temporal_stride,
-                    downsample=downsample,
+                    # spatial_stride=spatial_stride,
+                    # temporal_stride=temporal_stride,
+                    downsample=None,
                     p3d_style_seq=p3d_style_seq,
                     conv_cfg=conv_cfg,
                     norm_cfg=norm_cfg,
@@ -444,3 +445,17 @@ class ResNetP3D(nn.Module):
                     m.eval()
         if mode and self.partial_bn:
             self._partial_bn()
+
+
+if __name__ == '__main__':
+    model = ResNetP3D(depth=199, pretrained=None, in_channels=3, num_stages=4,
+                      base_channels=64,
+                      out_indices=(3, ),
+                      spatial_strides=(1, 2, 2, 2),
+                      temporal_strides=(1, 1, 1, 1),
+                      conv1_kernel=(1, 7, 7),
+                      conv1_stride_t=1,
+                      pool1_stride_t=2)
+    data = torch.rand(10, 3, 16, 160, 160, requires_grad=True)
+    out = model(data)
+    print(out.size())
