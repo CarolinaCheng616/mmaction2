@@ -260,6 +260,7 @@ class ResNetP3D(nn.Module):
 
         self.feat_dim = self.block.expansion * self.base_channels * 2**(
             len(self.stage_blocks) - 1)
+        self._make_output_layer()
 
     def _make_output_layer(self):
         self.avgpool = nn.AvgPool2d(kernel_size=(5, 5),
