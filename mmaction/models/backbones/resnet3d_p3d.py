@@ -184,6 +184,8 @@ class ResNetP3D(nn.Module):
     def __init__(self,
                  depth,
                  pretrained=None,
+                 num_classes=400,
+                 dropout=0.0,
                  in_channels=3,
                  num_stages=4,
                  base_channels=64,
@@ -205,6 +207,8 @@ class ResNetP3D(nn.Module):
                  **kwargs):
         super().__init__()
         self.depth = depth
+        self.num_classes = num_classes
+        self.dropoutp = dropout
         self.pretrained = pretrained
         self.in_channels = in_channels
         self.base_channels = base_channels
@@ -256,6 +260,12 @@ class ResNetP3D(nn.Module):
 
         self.feat_dim = self.block.expansion * self.base_channels * 2**(
             len(self.stage_blocks) - 1)
+
+    def _make_output_layer(self):
+        self.avgpool = nn.AvgPool2d(kernel_size=(5, 5),
+                                    stride=1)
+        self.dropout = nn.Dropout(p=self.dropoutp)
+        self.fc = nn.Linear(self.feat_dim, self.num_classes)
 
     def _make_stem_layer(self):
         self.conv1 = ConvModule(
@@ -390,7 +400,7 @@ class ResNetP3D(nn.Module):
         x = self.conv1(x)
         x = self.maxpool(x)
 
-        outs = []
+        # outs = []
         for i, layer_name in enumerate(self.res_layers):
             res_layer = getattr(self, layer_name)
             if i != len(self.res_layers) - 1:
@@ -400,13 +410,18 @@ class ResNetP3D(nn.Module):
             else:
                 x = x.reshape(-1, x.shape[1], x.shape[3], x.shape[4])
                 x = res_layer(x)
-            if i in self.out_indices:
-                outs.append(x)
+            # if i in self.out_indices:
+            #     outs.append(x)
 
-        if len(outs) == 1:
-            return outs[0]
-        else:
-            return tuple(outs)
+        x = self.avgpool(x)
+        x = x.view(-1, self.fc.in_features)
+        x = self.fc(self.dropout(x))
+
+        # if len(outs) == 1:
+        #     return outs[0]
+        # else:
+        #     return tuple(outs)
+        return x
 
     def _freeze_stages(self):
         """Prevent all the parameters from being optimized before
