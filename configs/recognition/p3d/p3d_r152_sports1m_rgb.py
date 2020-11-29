@@ -6,11 +6,7 @@ model = dict(
         pretrained='torchvision://resnet152',
         pretrained2d=True),
     cls_head=dict(
-        type='P3DHead',
-        num_classes=101,
-        in_channels=2048,
-        dropout_ratio=0.1)
-)
+        type='P3DHead', num_classes=101, in_channels=2048, dropout_ratio=0.1))
 train_cfg = None
 test_cfg = dict(average_clips='prob')
 dataset_type = 'RawframeDataset'
@@ -36,7 +32,12 @@ train_pipeline = [
     dict(type='ToTensor', keys=['imgs', 'label'])
 ]
 val_pipeline = [
-    dict(type='SampleFrames', clip_len=16, frame_interval=1, num_clips=20, test_mode=True),
+    dict(
+        type='SampleFrames',
+        clip_len=16,
+        frame_interval=1,
+        num_clips=20,
+        test_mode=True),
     dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(182, 242)),
     dict(type='CenterCrop', crop_size=160),
@@ -47,7 +48,12 @@ val_pipeline = [
     dict(type='ToTensor', keys=['imgs'])
 ]
 test_pipeline = [
-    dict(type='SampleFrames', clip_len=16, frame_interval=1, num_clips=20, test_mode=True),
+    dict(
+        type='SampleFrames',
+        clip_len=16,
+        frame_interval=1,
+        num_clips=20,
+        test_mode=True),
     dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(182, 242)),
     dict(type='CenterCrop', crop_size=160),
@@ -77,19 +83,14 @@ data = dict(
         pipeline=test_pipeline))
 optimizer = dict(type='SGD', lr=0.001),
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
-lr_config = dict(
-    policy='step',
-    step=[3000, 6000],
-    gamma=0.1
-)
+lr_config = dict(policy='step', step=[3000, 6000], gamma=0.1)
 total_epochs = 7500
 checkpoint_config = dict(interval=10)
 workflow = [('train', 1)]
 evaluation = dict(
     interval=5, metrics=['top_k_accuracy', 'mean_class_accuracy'])
 log_config = dict(
-    interval=20,
-    hooks=[
+    interval=20, hooks=[
         dict(type='TextLoggerHook'),
     ])
 dist_params = dict(backend='nccl')

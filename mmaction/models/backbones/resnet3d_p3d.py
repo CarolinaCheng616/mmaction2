@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint as cp
 from mmcv.cnn import ConvModule, build_activation_layer, constant_init
-from mmcv.runner import load_checkpoint, _load_checkpoint
+from mmcv.runner import _load_checkpoint, load_checkpoint
 from mmcv.utils import _BatchNorm
 from torch import nn as nn
 from torch.nn.modules.utils import _triple
@@ -363,12 +363,14 @@ class ResNetP3D(nn.Module):
 
         return nn.Sequential(*layers)
 
-    def _inflate_conv_params(self, conv3d, origin_dict, origin_name, inflated_names):
+    def _inflate_conv_params(self, conv3d, origin_dict, origin_name,
+                             inflated_names):
         weight_2d_name = origin_name + '.weight'
         conv2d_weight = origin_dict[weight_2d_name]
         kernel_t = conv3d.weight.data.shape[2]
 
-        new_weight = conv2d_weight.data.unsqueeze(2).expand_as(conv3d.weight) / kernel_t
+        new_weight = conv2d_weight.data.unsqueeze(2).expand_as(
+            conv3d.weight) / kernel_t
         conv3d.weight.data.copy_(new_weight)
         inflated_names.append(weight_2d_name)
 
@@ -377,7 +379,8 @@ class ResNetP3D(nn.Module):
             conv3d.bias.data.copy_(origin_dict[bias_2d_name])
             inflated_names.append(bias_2d_name)
 
-    def _inflate_bn_params(self, bn3d, origin_dict, origin_name, inflated_names):
+    def _inflate_bn_params(self, bn3d, origin_dict, origin_name,
+                           inflated_names):
         parameters = list(bn3d.named_parameters()) + list(bn3d.named_buffers())
         for name, param in parameters:
             bn2d_name = f'{origin_name}.{name}'
@@ -407,23 +410,31 @@ class ResNetP3D(nn.Module):
                     logger.warning(f'Module not exist in the state_dict_r2d'
                                    f': {original_conv_name}')
                 else:
-                    shape_2d = state_dict_r2d[original_conv_name+'.weight'].shape   # out_C, in_C, H, W
-                    shape_3d = module.conv.weight.data.shape   # out_C, in_C, T, H, W
+                    shape_2d = state_dict_r2d[
+                        original_conv_name +
+                        '.weight'].shape  # out_C, in_C, H, W
+                    shape_3d = module.conv.weight.data.shape
+                    # out_C, in_C, T, H, W
                     if shape_2d != shape_3d[:2] + shape_3d[3:]:
                         logger.warning(f'Weight shape mismatch for '
                                        f': {original_conv_name} :'
                                        f'3d weight shape: {shape_3d};'
                                        f'2d weight shape: {shape_2d}. ')
                     else:
-                        self._inflate_conv_params(module.conv, state_dict_r2d, original_conv_name, inflated_param_names)
+                        self._inflate_conv_params(module.conv, state_dict_r2d,
+                                                  original_conv_name,
+                                                  inflated_param_names)
 
                 if original_bn_name + '.weight' not in state_dict_r2d:
                     logger.warning(f'Module not exist in the state_dict_r2d'
                                    f': {original_bn_name}')
                 else:
-                    self._inflate_bn_params(module.bn, state_dict_r2d, original_bn_name, inflated_param_names)
+                    self._inflate_bn_params(module.bn, state_dict_r2d,
+                                            original_bn_name,
+                                            inflated_param_names)
 
-        remaining_names = set(state_dict_r2d.keys() - set(inflated_param_names))
+        remaining_names = set(state_dict_r2d.keys() -
+                              set(inflated_param_names))
         if remaining_names:
             logger.info(f'These parameters in the 2d checkpoint are not loaded'
                         f': {remaining_names}')
@@ -436,7 +447,8 @@ class ResNetP3D(nn.Module):
             if self.pretrained2d:
                 self.inflate_weights(logger)
             else:
-                load_checkpoint(self, self.pretrained, strict=False, logger=logger)
+                load_checkpoint(
+                    self, self.pretrained, strict=False, logger=logger)
 
         elif self.pretrained is None:
             for m in self.modules():

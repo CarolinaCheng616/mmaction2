@@ -8,8 +8,14 @@ from .base import BaseHead
 @HEADS.register_module()
 class P3DHead(BaseHead):
 
-    def __init__(self, num_classes, in_channels, loss_cls=dict(type='CrossEntropyLoss'),
-                 spatial_type='avg', dropout_ratio=0.0, init_std=0.01, **kwargs):
+    def __init__(self,
+                 num_classes,
+                 in_channels,
+                 loss_cls=dict(type='CrossEntropyLoss'),
+                 spatial_type='avg',
+                 dropout_ratio=0.0,
+                 init_std=0.01,
+                 **kwargs):
         super().__init__(num_classes, in_channels, loss_cls=loss_cls, **kwargs)
         self.init_std = init_std
         if spatial_type == 'avg':
@@ -28,7 +34,7 @@ class P3DHead(BaseHead):
     def forward(self, x):
         if self.avgpool is not None:
             x = self.avgpool(x)  # N, 2048, 1, 1
-        x = x.view(-1, self.fc_cls.in_features)   # N, 2048
+        x = x.view(-1, self.fc_cls.in_features)  # N, 2048
         if self.dropout is not None:
             x = self.dropout(x)
         x = self.fc_cls(x)
