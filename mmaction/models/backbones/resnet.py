@@ -536,6 +536,12 @@ class ResNet(nn.Module):
             torch.Tensor: The feature of the input samples extracted
             by the backbone.
         """
+        # with open('resnet_name.txt', 'w', encoding='utf-8') as f:
+        #     for name, module in self.named_modules():
+        #         if isinstance(module, ConvModule):
+        #             f.write(name)
+        #             f.write('\n')
+
         x = self.conv1(x)
         x = self.maxpool(x)
         outs = []
@@ -587,3 +593,10 @@ class ResNet(nn.Module):
                     m.eval()
         if mode and self.partial_bn:
             self._partial_bn()
+
+
+# if __name__ == '__main__':
+#     import torch
+#     data = torch.rand(10, 3, 224, 224, requires_grad=False)
+#     model = ResNet(152, pretrained=None)
+#     out = model(data)

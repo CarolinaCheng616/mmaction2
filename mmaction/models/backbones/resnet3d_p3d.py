@@ -5,7 +5,7 @@ import torch
 import torch.nn.functional as F
 import torch.utils.checkpoint as cp
 from mmcv.cnn import ConvModule, build_activation_layer, constant_init
-from mmcv.runner import load_checkpoint
+from mmcv.runner import load_checkpoint, _load_checkpoint
 from mmcv.utils import _BatchNorm
 from torch import nn as nn
 from torch.nn.modules.utils import _triple
@@ -184,8 +184,7 @@ class ResNetP3D(nn.Module):
     def __init__(self,
                  depth,
                  pretrained=None,
-                 num_classes=400,
-                 dropout=0.0,
+                 pretrained2d=True,
                  in_channels=3,
                  num_stages=4,
                  base_channels=64,
@@ -207,9 +206,8 @@ class ResNetP3D(nn.Module):
                  **kwargs):
         super().__init__()
         self.depth = depth
-        self.num_classes = num_classes
-        self.dropoutp = dropout
         self.pretrained = pretrained
+        self.pretrained2d = pretrained2d
         self.in_channels = in_channels
         self.base_channels = base_channels
         self.conv1_kernel = conv1_kernel
@@ -260,13 +258,6 @@ class ResNetP3D(nn.Module):
 
         self.feat_dim = self.block.expansion * self.base_channels * 2**(
             len(self.stage_blocks) - 1)
-        self._make_output_layer()
-
-    def _make_output_layer(self):
-        self.avgpool = nn.AvgPool2d(kernel_size=(5, 5),
-                                    stride=1)
-        self.dropout = nn.Dropout(p=self.dropoutp)
-        self.fc = nn.Linear(self.feat_dim, self.num_classes)
 
     def _make_stem_layer(self):
         self.conv1 = ConvModule(
@@ -372,11 +363,80 @@ class ResNetP3D(nn.Module):
 
         return nn.Sequential(*layers)
 
+    def _inflate_conv_params(self, conv3d, origin_dict, origin_name, inflated_names):
+        weight_2d_name = origin_name + '.weight'
+        conv2d_weight = origin_dict[weight_2d_name]
+        kernel_t = conv3d.weight.data.shape[2]
+
+        new_weight = conv2d_weight.data.unsqueeze(2).expand_as(conv3d.weight) / kernel_t
+        conv3d.weight.data.copy_(new_weight)
+        inflated_names.append(weight_2d_name)
+
+        if getattr(conv3d, 'bias') is not None:
+            bias_2d_name = origin_name + '.bias'
+            conv3d.bias.data.copy_(origin_dict[bias_2d_name])
+            inflated_names.append(bias_2d_name)
+
+    def _inflate_bn_params(self, bn3d, origin_dict, origin_name, inflated_names):
+        parameters = list(bn3d.named_parameters()) + list(bn3d.named_buffers())
+        for name, param in parameters:
+            bn2d_name = f'{origin_name}.{name}'
+            if bn2d_name in origin_dict:
+                param.data.copy_(origin_dict[bn2d_name])
+                inflated_names.append(bn2d_name)
+
+    def inflate_weights(self, logger):
+        state_dict_r2d = _load_checkpoint(self.pretrained)
+        if 'state_dict' in state_dict_r2d:
+            state_dict_r2d = state_dict_r2d['state_dict']
+
+        inflated_param_names = []
+        for name, module in self.named_modules():
+            if isinstance(module, ConvModule):
+                if 'conv3' in name:
+                    continue
+                if 'conv4' in name:
+                    name = name.replace('conv4', 'conv3')
+                if 'downsample' in name:
+                    original_conv_name = name + '.0'
+                    original_bn_name = name + '.1'
+                else:
+                    original_conv_name = name
+                    original_bn_name = name.replace('conv', 'bn')
+                if original_conv_name + '.weight' not in state_dict_r2d:
+                    logger.warning(f'Module not exist in the state_dict_r2d'
+                                   f': {original_conv_name}')
+                else:
+                    shape_2d = state_dict_r2d[original_conv_name+'.weight'].shape   # out_C, in_C, H, W
+                    shape_3d = module.conv.weight.data.shape   # out_C, in_C, T, H, W
+                    if shape_2d != shape_3d[:2] + shape_3d[3:]:
+                        logger.warning(f'Weight shape mismatch for '
+                                       f': {original_conv_name} :'
+                                       f'3d weight shape: {shape_3d};'
+                                       f'2d weight shape: {shape_2d}. ')
+                    else:
+                        self._inflate_conv_params(module.conv, state_dict_r2d, original_conv_name, inflated_param_names)
+
+                if original_bn_name + '.weight' not in state_dict_r2d:
+                    logger.warning(f'Module not exist in the state_dict_r2d'
+                                   f': {original_bn_name}')
+                else:
+                    self._inflate_bn_params(module.bn, state_dict_r2d, original_bn_name, inflated_param_names)
+
+        remaining_names = set(state_dict_r2d.keys() - set(inflated_param_names))
+        if remaining_names:
+            logger.info(f'These parameters in the 2d checkpoint are not loaded'
+                        f': {remaining_names}')
+
     def init_weight(self):
         if isinstance(self.pretrained, str):
             logger = get_root_logger()
             logger.info(f'load model from: {self.pretrained}')
-            load_checkpoint(self, self.pretrained, strict=False, logger=logger)
+
+            if self.pretrained2d:
+                self.inflate_weights(logger)
+            else:
+                load_checkpoint(self, self.pretrained, strict=False, logger=logger)
 
         elif self.pretrained is None:
             for m in self.modules():
@@ -398,9 +458,13 @@ class ResNetP3D(nn.Module):
             raise TypeError('pretrained must be a str or None')
 
     def forward(self, x):
+        # with open('p3d_name.txt', 'w', encoding='utf-8') as f:
+        #     for name, module in self.named_modules():
+        #         if isinstance(module, ConvModule):
+        #             f.write(name)
+        #             f.write('\n')
         x = self.conv1(x)
         x = self.maxpool(x)
-
         # outs = []
         for i, layer_name in enumerate(self.res_layers):
             res_layer = getattr(self, layer_name)
@@ -414,9 +478,9 @@ class ResNetP3D(nn.Module):
             # if i in self.out_indices:
             #     outs.append(x)
 
-        x = self.avgpool(x)
-        x = x.view(-1, self.fc.in_features)
-        x = self.fc(self.dropout(x))
+        # x = self.avgpool(x)
+        # x = x.view(-1, self.fc.in_features)
+        # x = self.fc(self.dropout(x))
 
         # if len(outs) == 1:
         #     return outs[0]
@@ -463,15 +527,7 @@ class ResNetP3D(nn.Module):
             self._partial_bn()
 
 
-if __name__ == '__main__':
-    model = ResNetP3D(depth=199, pretrained=None, in_channels=3, num_stages=4,
-                      base_channels=64,
-                      out_indices=(3, ),
-                      spatial_strides=(1, 2, 2, 2),
-                      temporal_strides=(1, 1, 1, 1),
-                      conv1_kernel=(1, 7, 7),
-                      conv1_stride_t=1,
-                      pool1_stride_t=2)
-    data = torch.rand(10, 3, 16, 160, 160, requires_grad=True)
-    out = model(data)
-    print(out.size())
+# if __name__ == '__main__':
+#     data = torch.rand(10, 3, 16, 160, 160, requires_grad=False)
+#     model = ResNetP3D(199)
+#     out = model(data)
