@@ -2,7 +2,7 @@ import torch
 import torch.nn as nn
 
 from mmaction.models import (AudioTSNHead, BaseHead, I3DHead, SlowFastHead,
-                             TPNHead, TSMHead, TSNHead, X3DHead)
+                             TPNHead, TSMHead, TSNHead, X3DHead, P3DHead)
 
 
 class ExampleHead(BaseHead):
@@ -281,3 +281,20 @@ def test_tpn_head():
     assert isinstance(tpn_head.avg_pool2d, nn.AvgPool3d)
     assert tpn_head.avg_pool2d.kernel_size == (1, 7, 7)
     assert cls_scores.shape == torch.Size([2, 4])
+
+
+def test_p3d_head():
+    p3d_head = P3DHead(num_classes=400, in_channels=2048)
+    p3d_head.init_weights()
+
+    assert hasattr(p3d_head, 'avgpool')
+    assert isinstance(p3d_head.avgpool, nn.AdaptiveAvgPool2d)
+    assert p3d_head.avgpool.output_size == (1, 1)
+    assert hasattr(p3d_head, 'fc_cls')
+    assert isinstance(p3d_head.fc_cls, nn.Linear)
+
+    input_shape = (10, 2048, 5, 5)
+    feat = torch.rand(input_shape)
+    cls_scores = p3d_head(feat)
+    assert p3d_head.avgpool.kernel_size == (5, 5)
+    assert cls_scores.shape == torch.Size([10, 400])

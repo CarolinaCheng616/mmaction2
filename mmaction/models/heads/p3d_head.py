@@ -33,10 +33,10 @@ class P3DHead(BaseHead):
 
     def forward(self, x):
         if self.avgpool is not None:
-            x = self.avgpool(x)  # N, 2048, 1, 1
-        x = x.view(-1, self.fc_cls.in_features)  # N, 2048
+            x = self.avgpool(x)
+        x = x.view(-1, self.fc_cls.in_features)
         if self.dropout is not None:
             x = self.dropout(x)
-        x = self.fc_cls(x)
+        cls_scores = self.fc_cls(x)
 
-        return x
+        return cls_scores

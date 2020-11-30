@@ -8,7 +8,7 @@ from mmcv.utils import _BatchNorm
 
 from mmaction.models import (C3D, X3D, ResNet, ResNet2Plus1d, ResNet3d,
                              ResNet3dCSN, ResNet3dSlowFast, ResNet3dSlowOnly,
-                             ResNetTIN, ResNetTSM)
+                             ResNetTIN, ResNetTSM, ResNetP3D)
 from mmaction.models.backbones.resnet_tsm import NL3DWrapper
 
 
@@ -956,6 +956,27 @@ def test_c3d_backbone():
     c3d_bn.train()
     feat = c3d_bn(imgs)
     assert feat.shape == torch.Size([1, 4096])
+
+
+def test_p3d_backbone():
+    batch_size = 2
+    input_shape = (batch_size, 3, 16, 160, 160)
+    imgs = _demo_inputs(input_shape)
+    depths = [63, 131, 199]
+    res_depths = [50, 101, 152]
+
+    for i, depth in enumerate(depths):
+        p3d = ResNetP3D(depth)
+        p3d.init_weight()
+        p3d.train(False)
+        feat = p3d(imgs)
+        assert feat.shape == torch.Size([batch_size, 2048, 5, 5])
+
+        p3d_init = ResNetP3D(depth, pretrained=f'torchvision://resnet{res_depths[i]}')
+        p3d_init.init_weights()
+        p3d_init.train(False)
+        feat = p3d_init(imgs)
+        assert feat.shape == torch.Size([batch_size, 2048, 5, 5])
 
 
 @pytest.mark.skipif(

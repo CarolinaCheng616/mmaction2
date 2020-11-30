@@ -350,9 +350,6 @@ class ResNetP3D(nn.Module):
                     planes,
                     self.count_block,
                     layer_index,
-                    # spatial_stride=spatial_stride,
-                    # temporal_stride=temporal_stride,
-                    downsample=None,
                     p3d_style_seq=p3d_style_seq,
                     conv_cfg=conv_cfg,
                     norm_cfg=norm_cfg,
@@ -412,9 +409,8 @@ class ResNetP3D(nn.Module):
                 else:
                     shape_2d = state_dict_r2d[
                         original_conv_name +
-                        '.weight'].shape  # out_C, in_C, H, W
+                        '.weight'].shape
                     shape_3d = module.conv.weight.data.shape
-                    # out_C, in_C, T, H, W
                     if shape_2d != shape_3d[:2] + shape_3d[3:]:
                         logger.warning(f'Weight shape mismatch for '
                                        f': {original_conv_name} :'
@@ -439,7 +435,7 @@ class ResNetP3D(nn.Module):
             logger.info(f'These parameters in the 2d checkpoint are not loaded'
                         f': {remaining_names}')
 
-    def init_weight(self):
+    def init_weights(self):
         if isinstance(self.pretrained, str):
             logger = get_root_logger()
             logger.info(f'load model from: {self.pretrained}')
@@ -470,14 +466,9 @@ class ResNetP3D(nn.Module):
             raise TypeError('pretrained must be a str or None')
 
     def forward(self, x):
-        # with open('p3d_name.txt', 'w', encoding='utf-8') as f:
-        #     for name, module in self.named_modules():
-        #         if isinstance(module, ConvModule):
-        #             f.write(name)
-        #             f.write('\n')
         x = self.conv1(x)
         x = self.maxpool(x)
-        # outs = []
+        outs = []
         for i, layer_name in enumerate(self.res_layers):
             res_layer = getattr(self, layer_name)
             if i != len(self.res_layers) - 1:
@@ -487,18 +478,13 @@ class ResNetP3D(nn.Module):
             else:
                 x = x.reshape(-1, x.shape[1], x.shape[3], x.shape[4])
                 x = res_layer(x)
-            # if i in self.out_indices:
-            #     outs.append(x)
+            if i in self.out_indices:
+                outs.append(x)
 
-        # x = self.avgpool(x)
-        # x = x.view(-1, self.fc.in_features)
-        # x = self.fc(self.dropout(x))
-
-        # if len(outs) == 1:
-        #     return outs[0]
-        # else:
-        #     return tuple(outs)
-        return x
+        if len(outs) == 1:
+            return outs[0]
+        else:
+            return tuple(outs)
 
     def _freeze_stages(self):
         """Prevent all the parameters from being optimized before
