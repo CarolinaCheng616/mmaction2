@@ -296,5 +296,4 @@ def test_p3d_head():
     input_shape = (10, 2048, 5, 5)
     feat = torch.rand(input_shape)
     cls_scores = p3d_head(feat)
-    assert p3d_head.avgpool.kernel_size == (5, 5)
     assert cls_scores.shape == torch.Size([10, 400])

@@ -195,6 +195,7 @@ class ResNetP3D(nn.Module):
                  conv1_stride_t=1,
                  pool1_stride_t=2,
                  with_pool2=True,
+                 frozen_stages=-1,
                  conv_cfg=dict(type='Conv3d'),
                  norm_cfg=dict(type='BN3d', requires_grad=True),
                  act_cfg=dict(type='ReLU', inplace=True),
@@ -213,6 +214,7 @@ class ResNetP3D(nn.Module):
         self.conv1_kernel = conv1_kernel
         self.conv1_stride_t = conv1_stride_t
         self.with_pool2 = with_pool2
+        self.frozen_stages = frozen_stages
         self.conv_cfg = conv_cfg
         self.norm_cfg = norm_cfg
         self.act_cfg = act_cfg

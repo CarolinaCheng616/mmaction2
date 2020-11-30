@@ -967,7 +967,7 @@ def test_p3d_backbone():
 
     for i, depth in enumerate(depths):
         p3d = ResNetP3D(depth)
-        p3d.init_weight()
+        p3d.init_weights()
         p3d.train(False)
         feat = p3d(imgs)
         assert feat.shape == torch.Size([batch_size, 2048, 5, 5])
