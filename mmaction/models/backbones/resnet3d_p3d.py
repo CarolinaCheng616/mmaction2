@@ -200,6 +200,7 @@ class ResNetP3D(nn.Module):
                  norm_cfg=dict(type='BN3d', requires_grad=True),
                  act_cfg=dict(type='ReLU', inplace=True),
                  norm_eval=False,
+                 partial_bn=False,
                  with_cp=False,
                  zero_init_residual=True,
                  shortcut_type='B',
@@ -224,6 +225,7 @@ class ResNetP3D(nn.Module):
         self.zero_init_residual = zero_init_residual
         self.out_indices = out_indices
         self.norm_eval = norm_eval
+        self.partial_bn = partial_bn
 
         self.block, stage_blocks = self.arch_settings[depth]
         self.stage_blocks = stage_blocks[:num_stages]
