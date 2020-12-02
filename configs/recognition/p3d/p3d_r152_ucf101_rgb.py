@@ -10,11 +10,11 @@ model = dict(
 train_cfg = None
 test_cfg = dict(average_clips='prob')
 dataset_type = 'RawframeDataset'
-dataset_name = 'data/ucf101/'
-data_root = dataset_name + 'rawframes'
-data_root_val = dataset_name + 'rawframes'
-ann_file_train = dataset_name + 'ucf101_train_list.txt'
-ann_file_val = dataset_name + 'ucf101_val_list.txt'
+dataset_root = 'data/ucf101/'
+data_root = dataset_root + 'rawframes'
+data_root_val = dataset_root + 'rawframes'
+ann_file_train = dataset_root + 'ucf101_train_list.txt'
+ann_file_val = dataset_root + 'ucf101_val_list.txt'
 ann_file_test = ann_file_val
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
@@ -23,7 +23,7 @@ train_pipeline = [
     dict(type='RawFrameDecode'),
     dict(type='Resize', scale=(182, 242)),
     # dict(type='RandomResizedCrop'),
-    dict(type='RandomCrop', size=(160, 160)),
+    dict(type='RandomCrop', size=160),
     # dict(type='Resize', scale=(160, 160), keep_ratio=False),
     dict(type='Flip', flip_ratio=0.5, direction='horizontal'),
     dict(type='Normalize', **img_norm_cfg),

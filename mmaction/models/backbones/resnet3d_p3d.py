@@ -378,6 +378,15 @@ class ResNetP3D(nn.Module):
             conv3d.bias.data.copy_(origin_dict[bias_2d_name])
             inflated_names.append(bias_2d_name)
 
+    def _copy_conv_params(self, conv2d, origin_dict, origin_name, inflated_names):
+        conv2d_weight = origin_dict[origin_name + '.weight']
+        conv2d.weight.data.copy_(conv2d_weight.data)
+        inflated_names.append(origin_name + '.weight')
+
+        if getattr(conv2d, 'bias') is not None:
+            conv2d.bias.data.copy_(origin_dict[origin_name + '.bias'])
+            inflated_names.append(origin_name + '.bias')
+
     def _inflate_bn_params(self, bn3d, origin_dict, origin_name,
                            inflated_names):
         parameters = list(bn3d.named_parameters()) + list(bn3d.named_buffers())
@@ -413,11 +422,16 @@ class ResNetP3D(nn.Module):
                         original_conv_name +
                         '.weight'].shape
                     shape_3d = module.conv.weight.data.shape
-                    if shape_2d != shape_3d[:2] + shape_3d[3:]:
+                    if shape_2d != shape_3d[:2] + shape_3d[3:] and 'layer4' not in name:
                         logger.warning(f'Weight shape mismatch for '
                                        f': {original_conv_name} :'
                                        f'3d weight shape: {shape_3d};'
                                        f'2d weight shape: {shape_2d}. ')
+                    elif 'layer4' in name:
+                        self._copy_conv_params(module.conv,
+                                               state_dict_r2d,
+                                               original_conv_name,
+                                               inflated_param_names)
                     else:
                         self._inflate_conv_params(module.conv, state_dict_r2d,
                                                   original_conv_name,
