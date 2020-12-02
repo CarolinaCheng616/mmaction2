@@ -84,7 +84,7 @@ data = dict(
 optimizer = dict(type='SGD', lr=0.001)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 lr_config = dict(policy='step', step=[29, 58], gamma=0.1)
-total_epochs = 72
+total_epochs = 5
 checkpoint_config = dict(interval=10)
 workflow = [('train', 1)]
 evaluation = dict(
