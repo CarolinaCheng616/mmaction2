@@ -404,9 +404,9 @@ class ResNetP3D(nn.Module):
         inflated_param_names = []
         for name, module in self.named_modules():
             if isinstance(module, ConvModule):
-                if 'conv3' in name:
+                if 'conv3' in name and 'layer4' not in name:
                     continue
-                if 'conv4' in name:
+                if 'conv4' in name and 'layer4' not in name:
                     name = name.replace('conv4', 'conv3')
                 if 'downsample' in name:
                     original_conv_name = name + '.0'
@@ -418,9 +418,7 @@ class ResNetP3D(nn.Module):
                     logger.warning(f'Module not exist in the state_dict_r2d'
                                    f': {original_conv_name}')
                 else:
-                    shape_2d = state_dict_r2d[
-                        original_conv_name +
-                        '.weight'].shape
+                    shape_2d = state_dict_r2d[original_conv_name + '.weight'].shape
                     shape_3d = module.conv.weight.data.shape
                     if shape_2d != shape_3d[:2] + shape_3d[3:] and 'layer4' not in name:
                         logger.warning(f'Weight shape mismatch for '

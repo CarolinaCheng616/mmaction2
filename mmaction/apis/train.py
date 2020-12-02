@@ -83,6 +83,8 @@ def train_model(model,
             model.cuda(cfg.gpu_ids[0]), device_ids=cfg.gpu_ids)
 
     # build runner
+    print(type(cfg.optimizer))
+    print(cfg.optimizer)
     optimizer = build_optimizer(model, cfg.optimizer)
 
     Runner = OmniSourceRunner if cfg.omnisource else EpochBasedRunner
