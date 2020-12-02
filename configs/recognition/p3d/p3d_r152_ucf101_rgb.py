@@ -11,11 +11,11 @@ train_cfg = None
 test_cfg = dict(average_clips='prob')
 dataset_type = 'RawframeDataset'
 dataset_name = 'data/ucf101/'
-data_root = dataset_name + 'rawframes_train'
-data_root_val = dataset_name + 'rawframes_val'
-ann_file_train = dataset_name + 'kinetics400_train_list_rawframes.txt'
-ann_file_val = dataset_name + 'kinetics400_val_list_rawframes.txt'
-ann_file_test = dataset_name + 'kinetics400_val_list_rawframes.txt'
+data_root = dataset_name + 'rawframes'
+data_root_val = dataset_name + 'rawframes'
+ann_file_train = dataset_name + 'ucf101_train_list.txt'
+ann_file_val = dataset_name + 'ucf101_val_list.txt'
+ann_file_test = ann_file_val
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
 train_pipeline = [
