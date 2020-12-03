@@ -172,7 +172,7 @@ class BottleneckP3D(nn.Module):
         return out
 
 
-@BACKBONES.register_module()
+# @BACKBONES.register_module()
 class ResNetP3D(nn.Module):
 
     arch_settings = {
@@ -463,7 +463,10 @@ class ResNetP3D(nn.Module):
                     self, self.pretrained, strict=False, logger=logger)
 
         elif self.pretrained is None:
+            # import pdb
+            # pdb.set_trace()
             for m in self.modules():
+                print(type(m))
                 if isinstance(m, nn.Conv3d):
                     n = m.kernel_size[0] * m.kernel_size[1] * m.out_channels
                     m.weight.data.normal_(0, math.sqrt(2. / n))
@@ -541,7 +544,8 @@ class ResNetP3D(nn.Module):
             self._partial_bn()
 
 
-# if __name__ == '__main__':
-#     data = torch.rand(10, 3, 16, 160, 160, requires_grad=False)
-#     model = ResNetP3D(199)
-#     out = model(data)
+if __name__ == '__main__':
+    # data = torch.rand(10, 3, 16, 160, 160, requires_grad=False)
+    model = ResNetP3D(199)
+    # out = model(data)
+    model.init_weights()
