@@ -206,9 +206,6 @@ class ResNetP3D1(nn.Module):
                  depth,
                  modality='RGB',
                  shortcut_type='B',
-                 in_channels=2048,
-                 num_classes=600,
-                 dropout=0.5,
                  pretrained=None,
                  ST_struc=('A', 'B', 'C')):
         self.inplanes = 64
@@ -258,13 +255,13 @@ class ResNetP3D1(nn.Module):
                                        shortcut_type,
                                        stride=2)
 
-        #####################################
-        self.avgpool = nn.AvgPool2d(kernel_size=(5, 5),
-                                    stride=1)  # pooling layer for res5.
-        # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.dropout = nn.Dropout(p=dropout)
-        self.fc = nn.Linear(in_channels, num_classes)
-        #####################################
+        # #####################################
+        # self.avgpool = nn.AvgPool2d(kernel_size=(5, 5),
+        #                             stride=1)  # pooling layer for res5.
+        # # self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        # self.dropout = nn.Dropout(p=dropout)
+        # self.fc = nn.Linear(in_channels, num_classes)
+        # #####################################
 
     @property
     def scale_size(self):
@@ -349,6 +346,8 @@ class ResNetP3D1(nn.Module):
             for key in keys:
                 if 'module' in key:
                     weights[key[len('module.'):]] = weights[key].clone().detach()
+                    del weights[key]
+                if 'fc' in key:
                     del weights[key]
             self.load_state_dict(weights)
         elif self.pretrained:
@@ -486,7 +485,7 @@ def get_optim_policies(model=None, modality='RGB', enable_pbn=True):
 
 # if __name__ == '__main__':
 #     import sys
-#     model = ResNetP3D1(depth=199, pretrained=sys.argv[1], num_classes=400)
+#     model = ResNetP3D1(depth=199, pretrained=sys.argv[1])
 #     model.init_weights()
 #     # model = P3D199(pretrained=False, num_classes=400)
 #     # model = model.cuda()
