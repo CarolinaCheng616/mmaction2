@@ -349,17 +349,7 @@ class ResNetP3D1(nn.Module):
 
             state_dict = torch.load(self.pretrained)['state_dict']
             state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
-            # print(state_dict.keys())
-            # exit(0)
-
             load_state_dict(self, state_dict, strict=False, logger=logger)
-            # exit(0)
-            # for key in keys:
-            #     if 'fc' not in key:
-            #         new_key = 'backbone.' + key
-            #         weights[new_key] = weights[key].clone().detach()
-            #     del weights[key]
-            # self.load_state_dict(weights)
         elif self.pretrained:
             logger = get_root_logger()
             logger.info(f'invalid pretrained file {self.pretrained}')
