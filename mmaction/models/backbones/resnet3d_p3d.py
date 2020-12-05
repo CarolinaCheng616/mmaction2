@@ -172,7 +172,7 @@ class BottleneckP3D(nn.Module):
         return out
 
 
-# @BACKBONES.register_module()
+@BACKBONES.register_module()
 class ResNetP3D(nn.Module):
 
     arch_settings = {

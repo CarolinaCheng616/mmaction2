@@ -359,7 +359,7 @@ class ResNetP3D1(nn.Module):
             #         new_key = 'backbone.' + key
             #         weights[new_key] = weights[key].clone().detach()
             #     del weights[key]
-            # self.load_state_dict(weights)
+            self.load_state_dict(weights)
             # exit(0)
         elif self.pretrained:
             logger = get_root_logger()
