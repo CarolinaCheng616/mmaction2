@@ -344,9 +344,11 @@ class ResNetP3D1(nn.Module):
             weights = torch.load(self.pretrained)['state_dict']
             keys = list(weights.keys())
             import pdb
-            for name, module in self.named_modules():
+            # for name, module in self.named_modules():
+            #     print(name)
+            #     pdb.set_trace()
+            for name, module in self._modules.items():
                 print(name)
-                pdb.set_trace()
             pdb.set_trace()
             for key in keys:
                 print(key)
