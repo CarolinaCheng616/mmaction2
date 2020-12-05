@@ -34,11 +34,6 @@ class P3DHead1(BaseHead):
         if self.pretrained and isinstance(self.pretrained, str):
             logger = get_root_logger()
             logger.info(f'p3d_head_1 load model from: {self.pretrained}')
-
-            state_dict = torch.load(self.pretrained)['state_dict']
-            state_dict = {k: v for k, v in state_dict.items() if 'fc' in k}
-            load_state_dict(self, state_dict, strict=False, logger=logger)
-            # exit(0)
         else:
             normal_init(self.fc, std=self.init_std)
 

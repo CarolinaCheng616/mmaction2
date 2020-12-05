@@ -346,10 +346,6 @@ class ResNetP3D1(nn.Module):
         if self.pretrained and isinstance(self.pretrained, str):
             logger = get_root_logger()
             logger.info(f'resnet3d_p3d_1 load model from: {self.pretrained}')
-
-            state_dict = torch.load(self.pretrained)['state_dict']
-            state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
-            load_state_dict(self, state_dict, strict=False, logger=logger)
         elif self.pretrained:
             logger = get_root_logger()
             logger.info(f'invalid pretrained file {self.pretrained}')
