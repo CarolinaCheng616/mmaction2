@@ -33,8 +33,10 @@ class P3DHead1(BaseHead):
             weights = torch.load(self.pretrained, map_location=torch.device('cpu'))['state_dict']
             keys = list(weights.keys())
             for key in keys:
-                if 'fc' not in key:
-                    del weights[key]
+                if 'fc' in key:
+                    new_key = 'cls_head.' + key.replace('module.', '')
+                    weights[new_key] = weights[key].clone().detach()
+                del weights[key]
             self.load_state_dict(weights)
         else:
             normal_init(self.fc, std=self.init_std)

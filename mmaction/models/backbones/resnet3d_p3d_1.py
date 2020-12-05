@@ -344,13 +344,10 @@ class ResNetP3D1(nn.Module):
             weights = torch.load(self.pretrained, map_location=torch.device('cpu'))['state_dict']
             keys = list(weights.keys())
             for key in keys:
-                if 'module.' in key:
-                    # new_key = 'backbone.' + key[len('module.'):]
-                    new_key = key.replace('module', 'backbone')
+                if 'fc' not in key:
+                    new_key = 'backbone.' + key.replace('module.', '')
                     weights[new_key] = weights[key].clone().detach()
-                    del weights[key]
-                if 'fc' in key:
-                    del weights[key]
+                del weights[key]
             self.load_state_dict(weights)
             # exit(0)
         elif self.pretrained:
