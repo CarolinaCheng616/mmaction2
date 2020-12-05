@@ -349,6 +349,9 @@ class ResNetP3D1(nn.Module):
 
             state_dict = torch.load(self.pretrained)['state_dict']
             state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
+            # print(state_dict.keys())
+            # exit(0)
+
             load_state_dict(self, state_dict, strict=False, logger=logger)
             # exit(0)
             # for key in keys:
