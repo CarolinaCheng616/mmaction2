@@ -1,9 +1,9 @@
 import copy
+import sys
+import torch
 
 
 def foo_save_module():
-    import sys
-    import torch
     ckpt_path = sys.argv[1]
     original_ckpt = torch.load(ckpt_path, map_location=torch.device('cpu'))
     target_ckpt = copy.deepcopy(original_ckpt)
