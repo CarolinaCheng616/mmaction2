@@ -22,6 +22,9 @@ from torch import nn as nn
 from ...utils import get_root_logger
 from ..registry import BACKBONES
 
+from mmcv.runner import load_checkpoint
+
+
 def conv_S(in_planes, out_planes, stride=1, padding=1):
     # as is descriped, conv S is 1x3x3
     return nn.Conv3d(in_planes,
@@ -341,17 +344,22 @@ class ResNetP3D1(nn.Module):
 
     def init_weights(self):
         if self.pretrained and isinstance(self.pretrained, str):
-            weights = torch.load(self.pretrained)['state_dict']
-            keys = list(weights.keys())
-            import pdb
-            # for name, module in self.named_modules():
+            logger = get_root_logger()
+            logger.info(f'load model from: {self.pretrained}')
+
+            load_checkpoint(self, self.pretrained, strict=False, logger=logger)
+            # torch.save()
+            # weights = torch.load(self.pretrained)['state_dict']
+            # keys = list(weights.keys())
+            # import pdb
+            # # for name, module in self.named_modules():
+            # #     print(name)
+            # #     pdb.set_trace()
+            # for name, module in self._modules.items():
             #     print(name)
-            #     pdb.set_trace()
-            for name, module in self._modules.items():
-                print(name)
-            pdb.set_trace()
-            for key in keys:
-                print(key)
+            # pdb.set_trace()
+            # for key in keys:
+            #     print(key)
             # import pdb
             # pdb.set_trace()
             # for key in keys:
@@ -361,7 +369,7 @@ class ResNetP3D1(nn.Module):
             #         new_key = 'backbone.' + key
             #         weights[new_key] = weights[key].clone().detach()
             #     del weights[key]
-            self.load_state_dict(weights)
+            # self.load_state_dict(weights)
             # exit(0)
         elif self.pretrained:
             logger = get_root_logger()
