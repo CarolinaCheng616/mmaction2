@@ -354,7 +354,8 @@ class ResNetP3D1(nn.Module):
                 state_dict = checkpoint
             if list(state_dict.keys())[0].startswith('module.'):
                 state_dict = {k[7:]: v for k, v in checkpoint['state_dict'].items() if 'fc' not in k}
-
+            print(state_dict.keys())
+            exit(0)
             load_state_dict(self, state_dict, strict=False, logger=logger)
 
             # load_checkpoint(self, self.pretrained, strict=False, logger=logger)
