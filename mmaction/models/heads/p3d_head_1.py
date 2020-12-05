@@ -38,7 +38,7 @@ class P3DHead1(BaseHead):
             state_dict = torch.load(self.pretrained)['state_dict']
             state_dict = {k: v for k, v in state_dict.items() if 'fc' in k}
             load_state_dict(self, state_dict, strict=False, logger=logger)
-            exit(0)
+            # exit(0)
         else:
             normal_init(self.fc, std=self.init_std)
 
