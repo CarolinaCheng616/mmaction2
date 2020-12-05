@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 from mmcv.cnn import normal_init
-from mmcv.runner import load_checkpoint
+from mmcv.runner import load_state_dict
 
 from ..registry import HEADS
 from ...utils import get_root_logger
@@ -41,9 +41,18 @@ class P3DHead1(BaseHead):
             #     del weights[key]
             # self.load_state_dict(weights)
             logger = get_root_logger()
-            logger.info(f'resnet3d_p3d_1 load model from: {self.pretrained}')
+            logger.info(f'p3d_head_1 load model from: {self.pretrained}')
+            checkpoint = torch.load(self.pretrained)
+            if 'state_dict' in checkpoint:
+                state_dict = checkpoint['state_dict']
+            else:
+                state_dict = checkpoint
+            if list(state_dict.keys())[0].startswith('module.'):
+                state_dict = {k[7:]: v for k, v in checkpoint['state_dict'].items() if 'fc' in k}
 
-            load_checkpoint(self, self.pretrained, strict=False, logger=logger)
+            load_state_dict(self, state_dict, strict=False, logger=logger)
+
+            # load_checkpoint(self, self.pretrained, strict=False, logger=logger)
         else:
             normal_init(self.fc, std=self.init_std)
 

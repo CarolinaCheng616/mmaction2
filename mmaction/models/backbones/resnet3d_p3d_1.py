@@ -22,7 +22,7 @@ from torch import nn as nn
 from ...utils import get_root_logger
 from ..registry import BACKBONES
 
-from mmcv.runner import load_checkpoint
+from mmcv.runner import load_state_dict
 
 
 def conv_S(in_planes, out_planes, stride=1, padding=1):
@@ -347,7 +347,17 @@ class ResNetP3D1(nn.Module):
             logger = get_root_logger()
             logger.info(f'resnet3d_p3d_1 load model from: {self.pretrained}')
 
-            load_checkpoint(self, self.pretrained, strict=False, logger=logger)
+            checkpoint = torch.load(self.pretrained)
+            if 'state_dict' in checkpoint:
+                state_dict = checkpoint['state_dict']
+            else:
+                state_dict = checkpoint
+            if list(state_dict.keys())[0].startswith('module.'):
+                state_dict = {k[7:]: v for k, v in checkpoint['state_dict'].items() if 'fc' not in k}
+
+            load_state_dict(self, state_dict, strict=False, logger=logger)
+
+            # load_checkpoint(self, self.pretrained, strict=False, logger=logger)
             # torch.save()
             # weights = torch.load(self.pretrained)['state_dict']
             # keys = list(weights.keys())
