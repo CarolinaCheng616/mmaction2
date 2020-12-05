@@ -344,13 +344,16 @@ class ResNetP3D1(nn.Module):
             weights = torch.load(self.pretrained)['state_dict']
             keys = list(weights.keys())
             import pdb
-            pdb.set_trace()
-            for name, _ in self.modules():
-                print(name)
-            import pdb
+            for name in self.modules():
+                # print(name)
+                pdb.set_trace()
             pdb.set_trace()
             for key in keys:
                 print(key)
+            # import pdb
+            # pdb.set_trace()
+            # for key in keys:
+            #     print(key)
             # for key in keys:
             #     if 'fc' not in key:
             #         new_key = 'backbone.' + key
