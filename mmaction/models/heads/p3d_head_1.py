@@ -36,7 +36,9 @@ class P3DHead1(BaseHead):
                 if 'fc' in key:
                     new_key = 'cls_head.' + key.replace('module.', '')
                     weights[new_key] = weights[key].clone().detach()
-                del weights[key]
+                else:
+                    del weights[key]
+                # del weights[key]
             self.load_state_dict(weights)
         else:
             normal_init(self.fc, std=self.init_std)
