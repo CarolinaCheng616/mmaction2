@@ -341,7 +341,7 @@ class ResNetP3D1(nn.Module):
 
     def init_weights(self):
         if self.pretrained and isinstance(self.pretrained, str):
-            weights = torch.load(self.pretrained, map_location=torch.device('cpu'))['state_dict']
+            weights = torch.load(self.pretrained)['state_dict']
             keys = list(weights.keys())
             for key in keys:
                 if 'fc' not in key:
