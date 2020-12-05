@@ -3,10 +3,10 @@ model = dict(
     backbone=dict(
         type='ResNetP3D1',
         depth=199,
-        pretrained='../../../checkpoint/p3d_rgb_199.checkpoint.pth.tar'),
+        pretrained='checkpoint/p3d_rgb_199.checkpoint.pth.tar'),
     cls_head=dict(
         type='P3DHead1', num_classes=400, in_channels=2048, dropout_ratio=0.1,
-        pretrained='../../../checkpoint/p3d_rgb_199.checkpoint.pth.tar'))
+        pretrained='checkpoint/p3d_rgb_199.checkpoint.pth.tar'))
 train_cfg = None
 test_cfg = dict(average_clips='prob')
 dataset_type = 'RawframeDataset'
