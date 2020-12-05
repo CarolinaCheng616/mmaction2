@@ -343,12 +343,20 @@ class ResNetP3D1(nn.Module):
         if self.pretrained and isinstance(self.pretrained, str):
             weights = torch.load(self.pretrained)['state_dict']
             keys = list(weights.keys())
+            import pdb
+            pdb.set_trace()
+            for name, _ in self.modules():
+                print(name)
+            import pdb
+            pdb.set_trace()
             for key in keys:
-                if 'fc' not in key:
-                    new_key = 'backbone.' + key
-                    weights[new_key] = weights[key].clone().detach()
-                del weights[key]
-            self.load_state_dict(weights)
+                print(key)
+            # for key in keys:
+            #     if 'fc' not in key:
+            #         new_key = 'backbone.' + key
+            #         weights[new_key] = weights[key].clone().detach()
+            #     del weights[key]
+            # self.load_state_dict(weights)
             # exit(0)
         elif self.pretrained:
             logger = get_root_logger()
