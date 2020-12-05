@@ -32,27 +32,24 @@ class P3DHead1(BaseHead):
 
     def init_weights(self):
         if self.pretrained and isinstance(self.pretrained, str):
-            # weights = torch.load(self.pretrained)['state_dict']
-            # keys = list(weights.keys())
-            # for key in keys:
-            #     if 'fc' in key:
-            #         new_key = 'cls_head.' + key
-            #         weights[new_key] = weights[key].clone().detach()
-            #     del weights[key]
-            # self.load_state_dict(weights)
+            # logger = get_root_logger()
+            # logger.info(f'resnet3d_p3d_1 load model from: {self.pretrained}')
+            # checkpoint = torch.load(self.pretrained, map_location=torch.device('cpu'))
+            # if 'state_dict' in checkpoint:
+            #     state_dict = checkpoint['state_dict']
+            # else:
+            #     state_dict = checkpoint
+            # if list(state_dict.keys())[0].startswith('module.'):
+            #     state_dict = {k[7:]: v for k, v in checkpoint['state_dict'].items() if 'fc' in k}
+            # else:
+            #     state_dict = {k: v for k, v in checkpoint['state_dict'].items() if 'fc' in k}
+            # load_state_dict(self, state_dict, strict=False, logger=logger)
             logger = get_root_logger()
             logger.info(f'p3d_head_1 load model from: {self.pretrained}')
-            checkpoint = torch.load(self.pretrained)
-            if 'state_dict' in checkpoint:
-                state_dict = checkpoint['state_dict']
-            else:
-                state_dict = checkpoint
-            if list(state_dict.keys())[0].startswith('module.'):
-                state_dict = {k[7:]: v for k, v in checkpoint['state_dict'].items() if 'fc' in k}
 
+            state_dict = torch.load(self.pretrained)['state_dict']
+            state_dict = {k: v for k, v in state_dict.items() if 'fc' in k}
             load_state_dict(self, state_dict, strict=False, logger=logger)
-
-            # load_checkpoint(self, self.pretrained, strict=False, logger=logger)
         else:
             normal_init(self.fc, std=self.init_std)
 

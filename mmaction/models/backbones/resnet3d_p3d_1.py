@@ -347,17 +347,11 @@ class ResNetP3D1(nn.Module):
             logger = get_root_logger()
             logger.info(f'resnet3d_p3d_1 load model from: {self.pretrained}')
 
-            checkpoint = torch.load(self.pretrained)
-            if 'state_dict' in checkpoint:
-                state_dict = checkpoint['state_dict']
-            else:
-                state_dict = checkpoint
-            if list(state_dict.keys())[0].startswith('module.'):
-                state_dict = {k[7:]: v for k, v in checkpoint['state_dict'].items() if 'fc' not in k}
-            print(state_dict.keys())
-            exit(0)
+            state_dict = torch.load(self.pretrained)['state_dict']
+            state_dict = {k: v for k, v in state_dict.items() if 'fc' not in k}
             load_state_dict(self, state_dict, strict=False, logger=logger)
-
+            # exit(0)
+            # exit(0)
             # load_checkpoint(self, self.pretrained, strict=False, logger=logger)
             # torch.save()
             # weights = torch.load(self.pretrained)['state_dict']
