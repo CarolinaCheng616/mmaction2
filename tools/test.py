@@ -151,7 +151,7 @@ def main():
         wrap_fp16_model(model)
     load_checkpoint(model, args.checkpoint)
 
-    exit(0)
+    # exit(0)
     # build the dataloader
     dataset = build_dataset(cfg.data.test, dict(test_mode=True))
     dataloader_setting = dict(
