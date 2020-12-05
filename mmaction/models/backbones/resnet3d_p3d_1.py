@@ -345,8 +345,11 @@ class ResNetP3D1(nn.Module):
             keys = list(weights.keys())
             for key in keys:
                 if 'fc' not in key:
-                    new_key = 'backbone.' + key.replace('module.', '')
-                    weights[new_key] = weights[key].clone().detach()
+                    # new_key = 'backbone.' + key.replace('module.', '')
+                    new_key = key.replace('module.', '')
+                    if new_key not in keys:
+                        weights[new_key] = weights[key].clone().detach()
+                        del weights[key]
                 else:
                     del weights[key]
             self.load_state_dict(weights)
