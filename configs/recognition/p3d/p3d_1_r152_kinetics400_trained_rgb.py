@@ -15,7 +15,7 @@ dataset_root = 'data/kinetics400/'
 data_root = dataset_root + 'train'
 data_root_val = dataset_root + 'val'
 ann_file_train = dataset_root + 'train_list.txt'
-ann_file_val = dataset_root + 'val_list.txt'
+ann_file_val = dataset_root + 'val_list_1.txt'
 ann_file_test = ann_file_val
 img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False)
