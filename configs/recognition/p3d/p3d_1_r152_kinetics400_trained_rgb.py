@@ -8,6 +8,7 @@ model = dict(
         type='P3DHead1', num_classes=400, in_channels=2048, dropout_ratio=0.1,
         pretrained=None))
 train_cfg = None
+eval_config = dict(metrics=['top_k_accuracy', 'mean_class_accuracy'])
 test_cfg = dict(average_clips='prob')
 dataset_type = 'RawframeDataset'
 dataset_root = 'data/kinetics400/'
@@ -86,6 +87,7 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 lr_config = dict(policy='step', step=[16, 32], gamma=0.1)
 total_epochs = 40
 checkpoint_config = dict(interval=10)
+output_config = dict(out='out/p3d_1/p3d199.json')
 workflow = [('train', 1)]
 evaluation = dict(
     interval=5, metrics=['top_k_accuracy', 'mean_class_accuracy'])
