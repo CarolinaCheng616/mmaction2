@@ -112,6 +112,9 @@ def main():
     # Add options from args.eval_options
     eval_config = Config._merge_a_into_b(args.eval_options, eval_config)
 
+    print(output_config)
+    print(eval_config)
+    exit(0)
     assert output_config or eval_config, \
         ('Please specify at least one operation (save or eval the '
          'results) with the argument "--out" or "--eval"')
