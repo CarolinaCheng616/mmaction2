@@ -21,7 +21,7 @@ img_norm_cfg = dict(
 train_pipeline = [
     dict(type='SampleFrames', clip_len=16, frame_interval=1, num_clips=5),
     dict(type='RawFrameDecode'),
-    dict(type='Resize', scale=(182, 242)),
+    dict(type='Resize', scale=(-1, 256)),
     # dict(type='RandomResizedCrop'),
     dict(type='RandomCrop', size=160),
     # dict(type='Resize', scale=(160, 160), keep_ratio=False),
@@ -39,7 +39,7 @@ val_pipeline = [
         num_clips=20,
         test_mode=True),
     dict(type='RawFrameDecode'),
-    dict(type='Resize', scale=(182, 242)),
+    dict(type='Resize', scale=(-1, 256)),
     dict(type='CenterCrop', crop_size=160),
     # dict(type='Flip', flip_ratio=0),
     dict(type='Normalize', **img_norm_cfg),
@@ -55,7 +55,7 @@ test_pipeline = [
         num_clips=20,
         test_mode=True),
     dict(type='RawFrameDecode'),
-    dict(type='Resize', scale=(182, 242)),
+    dict(type='Resize', scale=(-1, 256)),
     dict(type='CenterCrop', crop_size=160),
     # dict(type='Flip', flip_ratio=0),
     dict(type='Normalize', **img_norm_cfg),
@@ -64,7 +64,7 @@ test_pipeline = [
     dict(type='ToTensor', keys=['imgs'])
 ]
 data = dict(
-    videos_per_gpu=16,
+    videos_per_gpu=1,
     workers_per_gpu=4,
     train=dict(
         type=dataset_type,

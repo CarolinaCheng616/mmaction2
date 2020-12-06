@@ -144,14 +144,13 @@ def main():
         distributed = True
         init_dist(args.launcher, **cfg.dist_params)
 
-    # build the model and load checkpoint
-    model = build_model(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
-    fp16_cfg = cfg.get('fp16', None)
-    if fp16_cfg is not None:
-        wrap_fp16_model(model)
-    load_checkpoint(model, args.checkpoint)
+    # # build the model and load checkpoint
+    # model = build_model(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
+    # fp16_cfg = cfg.get('fp16', None)
+    # if fp16_cfg is not None:
+    #     wrap_fp16_model(model)
+    # load_checkpoint(model, args.checkpoint)
 
-    # exit(0)
     # build the dataloader
     dataset = build_dataset(cfg.data.test, dict(test_mode=True))
     dataloader_setting = dict(
@@ -163,12 +162,12 @@ def main():
                               **cfg.data.get('test_dataloader', {}))
     data_loader = build_dataloader(dataset, **dataloader_setting)
 
-    # # build the model and load checkpoint
-    # model = build_model(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
-    # fp16_cfg = cfg.get('fp16', None)
-    # if fp16_cfg is not None:
-    #     wrap_fp16_model(model)
-    # load_checkpoint(model, args.checkpoint, map_location='cpu')
+    # build the model and load checkpoint
+    model = build_model(cfg.model, train_cfg=None, test_cfg=cfg.test_cfg)
+    fp16_cfg = cfg.get('fp16', None)
+    if fp16_cfg is not None:
+        wrap_fp16_model(model)
+    load_checkpoint(model, args.checkpoint, map_location='cpu')
 
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
