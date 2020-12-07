@@ -20,5 +20,17 @@ def foo_save_module():
     torch.save(target_ckpt, sys.argv[2])
 
 
+def tar():
+    import os
+    file = 'data/kinetics400/val_list_1.txt'
+    src = '/mnt/lustre/DATAshare2/kinetics_400_val_320_frames/'
+    dst = 'data/kinetics400/val_1/'
+    with open(file, 'r', encoding='utf-8') as f:
+        for row in f:
+            filename = row.strip().split()[0]
+            os.system('ln -s ' + src + filename + ' ' + dst + filename)
+    os.system('tar -czvf data/kinetics400/val.tar.gz data/kinetics400/val_1')
+
+
 if __name__ == '__main__':
-    foo_save_module()
+    tar()
