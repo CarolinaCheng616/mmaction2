@@ -75,17 +75,13 @@ class BMN(BaseLocalizer):
         # Base Module
         self.x_1d_b = nn.Sequential(
             nn.Conv1d(
-                self.feat_dim,
-                self.hidden_dim_1d,
-                kernel_size=3,
-                padding=1,
-                groups=4), nn.ReLU(inplace=True),
+                self.feat_dim, self.hidden_dim_1d, kernel_size=3, padding=1),
+            nn.ReLU(inplace=True),
             nn.Conv1d(
                 self.hidden_dim_1d,
                 self.hidden_dim_1d // 2,
                 kernel_size=3,
-                padding=1,
-                groups=4), nn.ReLU(inplace=True))
+                padding=1), nn.ReLU(inplace=True))
 
         # Temporal Evaluation Module
         self.x_1d_t = nn.Sequential(
