@@ -82,49 +82,29 @@ class BMN(BaseLocalizer):
                 groups=4), nn.ReLU(inplace=True),
             nn.Conv1d(
                 self.hidden_dim_1d,
-                self.hidden_dim_1d,
+                self.hidden_dim_1d // 2,
                 kernel_size=3,
                 padding=1,
                 groups=4), nn.ReLU(inplace=True))
 
         # Temporal Evaluation Module
-        self.x_1d_s = nn.Sequential(
+        self.x_1d_t = nn.Sequential(
             nn.Conv1d(
-                self.hidden_dim_1d,
+                self.hidden_dim_1d // 2,
                 self.hidden_dim_1d,
                 kernel_size=3,
-                padding=1,
-                groups=4), nn.ReLU(inplace=True),
-            nn.Conv1d(self.hidden_dim_1d, 1, kernel_size=1), nn.Sigmoid())
-        self.x_1d_e = nn.Sequential(
-            nn.Conv1d(
-                self.hidden_dim_1d,
-                self.hidden_dim_1d,
-                kernel_size=3,
-                padding=1,
-                groups=4), nn.ReLU(inplace=True),
-            nn.Conv1d(self.hidden_dim_1d, 1, kernel_size=1), nn.Sigmoid())
+                padding=1), nn.ReLU(inplace=True),
+            nn.Conv1d(self.hidden_dim_1d, 2, kernel_size=1), nn.Sigmoid())
 
         # Proposal Evaluation Module
-        self.x_1d_p = nn.Sequential(
-            nn.Conv1d(
-                self.hidden_dim_1d,
-                self.hidden_dim_1d,
-                kernel_size=3,
-                padding=1), nn.ReLU(inplace=True))
         self.x_3d_p = nn.Sequential(
             nn.Conv3d(
-                self.hidden_dim_1d,
+                self.hidden_dim_1d // 2,
                 self.hidden_dim_3d,
                 kernel_size=(self.num_samples, 1, 1)), nn.ReLU(inplace=True))
         self.x_2d_p = nn.Sequential(
             nn.Conv2d(self.hidden_dim_3d, self.hidden_dim_2d, kernel_size=1),
             nn.ReLU(inplace=True),
-            nn.Conv2d(
-                self.hidden_dim_2d,
-                self.hidden_dim_2d,
-                kernel_size=3,
-                padding=1), nn.ReLU(inplace=True),
             nn.Conv2d(
                 self.hidden_dim_2d,
                 self.hidden_dim_2d,
@@ -185,15 +165,15 @@ class BMN(BaseLocalizer):
         """
         # x.shape [batch_size, self.feat_dim, self.tscale]
         base_feature = self.x_1d_b(x)
-        # base_feature.shape [batch_size, self.hidden_dim_1d, self.tscale]
-        start = self.x_1d_s(base_feature).squeeze(1)
+        # base_feature.shape [batch_size, self.hidden_dim_1d // 2, self.tscale]
+        start_end = self.x_1d_t(base_feature)
+        # start_end.shape [batch_size, 2, self.tscale]
+        start = start_end[:, 0, :]
         # start.shape [batch_size, self.tscale]
-        end = self.x_1d_e(base_feature).squeeze(1)
+        end = start_end[:, 1, :]
         # end.shape [batch_size, self.tscale]
-        confidence_map = self.x_1d_p(base_feature)
-        # [batch_size, self.hidden_dim_1d, self.tscale]
-        confidence_map = self._boundary_matching_layer(confidence_map)
-        # [batch_size, self.hidden_dim_1d,, self.num_sampls, self.tscale, self.tscale] # noqa
+        confidence_map = self._boundary_matching_layer(base_feature)
+        # [batch_size, self.hidden_dim_1d // 2, self.num_samples, self.tscale, self.tscale] # noqa
         confidence_map = self.x_3d_p(confidence_map).squeeze(2)
         # [batch_size, self.hidden_dim_3d, self.tscale, self.tscale]
         confidence_map = self.x_2d_p(confidence_map)
