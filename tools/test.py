@@ -122,6 +122,8 @@ def main():
          'results) with the argument "--out" or "--eval"')
 
     dataset_type = cfg.data.test.type
+    import pdb
+    pdb.set_trace()
     if output_config.get('output_format', None) or output_config.get('out', None):
         if output_config.get('output_format', None):
             suffix = output_config.get('output_format')
