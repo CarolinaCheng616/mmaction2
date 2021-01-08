@@ -44,7 +44,7 @@ class TEM(BaseLocalizer):
                  output_dim=3,
                  conv1_ratio=1,
                  conv2_ratio=1,
-                 conv3_ratio=0.01):
+                 conv3_ratio=1):
         super(BaseLocalizer, self).__init__()
 
         self.temporal_dim = temporal_dim
