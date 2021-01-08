@@ -14,10 +14,11 @@ dataset_type = 'ActivityNetDataset'
 data_root = 'data/ActivityNet/activitynet_feature_cuhk/csv_mean_100/'
 data_root_val = 'data/ActivityNet/activitynet_feature_cuhk/csv_mean_100/'
 ann_file_train = 'data/ActivityNet/anet_anno_train.json'
-# ann_file_val = 'data/ActivityNet/anet_anno_val.json'
+ann_file_val = 'data/ActivityNet/anet_anno_val.json'
 # ann_file_test = 'data/ActivityNet/anet_anno_full.json'
-ann_file_val = ann_file_train
-ann_file_test = ann_file_train
+ann_file_test = ann_file_val
+# ann_file_val = ann_file_train
+# ann_file_test = ann_file_train
 
 work_dir = 'work_dirs/bsn_400x100_20e_1x16_activitynet_feature/'
 tem_results_dir = f'{work_dir}/tem_results/'
