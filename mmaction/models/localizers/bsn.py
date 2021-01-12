@@ -223,11 +223,11 @@ class TEM(BaseLocalizer):
             action_name = name + '_action.npy'
             start_name = name + '_start.npy'
             end_name = name + '_end.npy'
-            with open(action_name, 'wb') as f:
+            with open(osp.join('anet', action_name), 'wb') as f:
                 np.save(f, label_action.numpy())
-            with open(start_name, 'wb') as f:
+            with open(osp.join('anet', start_name), 'wb') as f:
                 np.save(f, label_start.numpy())
-            with open(end_name, 'wb') as f:
+            with open(osp.join('anet', end_name), 'wb') as f:
                 np.save(f, label_end)
             device = raw_feature.device
             label_action = label_action.to(device)
