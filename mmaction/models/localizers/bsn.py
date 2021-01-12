@@ -219,7 +219,7 @@ class TEM(BaseLocalizer):
         if return_loss:
             label_action, label_start, label_end = (
                 self.generate_labels(gt_bbox))
-            name = video_meta['video_name']
+            name = video_meta[0]['video_name']
             action_name = name + '_action.npy'
             start_name = name + '_start.npy'
             end_name = name + '_end.npy'
