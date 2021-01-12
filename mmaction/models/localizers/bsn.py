@@ -214,8 +214,9 @@ class TEM(BaseLocalizer):
                 video_meta=None,
                 return_loss=True):
         """Define the computation performed at every call."""
-        if not osp.exists('anet'):
-            os.makedirs('anet')
+        dir_name = 'anet'
+        if not osp.exists(dir_name):
+            os.makedirs(dir_name)
         if return_loss:
             label_action, label_start, label_end = (
                 self.generate_labels(gt_bbox))
@@ -223,11 +224,11 @@ class TEM(BaseLocalizer):
             action_name = name + '_action.npy'
             start_name = name + '_start.npy'
             end_name = name + '_end.npy'
-            with open(osp.join('anet', action_name), 'wb') as f:
+            with open(osp.join(dir_name, action_name), 'wb') as f:
                 np.save(f, label_action.numpy())
-            with open(osp.join('anet', start_name), 'wb') as f:
+            with open(osp.join(dir_name, start_name), 'wb') as f:
                 np.save(f, label_start.numpy())
-            with open(osp.join('anet', end_name), 'wb') as f:
+            with open(osp.join(dir_name, end_name), 'wb') as f:
                 np.save(f, label_end)
             device = raw_feature.device
             label_action = label_action.to(device)
