@@ -55,7 +55,7 @@ val_pipeline = [
 
 data = dict(
     videos_per_gpu=1,
-    workers_per_gpu=8,
+    workers_per_gpu=1,
     train_dataloader=dict(drop_last=True),
     val_dataloader=dict(videos_per_gpu=1),
     test_dataloader=dict(videos_per_gpu=1),
@@ -83,7 +83,7 @@ optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=7)
 
-total_epochs = 20
+total_epochs = 1
 checkpoint_config = dict(interval=1, filename_tmpl='tem_epoch_{}.pth')
 
 log_config = dict(interval=50, hooks=[dict(type='TextLoggerHook')])
