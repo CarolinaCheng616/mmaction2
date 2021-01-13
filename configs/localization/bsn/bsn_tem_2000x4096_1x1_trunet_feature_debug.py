@@ -5,7 +5,10 @@ model = dict(
     boundary_ratio=0.1,
     tem_feat_dim=4096,
     tem_hidden_dim=512,
-    tem_match_threshold=0.5)
+    tem_match_threshold=0.5,
+    conv1_ratio=2,
+    conv2_ratio=2,
+    conv3_ratio=2)
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
