@@ -577,6 +577,9 @@ class TEM(BaseLocalizer):
         score_start = tem_output[:, 1, :]
         score_end = tem_output[:, 2, :]
 
+        import pdb
+        pdb.set_trace()
+
         loss_action = self.loss_cls(score_action, label_action,
                                     self.match_threshold)
         loss_start_small = self.loss_cls(score_start, label_start,

@@ -45,10 +45,16 @@ train_pipeline = [
         keys=['raw_feature', 'label_start', 'label_action', 'label_end'],
         meta_name='video_meta',
         meta_keys=['video_name']),
-    dict(type='ToTensor', keys=['raw_feature', 'label_start', 'label_action', 'label_end']),
-    dict(type='ToDataContainer', fields=[dict(key='label_start', stack=False),
-                                         dict(key='label_action', stack=False),
-                                         dict(key='label_end', stack=False)])
+    dict(
+        type='ToTensor',
+        keys=['raw_feature', 'label_start', 'label_action', 'label_end']),
+    dict(
+        type='ToDataContainer',
+        fields=[
+            dict(key='label_start', stack=False),
+            dict(key='label_action', stack=False),
+            dict(key='label_end', stack=False)
+        ])
 ]
 val_pipeline = [
     dict(type='LoadTruNetLocalizationFeature'),
@@ -58,16 +64,22 @@ val_pipeline = [
         keys=['raw_feature', 'label_start', 'label_action', 'label_end'],
         meta_name='video_meta',
         meta_keys=['video_name']),
-    dict(type='ToTensor', keys=['raw_feature', 'label_start', 'label_action', 'label_end']),
-    dict(type='ToDataContainer', fields=[dict(key='label_start', stack=False),
-                                        dict(key='label_action', stack=False),
-                                        dict(key='label_end', stack=False)])
+    dict(
+        type='ToTensor',
+        keys=['raw_feature', 'label_start', 'label_action', 'label_end']),
+    dict(
+        type='ToDataContainer',
+        fields=[
+            dict(key='label_start', stack=False),
+            dict(key='label_action', stack=False),
+            dict(key='label_end', stack=False)
+        ])
 ]
 
 data = dict(
     videos_per_gpu=8,
     workers_per_gpu=0,
-    train_dataloader=dict(drop_last=True),
+    train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
     test_dataloader=dict(videos_per_gpu=1),
     test=dict(
@@ -88,8 +100,7 @@ data = dict(
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.1, momentum=0.9,
-    weight_decay=0.0005)  # batch_size
+    type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0005)  # batch_size
 
 optimizer_config = dict(grad_clip=None)
 # learning policy

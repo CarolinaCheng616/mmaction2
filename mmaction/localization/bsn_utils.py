@@ -99,7 +99,7 @@ def generate_candidate_proposals(video_list,
             for tmin, tmin_score in zip(tmin_list, tmin_score_list):
                 if tmin >= tmax:
                     break
-                if (tmax - tmin) <= tgap * (3 / 80 * 2000) * scale:
+                if (tmax - tmin) <= 3 / 80 * scale:
                     new_props.append([tmin, tmax, tmin_score, tmax_score])
 
         new_props = np.stack(new_props)

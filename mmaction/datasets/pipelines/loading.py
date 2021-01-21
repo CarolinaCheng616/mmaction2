@@ -1,9 +1,9 @@
 import io
 import os
 import os.path as osp
+import pickle
 import shutil
 import warnings
-import pickle
 
 import mmcv
 import numpy as np
@@ -1610,6 +1610,7 @@ class LoadTruNetLocalizationFeature:
                     f'raw_feature_ext={self.raw_feature_ext})')
         return repr_str
 
+
 @PIPELINES.register_module()
 class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
     """Load Video features for localizer with given video_name list.
@@ -1631,7 +1632,7 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        video_name_split = results['video_name'].split('_')[:-1]
+        video_name_split = results['video_name'].split('_')
         video_name = '_'.join(video_name_split[:-1])
         snippet_idx = int(video_name_split[-1])
         data_prefix = results['data_prefix']
@@ -1642,8 +1643,22 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
         raw_feature = pickle.load(open(data_path, 'rb'), encoding='bytes')
 
         results['raw_feature'] = np.transpose(
-            raw_feature.astype(np.float32)[:, snippet_idx : (snippet_idx + results['snippet_length'])], (1, 0))  # 4096, 2000
+            raw_feature.astype(
+                np.float32)[snippet_idx:(snippet_idx +
+                                         results['snippet_length']), :],
+            (1, 0))  # 4096, 7
+        if results['raw_feature'].shape[1] < results[
+                'snippet_length']:  # temporal dim less than snippet_length, add to snippet length by latest frame  # noqa
+            tmp_feature = results['raw_feature'].transpose(
+                (1, 0))[-1]  # 1, 4096
+            tmp_feature = np.transpose(
+                np.array([tmp_feature] * (results['snippet_length'] -
+                                          results['raw_feature'].shape[1])),
+                (1, 0))  # 4096, a
+            results['raw_feature'] = np.concatenate(
+                (results['raw_feature'], tmp_feature), axis=1)
         return results
+
 
 @PIPELINES.register_module()
 class GenerateTruNetLocalizationLabels:
@@ -1693,7 +1708,7 @@ class GenerateTruNetLocalizationLabels:
 #         # video_frame = results['duration_frame']
 #         video_second = results['duration_second']
 #         # feature_frame = results['feature_frame']
-#         # corrected_second = float(feature_frame) / video_frame * video_second
+#         # corrected_second = float(feature_frame) / video_frame * video_second  # noqa
 #         annotations = results['annotations']
 
 #         gt_bbox = []
@@ -1704,6 +1719,7 @@ class GenerateTruNetLocalizationLabels:
 #             current_end = max(
 #                 min(1, annotation['segment'][1] / video_second), 0)
 #             gt_bbox.append([current_start, current_end])
+
 
 #         gt_bbox = np.array(gt_bbox)
 #         results['gt_bbox'] = gt_bbox
