@@ -34,7 +34,7 @@ test_pipeline = [
         type='Collect',
         keys=['raw_feature'],
         meta_name='video_meta',
-        meta_keys=['video_name']),
+        meta_keys=['video_name', 'duration_second']),
     dict(type='ToTensor', keys=['raw_feature'])
 ]
 train_pipeline = [
@@ -42,36 +42,36 @@ train_pipeline = [
     # dict(type='GenerateSnippetLocalizationLabels'),
     dict(
         type='Collect',
-        keys=['raw_feature', 'label_start', 'label_action', 'label_end'],
+        keys=['raw_feature', 'label_action', 'label_start', 'label_end'],
         meta_name='video_meta',
-        meta_keys=['video_name']),
+        meta_keys=['video_name', 'duration_second', 'snippet_length']),
     dict(
         type='ToTensor',
-        keys=['raw_feature', 'label_start', 'label_action', 'label_end']),
+        keys=['raw_feature', 'label_action', 'label_start', 'label_end']),
     dict(
         type='ToDataContainer',
         fields=[
-            dict(key='label_start', stack=False),
             dict(key='label_action', stack=False),
+            dict(key='label_start', stack=False),
             dict(key='label_end', stack=False)
         ])
 ]
 val_pipeline = [
-    dict(type='LoadTruNetLocalizationFeature'),
+    dict(type='LoadSnippetLocalizationFeature'),
     # dict(type='GenerateTruNetLocalizationLabels'),
     dict(
         type='Collect',
-        keys=['raw_feature', 'label_start', 'label_action', 'label_end'],
+        keys=['raw_feature', 'label_action', 'label_start', 'label_end'],
         meta_name='video_meta',
-        meta_keys=['video_name']),
+        meta_keys=['video_name', 'duration_second', 'snippet_length']),
     dict(
         type='ToTensor',
-        keys=['raw_feature', 'label_start', 'label_action', 'label_end']),
+        keys=['raw_feature', 'label_action', 'label_start', 'label_end']),
     dict(
         type='ToDataContainer',
         fields=[
-            dict(key='label_start', stack=False),
             dict(key='label_action', stack=False),
+            dict(key='label_start', stack=False),
             dict(key='label_end', stack=False)
         ])
 ]
@@ -86,12 +86,14 @@ data = dict(
         type=dataset_type,
         ann_file=ann_file_test,
         pipeline=test_pipeline,
-        data_prefix=data_root_val),
+        data_prefix=data_root_val,
+        test_mode=True),
     val=dict(
         type=dataset_type,
         ann_file=ann_file_val,
         pipeline=val_pipeline,
-        data_prefix=data_root_val),
+        data_prefix=data_root_val,
+        test_mode=True),
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,

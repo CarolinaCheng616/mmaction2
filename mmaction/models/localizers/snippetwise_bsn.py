@@ -1,3 +1,4 @@
+import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -33,9 +34,14 @@ class SnippetTEM(TEM):
         # score_action = tem_output[:, 0, :]
         # score_start = tem_output[:, 1, :]
         # score_end = tem_output[:, 2, :]
-        score_action = tem_output[:, 0]
-        score_start = tem_output[:, 1]
-        score_end = tem_output[:, 2]
+        batch = tem_output.shape[0]
+        score_action = tem_output[:, 0].reshape(batch, 1)
+        score_start = tem_output[:, 1].reshape(batch, 1)
+        score_end = tem_output[:, 2].reshape(batch, 1)
+
+        label_action = label_action.reshape(label_action.shape[0], 1)
+        label_start = label_start.reshape(label_start.shape[0], 1)
+        label_end = label_end.reshape(label_end.shape[0], 1)
 
         loss_action = self.loss_cls(score_action, label_action,
                                     self.match_threshold)
@@ -43,8 +49,6 @@ class SnippetTEM(TEM):
                                          self.match_threshold)
         loss_end_small = self.loss_cls(score_end, label_end,
                                        self.match_threshold)
-        import pdb
-        pdb.set_trace()
 
         loss_dict = {
             'loss_action': loss_action * self.loss_weight,
@@ -53,6 +57,37 @@ class SnippetTEM(TEM):
         }
 
         return loss_dict
+
+    def forward_test(self, raw_feature, video_meta):
+        """Define the computation performed at every call when testing."""
+        tem_output = self._forward(raw_feature).cpu().numpy()
+        # batch_action = tem_output[:, 0, :]
+        # batch_start = tem_output[:, 1, :]
+        # batch_end = tem_output[:, 2, :]
+
+        batch = tem_output.shape[0]
+        batch_action = tem_output[:, 0].reshape(batch, 1)
+        batch_start = tem_output[:, 1].reshape(batch, 1)
+        batch_end = tem_output[:, 2].reshape(batch, 1)
+
+        video_meta_list = [dict(x) for x in video_meta]
+
+        video_results = []
+
+        # for batch_idx, _ in enumerate(batch_action):
+        for batch_idx in range(batch):
+            video_name = video_meta_list[batch_idx]['video_name']
+            video_action = batch_action[batch_idx]
+            video_start = batch_start[batch_idx]
+            video_end = batch_end[batch_idx]
+            duration = int(video_meta_list[batch_idx]['duration_second'])
+            idx = int(video_name.split(
+                '_')[-1]) + (video_meta_list[batch_idx]['snippet_length']) // 2
+            tmin, tmax = idx / duration, (idx + 1) / duration
+            video_result = np.stack(
+                (video_action, video_start, video_end, tmin, tmax), axis=1)
+            video_results.append((video_name, video_result))
+        return video_results
 
     def forward(self,
                 raw_feature,

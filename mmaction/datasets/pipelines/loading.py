@@ -1640,23 +1640,37 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
         # raw_feature = np.loadtxt(
         #     data_path, dtype=np.float32, delimiter=',', skiprows=1)
-        raw_feature = pickle.load(open(data_path, 'rb'), encoding='bytes')
+        raw_feature = pickle.load(
+            open(data_path, 'rb'), encoding='bytes')  # temporal, 4096
+        length = results['snippet_length']
+        start_frame = np.array([raw_feature[0]] * (length // 2))
+        if raw_feature.shape[0] < results['duration_seconds']:
+            end_frame = np.array(
+                [raw_feature[-1]] *
+                ((results['duration_seconds'] - raw_feature.shape[0]) +
+                 length // 2))
+        else:
+            end_frame = np.array([raw_feature[-1]] * (length // 2))
+        raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
+                                     axis=0)
+
+        snippet_idx += length // 2
 
         results['raw_feature'] = np.transpose(
             raw_feature.astype(
                 np.float32)[snippet_idx:(snippet_idx +
                                          results['snippet_length']), :],
             (1, 0))  # 4096, 7
-        if results['raw_feature'].shape[1] < results[
-                'snippet_length']:  # temporal dim less than snippet_length, add to snippet length by latest frame  # noqa
-            tmp_feature = results['raw_feature'].transpose(
-                (1, 0))[-1]  # 1, 4096
-            tmp_feature = np.transpose(
-                np.array([tmp_feature] * (results['snippet_length'] -
-                                          results['raw_feature'].shape[1])),
-                (1, 0))  # 4096, a
-            results['raw_feature'] = np.concatenate(
-                (results['raw_feature'], tmp_feature), axis=1)
+        # if results['raw_feature'].shape[1] < results[
+        #         'snippet_length']:  # temporal dim less than snippet_length, add to snippet length by latest frame  # noqa
+        #     tmp_feature = results['raw_feature'].transpose(
+        #         (1, 0))[-1]  # 1, 4096
+        #     tmp_feature = np.transpose(
+        #         np.array([tmp_feature] * (results['snippet_length'] -
+        #                                   results['raw_feature'].shape[1])),
+        #         (1, 0))  # 4096, a
+        #     results['raw_feature'] = np.concatenate(
+        #         (results['raw_feature'], tmp_feature), axis=1)
         return results
 
 
