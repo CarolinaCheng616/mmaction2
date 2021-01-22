@@ -1,14 +1,13 @@
 import copy
 import os
 import os.path as osp
+from random import shuffle as shuf
 
 import mmcv
 import numpy as np
 
 from .registry import DATASETS
 from .trunet_dataset import TruNetDataset
-
-# from random import shuffle as shuf
 
 
 @DATASETS.register_module()
@@ -60,16 +59,21 @@ class SnippetDataset(TruNetDataset):
                 neg_snippets.append(snippet)
             else:
                 pos_snippets.append(snippet)
-        # shuf(neg_snippets)
+        shuf(neg_snippets)
         neg_snippets = neg_snippets[:int(
             len(pos_snippets) * self.pos_neg_ratio)]
         self.snippet_infos = pos_snippets + neg_snippets
         # shuf(self.snippet_infos)
+        import pdb
+        pdb.set_trace()
+        self.snippet_infos = sorted(
+            self.snippet_infos,
+            key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         if output_format == 'json':
             result_dict = self.proposals2json(results)
             # output_dict = {
