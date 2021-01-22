@@ -126,8 +126,8 @@ class SnippetDataset(TruNetDataset):
                 label['label_end'] = 1.0
             elif int(round(segment[0])) < center < int(round(segment[1])):
                 label['action'] = 1.0
-            if any(label['label_start'] != 0., label['label_end'] != 0.,
-                   label['label_action'] != 0):
+            if any((label['label_start'] != 0., label['label_end'] != 0.,
+                    label['label_action'] != 0)):
                 label['neg'] = False
                 break
 
