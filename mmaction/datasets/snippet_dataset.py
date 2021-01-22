@@ -29,8 +29,6 @@ class SnippetDataset(TruNetDataset):
     def load_snippet_annotations(self):
         """Load the annotation according to ann_file into video_infos."""
         snippet_infos = list()
-        import pdb
-        pdb.set_trace()
         for v_info in self.video_infos:
             v_id = v_info['video_name']
             video_snippets = list()
@@ -53,19 +51,22 @@ class SnippetDataset(TruNetDataset):
 
     def filter_neg(self):
         """Filter out too many negative snippets."""
-        self.filtered = True
-        self.pos_snippets = []
-        self.neg_snippets = []
-        self.snippet_infos = shuf(self.snippet_infos)
+        # self.filtered = True
+        pos_snippets = []
+        neg_snippets = []
+        # self.snippet_infos = shuf(self.snippet_infos)
         for snippet in self.snippet_infos:
             if snippet['neg']:
-                self.neg_snippets.append(snippet)
+                neg_snippets.append(snippet)
             else:
-                self.pos_snippets.append(snippet)
-        self.neg_snippets = shuf(
-            self.neg_snippets
-        )[:int(len(self.pos_snippets) * self.pos_neg_ratio)]
-        self.snippet_infos = shuf(self.neg_snippets + self.pos_snippets)
+                pos_snippets.append(snippet)
+        # shuf(self.snippet_infos)
+        shuf(neg_snippets)
+        neg_snippets = neg_snippets[:int(
+            len(pos_snippets) * self.pos_neg_ratio)]
+        # self.snippet_infos = shuf(self.neg_snippets + self.pos_snippets)
+        self.snippet_infos = neg_snippets + pos_snippets
+        shuf(self.snippet_infos)
         import pdb
         pdb.set_trace()
 
