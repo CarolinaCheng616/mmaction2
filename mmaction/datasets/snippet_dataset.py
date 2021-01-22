@@ -17,7 +17,6 @@ class SnippetDataset(TruNetDataset):
         self.snippet_length = snippet_length
         self.pos_neg_ratio = pos_neg_ratio
         super().__init__(*args, **kwargs)
-        # if self.test_mode:
         self.snippet_infos = self.load_snippet_annotations()
         if not self.test_mode:
             self.filter_neg()
@@ -51,24 +50,18 @@ class SnippetDataset(TruNetDataset):
 
     def filter_neg(self):
         """Filter out too many negative snippets."""
-        # self.filtered = True
         pos_snippets = []
         neg_snippets = []
-        # self.snippet_infos = shuf(self.snippet_infos)
         for snippet in self.snippet_infos:
             if snippet['neg']:
                 neg_snippets.append(snippet)
             else:
                 pos_snippets.append(snippet)
-        # shuf(self.snippet_infos)
         shuf(neg_snippets)
         neg_snippets = neg_snippets[:int(
             len(pos_snippets) * self.pos_neg_ratio)]
-        # self.snippet_infos = shuf(self.neg_snippets + self.pos_snippets)
         self.snippet_infos = neg_snippets + pos_snippets
         shuf(self.snippet_infos)
-        # import pdb
-        # pdb.set_trace()
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""
