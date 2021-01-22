@@ -2,9 +2,11 @@ import numpy as np
 import torch.nn as nn
 import torch.nn.functional as F
 
+from ..registry import LOCALIZERS
 from .bsn import TEM
 
 
+@LOCALIZERS.register_module()
 class SnippetTEM(TEM):
 
     def __init__(self, *args, **kwargs):
