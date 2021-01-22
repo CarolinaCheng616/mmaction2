@@ -1639,6 +1639,8 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
+        import pdb
+        pdb.set_trace()
         video_name_split = results['video_name'].split('_')
         video_name = '_'.join(video_name_split[:-1])
         snippet_idx = int(video_name_split[-1])
