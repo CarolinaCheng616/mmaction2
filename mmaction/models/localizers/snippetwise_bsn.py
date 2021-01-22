@@ -69,8 +69,8 @@ class SnippetTEM(TEM):
 
     def forward_test(self, raw_feature, video_meta):
         """Define the computation performed at every call when testing."""
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         tem_output = self._forward(raw_feature).cpu().numpy()
         # batch_action = tem_output[:, 0, :]
         # batch_start = tem_output[:, 1, :]
