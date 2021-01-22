@@ -67,8 +67,8 @@ class SnippetDataset(TruNetDataset):
         # self.snippet_infos = shuf(self.neg_snippets + self.pos_snippets)
         self.snippet_infos = neg_snippets + pos_snippets
         shuf(self.snippet_infos)
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""

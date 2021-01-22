@@ -1644,10 +1644,10 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
             open(data_path, 'rb'), encoding='bytes')  # temporal, 4096
         length = results['snippet_length']
         start_frame = np.array([raw_feature[0]] * (length // 2))
-        if raw_feature.shape[0] < results['duration_seconds']:
+        if raw_feature.shape[0] < results['duration_second']:
             end_frame = np.array(
                 [raw_feature[-1]] *
-                ((results['duration_seconds'] - raw_feature.shape[0]) +
+                ((results['duration_second'] - raw_feature.shape[0]) +
                  length // 2))
         else:
             end_frame = np.array([raw_feature[-1]] * (length // 2))
