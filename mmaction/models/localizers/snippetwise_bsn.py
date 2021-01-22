@@ -9,8 +9,9 @@ from .bsn import TEM
 @LOCALIZERS.register_module()
 class SnippetTEM(TEM):
 
-    def __init__(self, temporal_dim=2000, boundary_ratio=0.1, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, *args, **kwargs):
+        super().__init__(
+            temporal_dim=2000, boundary_ratio=0.1, *args, **kwargs)
         self.pool = nn.AdaptiveAvgPool1d(1)
         self.linear = nn.Linear(self.output_dim, self.output_dim)
 
