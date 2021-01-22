@@ -98,7 +98,7 @@ class SnippetDataset(TruNetDataset):
                 tmp_list = sorted([(idx, all_videos[name][idx])
                                    for idx in all_videos[name]],
                                   key=lambda x: x[0])
-                output_array = np.array([item[1] for item in tmp_list])
+                output_array = np.vstack([item[1] for item in tmp_list])
                 output_path = osp.join(out, name + '.csv')
                 np.savetxt(
                     output_path,
