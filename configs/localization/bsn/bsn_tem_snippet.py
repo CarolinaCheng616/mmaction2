@@ -16,10 +16,12 @@ train_cfg = None
 test_cfg = dict(average_clips='score')
 # dataset settings
 dataset_type = 'SnippetDataset'
-data_root = 'data/TruNet/train_feature/'
+data_root = 'data/TruNet/tmp_train_feature/'
+# data_root = 'data/TruNet/val_feature/'
 # data_root_val = 'data/TruNet/val_feature/'
 data_root_val = data_root
-ann_file_train = 'data/TruNet/train_meta.json'
+ann_file_train = 'data/TruNet/tmp_train_meta.json'
+# ann_file_train = 'data/TruNet/val_meta.json'
 # ann_file_val = 'data/TruNet/val_meta.json'
 # ann_file_test = 'data/TruNet/val_meta.json'
 ann_file_val = ann_file_train
@@ -77,7 +79,7 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=8,
+    videos_per_gpu=128,
     workers_per_gpu=0,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
@@ -108,7 +110,7 @@ optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=25)
 
-total_epochs = 70
+total_epochs = 1
 checkpoint_config = dict(interval=10, filename_tmpl='tem_epoch_{}.pth')
 
 log_config = dict(
