@@ -1,4 +1,5 @@
 import numpy as np
+import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
@@ -28,7 +29,7 @@ class SnippetTEM(TEM):
         x = F.relu(self.conv2_ratio * self.conv2(x))
         x = F.relu(self.conv3_ratio * self.conv3(x))
         x = self.pool(x).squeeze(2)
-        x = self.sigmoid(self.linear(x))  # batch, 3
+        x = torch.sigmoid(self.linear(x))  # batch, 3
         return x
 
     def forward_train(self, raw_feature, label_action, label_start, label_end):
