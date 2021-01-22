@@ -60,8 +60,8 @@ class SnippetDataset(TruNetDataset):
         shuf(neg_snippets)
         neg_snippets = neg_snippets[:int(
             len(pos_snippets) * self.pos_neg_ratio)]
-        self.snippet_infos = neg_snippets + pos_snippets
-        shuf(self.snippet_infos)
+        self.snippet_infos = pos_snippets + neg_snippets
+        # shuf(self.snippet_infos)
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""

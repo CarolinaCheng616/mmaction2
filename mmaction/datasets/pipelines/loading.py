@@ -4,6 +4,7 @@ import os.path as osp
 import pickle
 import shutil
 import warnings
+from functools import lru_cache
 
 import mmcv
 import numpy as np
@@ -1625,6 +1626,12 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
     def __init__(self, raw_feature_ext='.pkl'):
         super().__init__(raw_feature_ext)
 
+    @lru_cache(64)
+    def _get_raw_feature(self, data_path):
+        raw_feature = pickle.load(
+            open(data_path, 'rb'), encoding='bytes')  # temporal, 4096
+        return raw_feature
+
     def __call__(self, results):
         """Perform the LoadLocalizationFeature loading.
 
@@ -1638,10 +1645,7 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
         data_prefix = results['data_prefix']
 
         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
-        # raw_feature = np.loadtxt(
-        #     data_path, dtype=np.float32, delimiter=',', skiprows=1)
-        raw_feature = pickle.load(
-            open(data_path, 'rb'), encoding='bytes')  # temporal, 4096
+        raw_feature = self._get_raw_feature(data_path)
         length = results['snippet_length']
         start_frame = np.array([raw_feature[0]] * (length // 2))
         if raw_feature.shape[0] < results['duration_second']:
