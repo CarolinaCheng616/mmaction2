@@ -1626,7 +1626,7 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
     def __init__(self, raw_feature_ext='.pkl'):
         super().__init__(raw_feature_ext)
 
-    @lru_cache(64)
+    @lru_cache(128)
     def _get_raw_feature(self, data_path):
         raw_feature = pickle.load(
             open(data_path, 'rb'), encoding='bytes')  # temporal, 4096
