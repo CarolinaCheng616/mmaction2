@@ -6,9 +6,11 @@ from random import shuffle as shuf
 import mmcv
 import numpy as np
 
+from .registry import DATASETS
 from .trunet_dataset import TruNetDataset
 
 
+@DATASETS.register_module()
 class SnippetDataset(TruNetDataset):
 
     def __init__(self, snippet_length=7, pos_neg_ratio=1., *args, **kwargs):
