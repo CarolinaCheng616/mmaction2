@@ -10,7 +10,8 @@ model = dict(
     type='SnippetTEM',
     tem_feat_dim=4096,
     tem_hidden_dim=512,
-    tem_match_threshold=0.5)
+    tem_match_threshold=0.5,
+    loss_weight=1)
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
