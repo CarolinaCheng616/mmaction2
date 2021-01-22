@@ -31,7 +31,9 @@ class SnippetDataset(TruNetDataset):
         snippet_infos = list()
         import pdb
         pdb.set_trace()
-        for v_id, v_info in self.video_infos.items():
+        # for v_id, v_info in self.video_infos.items():
+        for v_info in self.video_infos:
+            v_id = v_info['video_name']
             # for i in range(v_info['duration_seconds'] - self.snippet_length):
             for i in range(
                     -(self.snippet_length // 2),
