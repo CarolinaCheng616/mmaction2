@@ -37,11 +37,11 @@ class SnippetDataset(TruNetDataset):
             # for i in range(v_info['duration_seconds'] - self.snippet_length):
             for i in range(
                     -(self.snippet_length // 2),
-                    v_info['duration_seconds'] - (self.snippet_length) // 2):
+                    v_info['duration_second'] - (self.snippet_length) // 2):
                 # snippet_infos[f'{v_id}_{i}'] = self._assign(i, i + self.snippet_length, v_info)  # noqa
                 snippet = self._assign(i, i + self.snippet_length, v_info)
                 snippet['video_name'] = f'{v_id}_{i}'
-                snippet['duration_seconds'] = v_info['duration_seconds']
+                snippet['duration_second'] = v_info['duration_second']
                 snippet_infos.append(snippet)
 
         return snippet_infos
