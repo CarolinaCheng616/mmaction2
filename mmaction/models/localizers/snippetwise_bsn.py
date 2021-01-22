@@ -94,7 +94,8 @@ class SnippetTEM(TEM):
             duration = int(video_meta_list[batch_idx]['duration_second'])
             idx = int(video_name.split(
                 '_')[-1]) + (video_meta_list[batch_idx]['snippet_length']) // 2
-            tmin, tmax = idx / duration, (idx + 1) / duration
+            tmin, tmax = np.array([idx / duration
+                                   ]), np.array([(idx + 1) / duration])
             video_result = np.stack(
                 (video_action, video_start, video_end, tmin, tmax), axis=1)
             video_results.append((video_name, video_result))
