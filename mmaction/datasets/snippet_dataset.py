@@ -19,7 +19,7 @@ class SnippetDataset(TruNetDataset):
         super().__init__(*args, **kwargs)
         # if self.test_mode:
         self.snippet_infos = self.load_snippet_annotations()
-        if self.test_mode:
+        if not self.test_mode:
             self.filter_neg()
 
     def __len__(self):
@@ -31,18 +31,23 @@ class SnippetDataset(TruNetDataset):
         snippet_infos = list()
         import pdb
         pdb.set_trace()
-        # for v_id, v_info in self.video_infos.items():
         for v_info in self.video_infos:
             v_id = v_info['video_name']
-            # for i in range(v_info['duration_seconds'] - self.snippet_length):
+            video_snippets = list()
             for i in range(
                     -(self.snippet_length // 2),
                     v_info['duration_second'] - (self.snippet_length) // 2):
-                # snippet_infos[f'{v_id}_{i}'] = self._assign(i, i + self.snippet_length, v_info)  # noqa
-                snippet = self._assign(i, i + self.snippet_length, v_info)
-                snippet['video_name'] = f'{v_id}_{i}'
-                snippet['duration_second'] = v_info['duration_second']
-                snippet_infos.append(snippet)
+                # snippet = self._assign(i, i + self.snippet_length, v_info)
+                snippet = dict(
+                    label_action=0.0,
+                    label_start=0.0,
+                    label_end=0.0,
+                    neg=True,
+                    video_name=f'{v_id}_{i}',
+                    duration_second=v_info['duration_second'])
+                video_snippets.append(snippet)
+            self._assign_label(video_snippets, v_info)
+            snippet_infos += video_snippets
 
         return snippet_infos
 
@@ -108,6 +113,22 @@ class SnippetDataset(TruNetDataset):
         else:
             raise ValueError(
                 f'The output format {output_format} is not supported.')
+
+    @staticmethod
+    def _assign_label(video_snippets, v_info):
+        duration = v_info['duration_second']
+        assert duration == len(
+            video_snippets), 'something wrong in load_snippet_annotations'
+        for anno in v_info['annotations']:
+            segment = anno['segment']
+            start, end = int(round(segment[0])), int(round(segment[1]))
+            video_snippets[start]['label_start'] = 1.0
+            video_snippets[end]['label_end'] = 1.0
+            video_snippets[start]['neg'] = False
+            video_snippets[end]['neg'] = False
+            for i in range(start + 1, end):
+                video_snippets[i]['label_action'] = 1.0
+                video_snippets[i]['neg'] = False
 
     @staticmethod
     def _assign(start, end, video_info):
