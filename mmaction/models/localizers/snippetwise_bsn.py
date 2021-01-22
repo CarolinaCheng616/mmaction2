@@ -30,6 +30,8 @@ class SnippetTEM(TEM):
 
     def forward_train(self, raw_feature, label_action, label_start, label_end):
         """Define the computation performed at every call when training."""
+        import pdb
+        pdb.set_trace()
         tem_output = self._forward(raw_feature)
         # score_action = tem_output[:, 0, :]
         # score_start = tem_output[:, 1, :]
@@ -60,6 +62,8 @@ class SnippetTEM(TEM):
 
     def forward_test(self, raw_feature, video_meta):
         """Define the computation performed at every call when testing."""
+        import pdb
+        pdb.set_trace()
         tem_output = self._forward(raw_feature).cpu().numpy()
         # batch_action = tem_output[:, 0, :]
         # batch_start = tem_output[:, 1, :]

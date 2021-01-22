@@ -27,6 +27,8 @@ class SnippetDataset(TruNetDataset):
     def load_snippet_annotations(self):
         """Load the annotation according to ann_file into video_infos."""
         snippet_infos = list()
+        import pdb
+        pdb.set_trace()
         for v_id, v_info in self.video_infos.items():
             # for i in range(v_info['duration_seconds'] - self.snippet_length):
             for i in range(
@@ -55,6 +57,8 @@ class SnippetDataset(TruNetDataset):
             self.neg_snippets
         )[:int(len(self.pos_snippets) * self.pos_neg_ratio)]
         self.snippet_infos = shuf(self.neg_snippets + self.pos_snippets)
+        import pdb
+        pdb.set_trace()
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""
