@@ -122,8 +122,8 @@ class SnippetDataset(TruNetDataset):
         for anno in v_info['annotations']:
             segment = anno['segment']
             start, end = int(round(segment[0])), int(round(segment[1]))
-            start = max(start, 0)
-            end = min(end, duration - 1)
+            start = min(max(start, 0), duration - 1)
+            end = min(max(end, 0), duration - 1)
             video_snippets[start]['label_start'] = 1.0
             video_snippets[end]['label_end'] = 1.0
             video_snippets[start]['neg'] = False
