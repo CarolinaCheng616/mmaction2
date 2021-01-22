@@ -45,6 +45,9 @@ class SnippetTEM(TEM):
         score_start = tem_output[:, 1].reshape(batch, 1)
         score_end = tem_output[:, 2].reshape(batch, 1)
 
+        label_action = torch.tensor(label_action)
+        label_start = torch.tensor(label_start)
+        label_end = torch.tensor(label_end)
         label_action = label_action.reshape(label_action.shape[0], 1)
         label_start = label_start.reshape(label_start.shape[0], 1)
         label_end = label_end.reshape(label_end.shape[0], 1)
