@@ -37,7 +37,7 @@ test_pipeline = [
         type='Collect',
         keys=['raw_feature'],
         meta_name='video_meta',
-        meta_keys=['video_name', 'duration_second']),
+        meta_keys=['video_name', 'duration_second', 'snippet_length']),
     dict(type='ToTensor', keys=['raw_feature'])
 ]
 train_pipeline = [
