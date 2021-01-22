@@ -117,7 +117,8 @@ class SnippetDataset(TruNetDataset):
             'label_end': 0.0,
             'neg': True
         }
-        for segment in video_info['annotations']:
+        for anno in video_info['annotations']:
+            segment = anno['segment']
             center = (start + end) // 2
             if center == int(round(segment[0])):
                 label['label_start'] = 1.0
