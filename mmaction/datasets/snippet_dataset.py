@@ -21,8 +21,6 @@ class SnippetDataset(TruNetDataset):
         self.snippet_infos = self.load_snippet_annotations()
         if not self.test_mode:
             self.filter_neg()
-        # import pdb
-        # pdb.set_trace()
 
     def __len__(self):
         """Get the size of the dataset."""
@@ -166,8 +164,6 @@ class SnippetDataset(TruNetDataset):
         return self.pipeline(results)
 
     def prepare_train_frames(self, idx):
-        import pdb
-        pdb.set_trace()
         """Prepare the frames for training given the index."""
         results = copy.deepcopy(self.snippet_infos[idx])
         results['data_prefix'] = self.data_prefix
