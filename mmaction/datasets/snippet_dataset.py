@@ -166,6 +166,8 @@ class SnippetDataset(TruNetDataset):
         return self.pipeline(results)
 
     def prepare_train_frames(self, idx):
+        import pdb
+        pdb.set_trace()
         """Prepare the frames for training given the index."""
         results = copy.deepcopy(self.snippet_infos[idx])
         results['data_prefix'] = self.data_prefix
