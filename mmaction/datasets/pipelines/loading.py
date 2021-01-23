@@ -1624,7 +1624,7 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
 
     def __init__(self, raw_feature_ext='.pkl'):
         super().__init__(raw_feature_ext)
-        self.array_length = 10
+        self.array_length = 50
         self.paths = [0] * self.array_length
         self.features = dict()
         self.pointer = 0
