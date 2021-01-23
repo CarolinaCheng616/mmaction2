@@ -21,8 +21,8 @@ class SnippetDataset(TruNetDataset):
         self.snippet_infos = self.load_snippet_annotations()
         if not self.test_mode:
             self.filter_neg()
-        # import pdb
-        # pdb.set_trace()
+        import pdb
+        pdb.set_trace()
 
     def __len__(self):
         """Get the size of the dataset."""
@@ -64,9 +64,6 @@ class SnippetDataset(TruNetDataset):
         neg_snippets = neg_snippets[:int(
             len(pos_snippets) * self.pos_neg_ratio)]
         self.snippet_infos = pos_snippets + neg_snippets
-        # shuf(self.snippet_infos)
-        # import pdb
-        # pdb.set_trace()
         self.snippet_infos = sorted(
             self.snippet_infos,
             key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
