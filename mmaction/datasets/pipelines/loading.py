@@ -1646,6 +1646,8 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
                 end_frame = np.array([raw_feature[-1]] * (length // 2))
             raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
                                          axis=0)
+            raw_feature = np.transpose(raw_feature.astype(np.float32),
+                                       (1, 0))  # 4096, temporal
             self.features[self.pointer] = raw_feature
             self.pointer = (self.pointer + 1) % self.array_length
         idx = self.paths.index(data_path)
@@ -1667,32 +1669,9 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
 
         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
         raw_feature = self._get_raw_feature(data_path, duration, length)
-        # length = results['snippet_length']
-        # start_frame = np.array([raw_feature[0]] * (length // 2))
-        # if raw_feature.shape[0] < results['duration_second']:
-        #     end_frame = np.array(
-        #         [raw_feature[-1]] *
-        #         ((results['duration_second'] - raw_feature.shape[0]) +
-        #          length // 2))
-        # else:
-        #     end_frame = np.array([raw_feature[-1]] * (length // 2))
-        # raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
-        #                              axis=0)
-
-        results['raw_feature'] = np.transpose(
-            raw_feature.astype(np.float32)[snippet_idx:(snippet_idx +
-                                                        length), :], (1, 0))
-        # if results['raw_feature'].shape[1] < results[
-        #         'snippet_length']:  # temporal dim less than snippet_length, add to snippet length by latest frame  # noqa
-        #     tmp_feature = results['raw_feature'].transpose(
-        #         (1, 0))[-1]  # 1, 4096
-        #     tmp_feature = np.transpose(
-        #         np.array([tmp_feature] * (results['snippet_length'] -
-        #                                   results['raw_feature'].shape[1])),
-        #         (1, 0))  # 4096, a
-        #     results['raw_feature'] = np.concatenate(
-        #         (results['raw_feature'], tmp_feature), axis=1)
-        # print(self.paths)
+        results['raw_feature'] = raw_feature[:,
+                                             snippet_idx:(snippet_idx +
+                                                          length)]  # 4096, 7
         end = time.time()
         print(f'loading single feature time: {end - start}')
         return results

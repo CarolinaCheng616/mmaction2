@@ -1,7 +1,7 @@
 import copy
 import os
 import os.path as osp
-import time
+# import time
 from random import shuffle as shuf
 
 import mmcv
@@ -168,12 +168,8 @@ class SnippetDataset(TruNetDataset):
         return self.pipeline(results)
 
     def prepare_train_frames(self, idx):
-        start = time.time()
         """Prepare the frames for training given the index."""
         results = copy.deepcopy(self.snippet_infos[idx])
         results['data_prefix'] = self.data_prefix
         results['snippet_length'] = self.snippet_length
-        results = self.pipeline(results)
-        end = time.time()
-        print(f'prepare_train_frames time: {end-start}')
-        return results
+        return self.pipeline(results)
