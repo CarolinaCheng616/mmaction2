@@ -1633,8 +1633,9 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
     def _get_raw_feature(self, data_path, duration, length):
         if data_path not in self.paths:
             self.paths[self.pointer] = data_path
-            with open(data_path, 'rb') as f:
-                raw_feature = pickle.load(f, encoding='bytes')  # temporal,4096
+            file = open(data_path, 'rb')
+            raw_feature = pickle.load(file, encoding='bytes')  # temporal,4096
+            file.close()
             temporal = raw_feature.shape[0]
             start_frame = np.array([raw_feature[0]] * (length // 2))
             if temporal < duration:
