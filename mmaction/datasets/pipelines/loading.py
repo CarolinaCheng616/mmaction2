@@ -3,6 +3,8 @@ import os
 import os.path as osp
 import pickle
 import shutil
+# from functools import lru_cache
+import time
 import warnings
 
 import mmcv
@@ -13,8 +15,6 @@ from torch.nn.modules.utils import _pair
 
 from ...utils import get_random_string, get_shm_dir, get_thread_id
 from ..registry import PIPELINES
-
-# from functools import lru_cache
 
 
 @PIPELINES.register_module()
@@ -1658,6 +1658,7 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
+        start = time.time()
         video_name_split = results['video_name'].split('_')
         video_name = '_'.join(video_name_split[:-1])
         duration, length, data_prefix = results['duration_second'], results[
@@ -1692,6 +1693,8 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
         #     results['raw_feature'] = np.concatenate(
         #         (results['raw_feature'], tmp_feature), axis=1)
         # print(self.paths)
+        end = time.time()
+        print(f'loading single feature time: {end - start}')
         return results
 
 
