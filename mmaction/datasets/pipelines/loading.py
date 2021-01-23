@@ -4,7 +4,6 @@ import os.path as osp
 import pickle
 import shutil
 import warnings
-from functools import lru_cache
 
 import mmcv
 import numpy as np
@@ -14,6 +13,8 @@ from torch.nn.modules.utils import _pair
 
 from ...utils import get_random_string, get_shm_dir, get_thread_id
 from ..registry import PIPELINES
+
+# from functools import lru_cache
 
 
 @PIPELINES.register_module()
@@ -1625,12 +1626,30 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
 
     def __init__(self, raw_feature_ext='.pkl'):
         super().__init__(raw_feature_ext)
+        self.array_length = 10
+        self.paths = [0] * self.array_length
+        self.features = dict()
+        self.pointer = 0
 
-    @lru_cache(512)
-    def _get_raw_feature(self, data_path):
-        raw_feature = pickle.load(
-            open(data_path, 'rb'), encoding='bytes')  # temporal, 4096
-        return raw_feature
+    # @lru_cache(512)
+    def _get_raw_feature(self, data_path, duration, length):
+        if data_path not in self.paths:
+            self.paths[self.pointer] = data_path
+            raw_feature = pickle.load(
+                open(data_path, 'rb'), encoding='bytes')  # temporal, 4096
+            temporal = raw_feature.shape[0]
+            start_frame = np.array([raw_feature[0]] * (length // 2))
+            if temporal < duration:
+                end_frame = np.array([raw_feature[-1]] *
+                                     (duration - temporal + length // 2))
+            else:
+                end_frame = np.array([raw_feature[-1]] * (length // 2))
+            raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
+                                         axis=0)
+            self.features[self.pointer] = raw_feature
+            self.pointer = (self.pointer + 1) % self.array_length
+        idx = self.paths.index(data_path)
+        return self.features[idx]
 
     def __call__(self, results):
         """Perform the LoadLocalizationFeature loading.
@@ -1645,20 +1664,22 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
         data_prefix = results['data_prefix']
 
         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
-        raw_feature = self._get_raw_feature(data_path)
-        length = results['snippet_length']
-        start_frame = np.array([raw_feature[0]] * (length // 2))
-        if raw_feature.shape[0] < results['duration_second']:
-            end_frame = np.array(
-                [raw_feature[-1]] *
-                ((results['duration_second'] - raw_feature.shape[0]) +
-                 length // 2))
-        else:
-            end_frame = np.array([raw_feature[-1]] * (length // 2))
-        raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
-                                     axis=0)
+        raw_feature = self._get_raw_feature(data_path,
+                                            results['duration_second'],
+                                            results['snippet_length'])
+        # length = results['snippet_length']
+        # start_frame = np.array([raw_feature[0]] * (length // 2))
+        # if raw_feature.shape[0] < results['duration_second']:
+        #     end_frame = np.array(
+        #         [raw_feature[-1]] *
+        #         ((results['duration_second'] - raw_feature.shape[0]) +
+        #          length // 2))
+        # else:
+        #     end_frame = np.array([raw_feature[-1]] * (length // 2))
+        # raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
+        #                              axis=0)
 
-        snippet_idx += length // 2
+        snippet_idx += results['snippet_length'] // 2
 
         results['raw_feature'] = np.transpose(
             raw_feature.astype(
