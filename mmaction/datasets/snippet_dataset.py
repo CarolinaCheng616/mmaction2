@@ -21,8 +21,8 @@ class SnippetDataset(TruNetDataset):
         self.snippet_infos = self.load_snippet_annotations()
         if not self.test_mode:
             self.filter_neg()
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
 
     def __len__(self):
         """Get the size of the dataset."""
