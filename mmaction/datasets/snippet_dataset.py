@@ -64,6 +64,7 @@ class SnippetDataset(TruNetDataset):
         neg_snippets = neg_snippets[:int(
             len(pos_snippets) * self.pos_neg_ratio)]
         self.snippet_infos = pos_snippets + neg_snippets
+        shuf(self.snippet_infos)
         self.snippet_infos = sorted(
             self.snippet_infos,
             key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
