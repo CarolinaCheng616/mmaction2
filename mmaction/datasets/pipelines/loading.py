@@ -1691,7 +1691,7 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
         #         (1, 0))  # 4096, a
         #     results['raw_feature'] = np.concatenate(
         #         (results['raw_feature'], tmp_feature), axis=1)
-        print(self.paths)
+        # print(self.paths)
         return results
 
 
