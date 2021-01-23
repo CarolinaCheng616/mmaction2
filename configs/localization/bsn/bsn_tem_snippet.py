@@ -80,7 +80,7 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=1,
+    videos_per_gpu=8,
     workers_per_gpu=0,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=128, workers_per_gpu=4),

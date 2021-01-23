@@ -173,13 +173,13 @@ def main():
         timestamp=timestamp,
         meta=meta)
 
-    if cfg.model.type == '_TEM_':
-        action_num = model.action_num / model.total_temporal
-        start_num = model.start_num / model.total_temporal
-        end_num = model.end_num / model.total_temporal
-        print(f'action_num: {action_num}')
-        print(f'start_num: {start_num}')
-        print(f'end_num: {end_num}')
+    # if cfg.model.type == '_TEM_':
+    #     action_num = model.action_num / model.total_temporal
+    #     start_num = model.start_num / model.total_temporal
+    #     end_num = model.end_num / model.total_temporal
+    #     print(f'action_num: {action_num}')
+    #     print(f'start_num: {start_num}')
+    #     print(f'end_num: {end_num}')
 
 
 if __name__ == '__main__':
