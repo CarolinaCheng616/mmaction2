@@ -105,7 +105,7 @@ data = dict(
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.1, momentum=0.9, weight_decay=0.0005)  # batch_size
+    type='SGD', lr=0.01, momentum=0.9, weight_decay=0.0005)  # batch_size
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
