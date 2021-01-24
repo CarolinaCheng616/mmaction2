@@ -109,7 +109,7 @@ optimizer = dict(
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(policy='step', step=25)
+lr_config = dict(policy='step', step=2)
 
 total_epochs = 70
 checkpoint_config = dict(interval=1, filename_tmpl='tem_epoch_{}.pth')
