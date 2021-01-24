@@ -11,7 +11,7 @@ model = dict(
     tem_feat_dim=4096,
     tem_hidden_dim=512,
     tem_match_threshold=0.5,
-    loss_weight=1)
+    loss_weight=2)
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -105,7 +105,7 @@ data = dict(
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0005)  # batch_size
+    type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0005)  # batch_size
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
