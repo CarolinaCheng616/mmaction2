@@ -1674,6 +1674,61 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
 
 
 @PIPELINES.register_module()
+class LoadSnippetLocalizationFeatureMemcache(LoadTruNetLocalizationFeature):
+    """Load Video features for localizer with given video_name list.
+
+    Required keys are "video_name" and "data_prefix", added or modified keys
+    are "raw_feature".
+
+    Args:
+        raw_feature_ext (str): Raw feature file extension.  Default: '.pkl'.
+    """
+
+    def __init__(self, raw_feature_ext='.pkl'):
+        super().__init__(raw_feature_ext)
+        self.file_client = FileClient('memcache')
+
+    # @lru_cache(512)
+    def _get_raw_feature(self, data_path, duration, length):
+        buf = self.file_client.get(data_path)
+        raw_feature = np.frombuffer(buf)
+        import pdb
+        pdb.set_trace()
+        temporal, _ = raw_feature.shape
+        start_frame = np.array([raw_feature[0]] * (length // 2))
+        if temporal < duration:
+            end_frame = np.array([raw_feature[-1]] *
+                                 (duration - temporal + length // 2))
+        else:
+            end_frame = np.array([raw_feature[-1]] * (length // 2))
+        raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
+                                     axis=0)
+        raw_feature = np.transpose(raw_feature.astype(np.float32),
+                                   (1, 0))  # 4096, temporal
+        return raw_feature
+
+    def __call__(self, results):
+        """Perform the LoadLocalizationFeature loading.
+
+        Args:
+            results (dict): The resulting dict to be modified and passed
+                to the next transform in pipeline.
+        """
+        video_name_split = results['video_name'].split('_')
+        video_name = '_'.join(video_name_split[:-1])
+        duration, length, data_prefix = results['duration_second'], results[
+            'snippet_length'], results['data_prefix']
+        snippet_idx = int(video_name_split[-1]) + length // 2
+
+        data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
+        raw_feature = self._get_raw_feature(data_path, duration, length)
+        results['raw_feature'] = raw_feature[:,
+                                             snippet_idx:(snippet_idx +
+                                                          length)]  # 4096, 7
+        return results
+
+
+@PIPELINES.register_module()
 class GenerateTruNetLocalizationLabels:
     """Load video label for localizer with given video_name list.
 

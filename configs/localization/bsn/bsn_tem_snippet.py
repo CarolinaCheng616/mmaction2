@@ -41,7 +41,7 @@ test_pipeline = [
     dict(type='ToTensor', keys=['raw_feature'])
 ]
 train_pipeline = [
-    dict(type='LoadSnippetLocalizationFeature'),
+    dict(type='LoadSnippetLocalizationFeatureMemcache'),
     # dict(type='GenerateSnippetLocalizationLabels'),
     dict(
         type='Collect',
