@@ -31,6 +31,10 @@ ann_file_test = ann_file_train
 work_dir = 'work_dirs/tem_snippet/'
 tem_results_dir = f'{work_dir}/tem_results/'
 
+mc_cfg = dict(
+    server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
+    client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+    sys_path='/mnt/lustre/share/pymc/py3')
 test_pipeline = [
     dict(type='LoadSnippetLocalizationFeature'),
     dict(
@@ -41,7 +45,10 @@ test_pipeline = [
     dict(type='ToTensor', keys=['raw_feature'])
 ]
 train_pipeline = [
-    dict(type='LoadSnippetLocalizationFeatureMemcache'),
+    dict(
+        type='LoadSnippetLocalizationFeatureMemcache',
+        io_backend='memcached',
+        **mc_cfg),
     # dict(type='GenerateSnippetLocalizationLabels'),
     dict(
         type='Collect',
@@ -105,7 +112,7 @@ data = dict(
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.005, momentum=0.9, weight_decay=0.0005)  # batch_size
+    type='SGD', lr=0.0001, momentum=0.9, weight_decay=0.0005)  # batch_size
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
