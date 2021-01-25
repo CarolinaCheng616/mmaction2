@@ -1684,9 +1684,9 @@ class LoadSnippetLocalizationFeatureMemcache(LoadTruNetLocalizationFeature):
         raw_feature_ext (str): Raw feature file extension.  Default: '.pkl'.
     """
 
-    def __init__(self, raw_feature_ext='.pkl'):
+    def __init__(self, io_backend, raw_feature_ext='.pkl', **kwargs):
         super().__init__(raw_feature_ext)
-        self.file_client = FileClient('memcached')
+        self.file_client = FileClient(io_backend, **kwargs)
 
     # @lru_cache(512)
     def _get_raw_feature(self, data_path, duration, length):
