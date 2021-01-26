@@ -68,9 +68,9 @@ class SnippetDataset(TruNetDataset):
             len(self.pos_snippets) * self.pos_neg_ratio)]
         self.filtered_snippet_infos = self.pos_snippets + neg_snippets
         shuf(self.filtered_snippet_infos)
-        # self.filtered_snippet_infos = sorted(
-        #     self.filtered_snippet_infos,
-        #     key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
+        self.filtered_snippet_infos = sorted(
+            self.filtered_snippet_infos,
+            key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""
