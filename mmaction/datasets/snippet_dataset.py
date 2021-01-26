@@ -24,6 +24,8 @@ class SnippetDataset(TruNetDataset):
             self.filter_neg()
         else:
             self.filtered_snippet_infos = self.snippet_infos
+        import pdb
+        pdb.set_trace()
 
     def __len__(self):
         """Get the size of the dataset."""
@@ -37,7 +39,7 @@ class SnippetDataset(TruNetDataset):
             video_snippets = list()
             for i in range(
                     -(self.snippet_length // 2),
-                    v_info['duration_second'] - (self.snippet_length) // 2):
+                    v_info['duration_second'] - self.snippet_length // 2):
                 # snippet = self._assign(i, i + self.snippet_length, v_info)
                 snippet = dict(
                     label_action=0.0,
