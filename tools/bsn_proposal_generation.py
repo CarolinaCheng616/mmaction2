@@ -147,6 +147,7 @@ def generate_features(ann_file, tem_results_dir, pgm_proposals_dir,
     # save results
     os.makedirs(pgm_features_dir, exist_ok=True)
     prog_bar = mmcv.ProgressBar(num_videos)
+    print(f'len(feature_return_dict: {len(feature_return_dict)}\n')
     for video_name in feature_return_dict.keys():
         bsp_feature = feature_return_dict[video_name]
         feature_path = osp.join(pgm_features_dir, video_name + '.npy')
