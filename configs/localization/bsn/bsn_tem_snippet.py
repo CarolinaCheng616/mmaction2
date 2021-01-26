@@ -17,11 +17,11 @@ train_cfg = None
 test_cfg = dict(average_clips='score')
 # dataset settings
 dataset_type = 'SnippetDataset'
-data_root = 'data/TruNet/train_feature/'
+data_root = 'data/TruNet/tmp_train_feature/'
 # data_root = 'data/TruNet/val_feature/'
 # data_root_val = 'data/TruNet/val_feature/'
 data_root_val = data_root
-ann_file_train = 'data/TruNet/train_meta.json'
+ann_file_train = 'data/TruNet/tmp_train_meta.json'
 # ann_file_train = 'data/TruNet/val_meta.json'
 # ann_file_val = 'data/TruNet/val_meta.json'
 # ann_file_test = 'data/TruNet/val_meta.json'
@@ -45,10 +45,11 @@ test_pipeline = [
     dict(type='ToTensor', keys=['raw_feature'])
 ]
 train_pipeline = [
-    dict(
-        type='LoadSnippetLocalizationFeatureMemcache',
-        io_backend='memcached',
-        **mc_cfg),
+    # dict(
+    #     type='LoadSnippetLocalizationFeatureMemcache',
+    #     io_backend='memcached',
+    #     **mc_cfg),
+    dict(type='LoadSnippetLocalizationFeature'),
     # dict(type='GenerateSnippetLocalizationLabels'),
     dict(
         type='Collect',
@@ -87,7 +88,7 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=4096 * 8,
+    videos_per_gpu=1024,
     workers_per_gpu=0,
     train_dataloader=dict(drop_last=False, shuffle=False),
     val_dataloader=dict(videos_per_gpu=128, workers_per_gpu=4, shuffle=False),

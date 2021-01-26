@@ -18,13 +18,16 @@ class SnippetDataset(TruNetDataset):
         self.snippet_length = snippet_length
         self.pos_neg_ratio = pos_neg_ratio
         super().__init__(*args, **kwargs)
-        self.snippet_infos = self.load_snippet_annotations()
+        self.snippet_infos, self.pos_snippets, self.neg_snippets = \
+            self.load_snippet_annotations()
         if not self.test_mode:
             self.filter_neg()
+        else:
+            self.filtered_snippet_infos = self.snippet_infos
 
     def __len__(self):
         """Get the size of the dataset."""
-        return len(self.snippet_infos)
+        return len(self.filtered_snippet_infos)
 
     def load_snippet_annotations(self):
         """Load the annotation according to ann_file into video_infos."""
@@ -46,25 +49,27 @@ class SnippetDataset(TruNetDataset):
                 video_snippets.append(snippet)
             self._assign_label(video_snippets, v_info)
             snippet_infos += video_snippets
-
-        return snippet_infos
-
-    def filter_neg(self):
-        """Filter out too many negative snippets."""
         pos_snippets = []
         neg_snippets = []
-        for snippet in self.snippet_infos:
+        for snippet in snippet_infos:
             if snippet['neg']:
                 neg_snippets.append(snippet)
             else:
                 pos_snippets.append(snippet)
-        shuf(neg_snippets)
-        neg_snippets = neg_snippets[:int(
-            len(pos_snippets) * self.pos_neg_ratio)]
-        self.snippet_infos = pos_snippets + neg_snippets
-        shuf(self.snippet_infos)
-        self.snippet_infos = sorted(
-            self.snippet_infos,
+
+        return snippet_infos, pos_snippets, neg_snippets
+
+    def filter_neg(self):
+        import pdb
+        pdb.set_trace()
+        """Filter out too many negative snippets."""
+        shuf(self.neg_snippets)
+        neg_snippets = self.neg_snippets[:int(
+            len(self.pos_snippets) * self.pos_neg_ratio)]
+        filtered_snippet_infos = self.pos_snippets + neg_snippets
+        shuf(filtered_snippet_infos)
+        self.filtered_snippet_infos = sorted(
+            filtered_snippet_infos,
             key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
@@ -158,14 +163,14 @@ class SnippetDataset(TruNetDataset):
 
     def prepare_test_frames(self, idx):
         """Prepare the frames for testing given the index."""
-        results = copy.deepcopy(self.snippet_infos[idx])
+        results = copy.deepcopy(self.filtered_snippet_infos[idx])
         results['data_prefix'] = self.data_prefix
         results['snippet_length'] = self.snippet_length
         return self.pipeline(results)
 
     def prepare_train_frames(self, idx):
         """Prepare the frames for training given the index."""
-        results = copy.deepcopy(self.snippet_infos[idx])
+        results = copy.deepcopy(self.filtered_snippet_infos[idx])
         results['data_prefix'] = self.data_prefix
         results['snippet_length'] = self.snippet_length
         return self.pipeline(results)

@@ -7,7 +7,8 @@ from mmcv.runner import (DistSamplerSeedHook, EpochBasedRunner, OptimizerHook,
 from mmcv.runner.hooks import Fp16OptimizerHook
 
 from ..core import (DistEpochEvalHook, EpochEvalHook,
-                    OmniSourceDistSamplerSeedHook, OmniSourceRunner)
+                    OmniSourceDistSamplerSeedHook, OmniSourceRunner,
+                    ReloadDatasetHook)
 from ..datasets import build_dataloader, build_dataset
 from ..utils import get_root_logger
 
@@ -109,6 +110,10 @@ def train_model(model,
     runner.register_training_hooks(cfg.lr_config, optimizer_config,
                                    cfg.checkpoint_config, cfg.log_config,
                                    cfg.get('momentum_config', None))
+
+    reload_dataset_hook = ReloadDatasetHook()
+    runner.register_hook(reload_dataset_hook)
+
     if distributed:
         if cfg.omnisource:
             runner.register_hook(OmniSourceDistSamplerSeedHook())
