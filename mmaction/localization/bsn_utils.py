@@ -229,6 +229,7 @@ def generate_bsp_feature(video_list,
 
         bsp_feature = []
         for pgm_proposal in pgm_proposals:
+            print(pgm_proposal)
             tmin = pgm_proposal[0]
             tmax = pgm_proposal[1]
 
