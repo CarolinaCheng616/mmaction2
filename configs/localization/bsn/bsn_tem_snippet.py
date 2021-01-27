@@ -45,11 +45,11 @@ test_pipeline = [
     dict(type='ToTensor', keys=['raw_feature'])
 ]
 train_pipeline = [
-    # dict(
-    #     type='LoadSnippetLocalizationFeatureMemcache',
-    #     io_backend='memcached',
-    #     **mc_cfg),
-    dict(type='LoadSnippetLocalizationFeature'),
+    dict(
+        type='LoadSnippetLocalizationFeatureMemcache',
+        io_backend='memcached',
+        **mc_cfg),
+    # dict(type='LoadSnippetLocalizationFeature'),
     # dict(type='GenerateSnippetLocalizationLabels'),
     dict(
         type='Collect',
@@ -88,7 +88,7 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=4096 * 8,
+    videos_per_gpu=1024,
     workers_per_gpu=0,
     train_dataloader=dict(drop_last=False, shuffle=False),
     val_dataloader=dict(
