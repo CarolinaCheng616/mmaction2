@@ -229,14 +229,8 @@ def generate_bsp_feature(video_list,
 
         bsp_feature = []
         for pgm_proposal in pgm_proposals:
-            # print(pgm_proposal)
-            try:
-                tmin = pgm_proposal[0]
-                tmax = pgm_proposal[1]
-            except IndexError as e:  # noqa
-                print(proposal_path)
-                # print(pgm_proposal)
-                exit(0)
+            tmin = pgm_proposal[0]
+            tmax = pgm_proposal[1]
 
             tlen = tmax - tmin
             # Temporal range for start

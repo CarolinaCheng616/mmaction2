@@ -183,9 +183,9 @@ def main():
         print('\nFinish feature generation')
 
     elif args.mode == 'train':
-        # generate_proposals(cfg.ann_file_train, tem_results_dir,
-        #                    pgm_proposals_dir, **cfg.pgm_proposals_cfg)
-        # print('\nFinish proposal generation')
+        generate_proposals(cfg.ann_file_train, tem_results_dir,
+                           pgm_proposals_dir, **cfg.pgm_proposals_cfg)
+        print('\nFinish proposal generation')
         generate_features(cfg.ann_file_train, tem_results_dir,
                           pgm_proposals_dir, pgm_features_dir,
                           **cfg.pgm_features_train_cfg)

@@ -14,7 +14,10 @@ pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 temporal_scale = 2000
 pgm_proposals_cfg = dict(
-    pgm_proposals_thread=8, temporal_scale=temporal_scale, peak_threshold=0.75)
+    pgm_proposals_thread=8,
+    temporal_scale=temporal_scale,
+    peak_threshold=0.7,
+    scale=3)
 pgm_features_test_cfg = dict(
     pgm_features_thread=4,
     top_k=1000,
