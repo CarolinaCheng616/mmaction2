@@ -1691,9 +1691,11 @@ class LoadSnippetLocalizationFeatureMemcache(LoadTruNetLocalizationFeature):
     # @lru_cache(512)
     def _get_raw_feature(self, data_path, duration, length):
         buf = self.file_client.get(data_path)
-        import pdb
-        pdb.set_trace()
-        raw_feature = np.frombuffer(buf, dtype='float32')
+        buf = io.BytesIO(buf)
+        raw_feature = np.load(buf, allow_pickle=True)
+        # import pdb
+        # pdb.set_trace()
+        # raw_feature = np.frombuffer(buf, dtype='float32')
         temporal, _ = raw_feature.shape
         start_frame = np.array([raw_feature[0]] * (length // 2))
         if temporal < duration:
