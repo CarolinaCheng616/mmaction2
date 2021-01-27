@@ -111,8 +111,10 @@ def train_model(model,
                                    cfg.checkpoint_config, cfg.log_config,
                                    cfg.get('momentum_config', None))
 
-    reload_dataset_hook = ReloadDatasetHook()
-    runner.register_hook(reload_dataset_hook)
+    reload = cfg.get('reload', False)
+    if reload:
+        reload_dataset_hook = ReloadDatasetHook()
+        runner.register_hook(reload_dataset_hook)
 
     if distributed:
         if cfg.omnisource:
