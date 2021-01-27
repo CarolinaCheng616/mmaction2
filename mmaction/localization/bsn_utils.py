@@ -235,6 +235,7 @@ def generate_bsp_feature(video_list,
                 tmax = pgm_proposal[1]
             except IndexError as e:  # noqa
                 print(proposal_path)
+                # print(pgm_proposal)
                 exit(0)
 
             tlen = tmax - tmin
