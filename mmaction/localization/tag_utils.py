@@ -399,24 +399,20 @@ def tag_post_processing(result, video_info, soft_nms_alpha,
     return proposal_list, result[:post_process_top_k]
 
 
-def multithread_dump_results(video_infos,
-                             pgm_proposals_dir,
-                             tag_pgm_result_dir,
-                             result_dict,
-                             file_ext='.csv',
-                             **kwargs):
+def multithread_dump_results(video_infos, pgm_proposals_dir,
+                             tag_pgm_result_dir, result_dict, **kwargs):
     prog_bar = mmcv.ProgressBar(len(video_infos))
     prog_bar.start()
     for vinfo in video_infos:
         video_name = vinfo['video_name']
-        print(video_name)
+        print(pgm_proposals_dir)
         exit(0)
-        file_name = osp.join(pgm_proposals_dir, video_name + file_ext)
+        file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
         proposal = np.loadtxt(
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
         proposal_list, post_proposal = tag_post_processing(
             proposal, vinfo, **kwargs)
-        tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + file_ext)
+        tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
         header = 'tmin,tmax,action_score,match_iou,match_ioa'
         np.savetxt(
             tag_pgm_file,
