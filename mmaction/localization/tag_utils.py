@@ -400,7 +400,7 @@ def tag_post_processing(result, video_info, soft_nms_alpha,
 
 
 def multithread_dump_results(video_infos, pgm_proposals_dir,
-                             tag_pgm_result_dir, result_dict, **kwargs):
+                             tag_pgm_result_dir, result_dict, kwargs):
     prog_bar = mmcv.ProgressBar(len(video_infos))
     prog_bar.start()
     for vinfo in video_infos:
