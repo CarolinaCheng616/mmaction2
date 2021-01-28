@@ -418,10 +418,8 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
         #     header=header,
         #     delimiter=',',
         #     comments='')
-        print(len(proposal_list))
         result_dict[video_name] = proposal_list
-        import pdb
-        pdb.set_trace()
+        print(f'result_dict[video_name]: {len(result_dict[video_name])}')
         prog_bar.update()
 
 
