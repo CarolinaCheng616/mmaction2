@@ -5,17 +5,16 @@ import numpy as np
 from .proposal_utils import temporal_iop, temporal_iou
 
 
-def generate_tag_proposals(
-        video_list,
-        video_infos,
-        tem_results_dir,
-        alpha_list=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95],
-        beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
-        tem_results_ext='.csv',
-        result_dict=None):
+def generate_tag_proposals(video_list,
+                           video_infos,
+                           tem_results_dir,
+                           alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
+                           beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+                           tem_results_ext='.csv',
+                           result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results.
     Each proposal file will contain:
-    'tmin,tmax,mean_action,tmin_score,tmax_score,score,match_iou,match_ioa'.
+    'tmin,tmax,action_score,match_iou,match_ioa'.
 
     Args:
         video_list (list[int]): List of video indexs to generate proposals.
@@ -184,6 +183,7 @@ def generate_tag_feature(video_list,
         tem_path = osp.join(tem_results_dir, video_name + tem_results_ext)
         tem_results = np.loadtxt(
             tem_path, dtype=np.float32, delimiter=',', skiprows=1)
+        # action, start, end, tmin, tmax
         score_action = tem_results[:, 0]
         seg_tmins = tem_results[:, 3]
         seg_tmaxs = tem_results[:, 4]
@@ -215,6 +215,7 @@ def generate_tag_feature(video_list,
 
         bsp_feature = []
         for pgm_proposal in pgm_proposals:
+            # tmin, tmax, action_score, iou, iop
             tmin = pgm_proposal[0]
             tmax = pgm_proposal[1]
 

@@ -1872,3 +1872,77 @@ class LoadProposals:
                     f'proposal_ext={self.proposal_ext}, '
                     f'feature_ext={self.feature_ext})')
         return repr_str
+
+
+@PIPELINES.register_module()
+class LoadTAGProposals:
+    """Loading proposals with given proposal results.
+
+    Required keys are "video_name", added or modified keys are 'bsp_feature',
+    'score' and 'reference_temporal_iou'.
+
+    Args:
+        top_k (int): The top k proposals to be loaded.
+        pgm_proposals_dir (str): Directory to load proposals.
+        pgm_features_dir (str): Directory to load proposal features.
+        proposal_ext (str): Proposal file extension. Default: '.csv'.
+        feature_ext (str): Feature file extension. Default: '.npy'.
+    """
+
+    def __init__(self,
+                 top_k,
+                 pgm_proposals_dir,
+                 pgm_features_dir,
+                 proposal_ext='.csv',
+                 feature_ext='.npy'):
+        self.top_k = top_k
+        self.pgm_proposals_dir = pgm_proposals_dir
+        self.pgm_features_dir = pgm_features_dir
+        valid_proposal_ext = ('.csv', )
+        if proposal_ext not in valid_proposal_ext:
+            raise NotImplementedError
+        self.proposal_ext = proposal_ext
+        valid_feature_ext = ('.npy', )
+        if feature_ext not in valid_feature_ext:
+            raise NotImplementedError
+        self.feature_ext = feature_ext
+
+    def __call__(self, results):
+        """Perform the LoadTAGProposals loading.
+
+        Args:
+            results (dict): The resulting dict to be modified and passed
+                to the next transform in pipeline.
+        """
+        video_name = results['video_name']
+        proposal_path = osp.join(self.pgm_proposals_dir,
+                                 video_name + self.proposal_ext)
+        if self.proposal_ext == '.csv':
+            pgm_proposals = np.loadtxt(
+                proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
+
+        pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        tmin = pgm_proposals[:, 0]
+        tmax = pgm_proposals[:, 1]
+        # tmin_score = pgm_proposals[:, 2]
+        # tmax_score = pgm_proposals[:, 3]
+        # reference_temporal_iou = pgm_proposals[:, 5]
+        action_score = pgm_proposals[:, 2]
+        reference_temporal_iou = pgm_proposals[:, 3]
+
+        feature_path = osp.join(self.pgm_features_dir,
+                                video_name + self.feature_ext)
+        if self.feature_ext == '.npy':
+            bsp_feature = np.load(feature_path).astype(np.float32)
+
+        bsp_feature = bsp_feature[:self.top_k, :]
+
+        results['bsp_feature'] = bsp_feature
+        results['tmin'] = tmin
+        results['tmax'] = tmax
+        # results['tmin_score'] = tmin_score
+        # results['tmax_score'] = tmax_score
+        results['action_score'] = action_score
+        results['reference_temporal_iou'] = reference_temporal_iou
+
+        return results
