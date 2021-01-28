@@ -1,4 +1,5 @@
 # import argparse
+import os
 import os.path as osp
 
 import mmcv
@@ -403,6 +404,8 @@ def dump_results(pgm_proposals_dir,
                  out,
                  file_ext='.csv',
                  **kwargs):
+    os.makedirs(pgm_proposals_dir, exist_ok=True)
+    os.makedirs(tag_pgm_result_dir, exist_ok=True)
     video_infos = load_video_infos(ann_file)
     results = []
     for vinfo in video_infos:
