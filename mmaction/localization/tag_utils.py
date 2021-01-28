@@ -1,7 +1,7 @@
 # import argparse
 import os
 import os.path as osp
-from multiprocessing import Process
+from multiprocessing import Manager, Process
 
 import mmcv
 import numpy as np
@@ -419,7 +419,6 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
         #     delimiter=',',
         #     comments='')
         result_dict[video_name] = proposal_list
-        print(f'result_dict[video_name]: {len(result_dict[video_name])}')
         prog_bar.update()
 
 
@@ -431,7 +430,7 @@ def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
     thread_num = kwargs.pop('threads', 1)
     videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
     jobs = []
-    result_dict = {}
+    result_dict = Manager().dict()
     for i in range(thread_num):
         proc = Process(
             target=multithread_dump_results,
