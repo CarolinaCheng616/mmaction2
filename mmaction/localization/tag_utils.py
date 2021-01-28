@@ -405,8 +405,8 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
     prog_bar.start()
     for vinfo in video_infos:
         video_name = vinfo['video_name']
-        print(pgm_proposals_dir)
-        exit(0)
+        # print(pgm_proposals_dir)
+        # exit(0)
         file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
         proposal = np.loadtxt(
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
