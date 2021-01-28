@@ -410,22 +410,20 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
         proposal_list, post_proposal = tag_post_processing(
             proposal, vinfo, **kwargs)
-        # tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
-        # header = 'tmin,tmax,action_score,match_iou,match_ioa'
-        # np.savetxt(
-        #     tag_pgm_file,
-        #     post_proposal,
-        #     header=header,
-        #     delimiter=',',
-        #     comments='')
+        tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
+        header = 'tmin,tmax,action_score,match_iou,match_ioa'
+        np.savetxt(
+            tag_pgm_file,
+            post_proposal,
+            header=header,
+            delimiter=',',
+            comments='')
         result_dict[video_name] = proposal_list
         prog_bar.update()
 
 
 def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
                  **kwargs):
-    print(out)
-    exit(0)
     os.makedirs(pgm_proposals_dir, exist_ok=True)
     os.makedirs(tag_pgm_result_dir, exist_ok=True)
     video_infos = load_video_infos(ann_file)
@@ -443,6 +441,4 @@ def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
         jobs.append(proc)
     for job in jobs:
         job.join()
-    # import pdb
-    # pdb.set_trace()
     mmcv.dump(result_dict.copy(), out)
