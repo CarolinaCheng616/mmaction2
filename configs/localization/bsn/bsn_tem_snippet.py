@@ -86,14 +86,18 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=4096,
+    videos_per_gpu=4096 * 8,
     workers_per_gpu=0,
     train_dataloader=dict(drop_last=False, shuffle=False),
     val_dataloader=dict(
-        videos_per_gpu=4096, workers_per_gpu=0, drop_last=False,
+        videos_per_gpu=4096 * 8,
+        workers_per_gpu=0,
+        drop_last=False,
         shuffle=False),
     test_dataloader=dict(
-        videos_per_gpu=4096, workers_per_gpu=0, drop_last=False,
+        videos_per_gpu=4096 * 8,
+        workers_per_gpu=0,
+        drop_last=False,
         shuffle=False),
     test=dict(
         type=dataset_type,
