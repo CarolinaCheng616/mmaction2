@@ -27,8 +27,8 @@ def load_video_infos(ann_file):
     return video_infos
 
 
-def generate_proposals(ann_file, tem_results_dir, pgm_proposals_dir,
-                       pgm_proposals_thread, **kwargs):
+def generate_proposals(ann_file, tem_results_dir, point_pgm_proposals_dir,
+                       action_pgm_proposals_dir, pgm_proposals_thread, **kwargs):
     """Generate proposals using multi-process.
 
     Args:
@@ -77,16 +77,30 @@ def generate_proposals(ann_file, tem_results_dir, pgm_proposals_dir,
         p.join()
 
     # save results
-    os.makedirs(pgm_proposals_dir, exist_ok=True)
+    os.makedirs(point_pgm_proposals_dir, exist_ok=True)
+    os.makedirs(action_pgm_proposals_dir, exist_ok=True)
     prog_bar = mmcv.ProgressBar(num_videos)
-    header = 'tmin,tmax,tmin_score,tmax_score,score,match_iou,match_ioa'
+    # tmin, tmax, action_score, tmin_score, tmax_score, score, match_iou, match_ioa
+    header1 = 'tmin,tmax,tmin_score,tmax_score,score,match_iou,match_ioa'
+    header2 = 'tmin,tmax,action_score,match_iou,match_ioa'
+    mask1 = [0, 1, 3, 4, 5, 6, 7]
+    mask2 = [0, 1, 2, 6, 7]
     for video_name in result_dict:
         proposals = result_dict[video_name]
-        proposal_path = osp.join(pgm_proposals_dir, video_name + '.csv')
+        proposals1 = proposals[:, mask1]
+        proposals2 = proposals[:, mask2]
+        proposal_path1 = osp.join(point_pgm_proposals_dir, video_name + '.csv')
+        proposal_path2 = osp.join(action_pgm_proposals_dir, video_name + '.csv')
         np.savetxt(
-            proposal_path,
-            proposals,
-            header=header,
+            proposal_path1,
+            proposals1,
+            header=header1,
+            delimiter=',',
+            comments='')
+        np.savetxt(
+            proposal_path2,
+            proposals2,
+            header=header2,
             delimiter=',',
             comments='')
         prog_bar.update()

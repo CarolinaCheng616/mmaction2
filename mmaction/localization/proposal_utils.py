@@ -5,10 +5,10 @@ def temporal_iou(proposal_min, proposal_max, gt_min, gt_max):
     """Compute IoU score between a groundtruth bbox and the proposals.
 
     Args:
-        proposal_min (list[float]): List of temporal anchor min.
-        proposal_max (list[float]): List of temporal anchor max.
-        gt_min (float): Groundtruth temporal box min.
-        gt_max (float): Groundtruth temporal box max.
+        proposal_min (float): temporal anchor min.
+        proposal_max (float): temporal anchor max.
+        gt_min (list[float]): List of Groundtruth temporal box min.
+        gt_max (list[float]): List of Groundtruth temporal box max.
 
     Returns:
         list[float]: List of iou scores.
@@ -29,10 +29,10 @@ def temporal_iop(proposal_min, proposal_max, gt_min, gt_max):
     groundtruth proportional to the duration of this proposal.
 
     Args:
-        proposal_min (list[float]): List of temporal anchor min.
-        proposal_max (list[float]): List of temporal anchor max.
-        gt_min (float): Groundtruth temporal box min.
-        gt_max (float): Groundtruth temporal box max.
+        proposal_min (float): List of temporal anchor min.
+        proposal_max (float): List of temporal anchor max.
+        gt_min (list[float]): Groundtruth temporal box min.
+        gt_max (list[float]): Groundtruth temporal box max.
 
     Returns:
         list[float]: List of intersection over anchor scores.
