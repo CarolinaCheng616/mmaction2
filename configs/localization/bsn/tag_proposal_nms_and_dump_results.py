@@ -8,31 +8,39 @@ ann_file_test = 'data/TruNet/val_meta.json'
 
 pgm_work_dir = 'work_dirs/tag_pgm_snippet'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+tem_results_dir = 'work_dirs/tem_snippet/tem_results/'
 tag_proposal_result_dir = 'work_dirs/tag_result_snippet'
-# tag_pgm_result_dir = f'{tag_proposal_result_dir}/pgm_proposals/'
-# output_config = dict(
-#     out=f'{tag_proposal_result_dir}/results.json', output_format='json')
+topk = 100
+threads = 8
+# iou_nms = True
 
 tag_score_nms_config = dict(
-    threads=8,
+    thread_num=threads,
     soft_nms_alpha=0.75,
     soft_nms_low_threshold=0.65,
     soft_nms_high_threshold=0.9,
-    post_process_top_k=100,
-    tag_pgm_result_dir=f'{tag_proposal_result_dir}/score_pgm_proposals/',
+    top_k=topk,
+    proposals_dir=f'{tag_proposal_result_dir}/score_pgm_proposals/',
+    features_dir=f'{tag_proposal_result_dir}/score_pgm_features/',
     output_config=dict(
         out=f'{tag_proposal_result_dir}/score_results.json',
         output_format='json'))
-
 tag_iou_nms_config = dict(
-    threads=8,
+    thread_num=threads,
     soft_nms_alpha=0.75,
     soft_nms_low_threshold=0.65,
     soft_nms_high_threshold=0.9,
-    post_process_top_k=100,
-    tag_pgm_result_dir=f'{tag_proposal_result_dir}/iou_pgm_proposals/',
+    top_k=topk,
+    proposals_dir=f'{tag_proposal_result_dir}/iou_pgm_proposals/',
+    features_dir=f'{tag_proposal_result_dir}/iou_pgm_features/',
     output_config=dict(
         out=f'{tag_proposal_result_dir}/iou_results.json',
         output_format='json'))
-
-iou_nms = True
+feature_kwargs = dict(
+    top_k=topk,
+    bsp_boundary_ratio=0.2,
+    num_sample_start=8,
+    num_sample_end=8,
+    num_sample_action=16,
+    num_sample_interp=3
+)

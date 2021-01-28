@@ -14,6 +14,11 @@ def parse_args():
         choices=['train', 'test'],
         default='test',
         help='train or test')
+    parser.add_argument(
+        '--iou_nms',
+        choices=[True, False],
+        default=True,
+        help='True or False')
     args = parser.parse_args()
     return args
 
@@ -25,23 +30,30 @@ def main():
     mode = args.mode
     cfg = mmcv.Config.fromfile(args.config)
     pgm_proposals_dir = cfg.pgm_proposals_dir
-    iou_nms = cfg.iou_nms
+    tem_results_dir = cfg.tem_results_dir
+    iou_nms = args.iou_nms
     if iou_nms:
-        tag_pgm_result_dir = cfg.tag_iou_nms_config.pop('tag_pgm_result_dir')
+        nms_proposals_dir = cfg.tag_iou_nms_config.pop('proposals_dir')
+        nms_features_dir = cfg.tag_iou_nms_config.pop('features_dir')
         out = cfg.tag_iou_nms_config.pop('output_config')['out']
-        kwargs = cfg.tag_iou_nms_config
+        proposal_kwargs = cfg.tag_iou_nms_config
     else:
-        tag_pgm_result_dir = cfg.tag_score_nms_config.pop('tag_pgm_result_dir')
+        nms_proposals_dir = cfg.tag_score_nms_config.pop('proposals_dir')
+        nms_features_dir = cfg.tag_iou_nms_config.pop('features_dir')
         out = cfg.tag_score_nms_config.pop('output_config')['out']
-        kwargs = cfg.tag_score_nms_config
+        proposal_kwargs = cfg.tag_score_nms_config
+    feature_kwargs = cfg.feature_kwargs
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
     nms_and_dump_results(
         pgm_proposals_dir,
-        tag_pgm_result_dir,
+        tem_results_dir,
+        nms_proposals_dir,
+        nms_features_dir,
         ann_file,
         out,
-        iou_nms=iou_nms,
-        **kwargs)
+        iou_nms,
+        proposal_kwargs,
+        feature_kwargs)
     print('Finish generate post process proposals.')
 
 
