@@ -424,7 +424,6 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
 
 def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
                  **kwargs):
-    os.makedirs(pgm_proposals_dir, exist_ok=True)
     os.makedirs(tag_pgm_result_dir, exist_ok=True)
     video_infos = load_video_infos(ann_file)
     thread_num = kwargs.pop('threads', 1)
@@ -434,6 +433,62 @@ def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
     for i in range(thread_num):
         proc = Process(
             target=multithread_dump_results,
+            args=(video_infos[i * videos_per_thread:(i + 1) *
+                              videos_per_thread], pgm_proposals_dir,
+                  tag_pgm_result_dir, result_dict, kwargs))
+        proc.start()
+        jobs.append(proc)
+    for job in jobs:
+        job.join()
+    mmcv.dump(result_dict.copy(), out)
+
+
+def multithread_dump_highest_iou_results(video_infos, pgm_proposals_dir,
+                                         tag_pgm_result_dir, result_dict,
+                                         kwargs):
+    prog_bar = mmcv.ProgressBar(len(video_infos))
+    prog_bar.start()
+    for vinfo in video_infos:
+        video_name = vinfo['video_name']
+        video_duration = vinfo['duration_second']
+        file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
+        proposal = np.loadtxt(
+            file_name, dtype=np.float32, delimiter=',', skiprows=1)
+        # tmin, tmax, score, iou, iop
+        post_proposal = proposal[proposal[:, 3].argsort()
+                                 [::-1]][:kwargs['post_process_top_k']]
+        tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
+        header = 'tmin,tmax,action_score,match_iou,match_ioa'
+        np.savetxt(
+            tag_pgm_file,
+            post_proposal,
+            header=header,
+            delimiter=',',
+            comments='')
+        proposal_list = []
+        for result in post_proposal:
+            proposal = dict()
+            proposal['score'] = float(result[3])
+            proposal['segment'] = [
+                max(0, result[0]) * video_duration,
+                min(1, result[1]) * video_duration
+            ]
+            proposal_list.append(proposal)
+        result_dict[video_name] = proposal_list
+        prog_bar.update()
+
+
+def dump_highest_iou_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file,
+                             out, **kwargs):
+    os.makedirs(tag_pgm_result_dir, exist_ok=True)
+    video_infos = load_video_infos(ann_file)
+    thread_num = kwargs.pop('threads', 1)
+    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    jobs = []
+    result_dict = Manager().dict()
+    for i in range(thread_num):
+        proc = Process(
+            target=multithread_dump_highest_iou_results,
             args=(video_infos[i * videos_per_thread:(i + 1) *
                               videos_per_thread], pgm_proposals_dir,
                   tag_pgm_result_dir, result_dict, kwargs))

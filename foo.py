@@ -6,10 +6,8 @@ from multiprocessing import Manager, Process
 
 import numpy as np
 
-# from mmaction.localization.tag_utils import *
 
-
-def multi_statistic(meta, pgm_proposal, iou, dic, if_train=True):
+def multi_statistic(meta, pgm_proposal, iou, dic, iou_idx, if_train=True):
     with open(meta, 'r', encoding='utf-8') as f:
         train = json.load(f)
     train_files = [
