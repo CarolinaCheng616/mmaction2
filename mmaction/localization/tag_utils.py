@@ -438,7 +438,7 @@ def dump_results(pgm_proposals_dir,
     video_infos = load_video_infos(ann_file)
     thread_num = kwargs.pop('threads', 1)
     print(kwargs)
-    exit(0)
+    # exit(0)
     videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
     jobs = []
     result_dict = {}
@@ -447,7 +447,7 @@ def dump_results(pgm_proposals_dir,
             target=multithread_dump_results,
             args=(video_infos[i * videos_per_thread:(i + 1) *
                               videos_per_thread], pgm_proposals_dir,
-                  tag_pgm_result_dir, result_dict, file_ext, kwargs))
+                  tag_pgm_result_dir, result_dict, kwargs))
         proc.start()
         jobs.append(proc)
     for job in jobs:
