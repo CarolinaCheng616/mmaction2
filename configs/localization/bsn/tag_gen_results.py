@@ -13,18 +13,18 @@ tag_proposal_result_dir = 'work_dirs/tag_result_snippet'
 # output_config = dict(
 #     out=f'{tag_proposal_result_dir}/results.json', output_format='json')
 
-tag_results_config = dict(
+tag_score_nms_config = dict(
     threads=8,
     soft_nms_alpha=0.75,
     soft_nms_low_threshold=0.65,
     soft_nms_high_threshold=0.9,
     post_process_top_k=100,
-    tag_pgm_result_dir=f'{tag_proposal_result_dir}/nms_pgm_proposals/',
+    tag_pgm_result_dir=f'{tag_proposal_result_dir}/score_pgm_proposals/',
     output_config=dict(
-        out=f'{tag_proposal_result_dir}/nms_results.json',
+        out=f'{tag_proposal_result_dir}/score_results.json',
         output_format='json'))
 
-tag_highest_iou_config = dict(
+tag_iou_nms_config = dict(
     threads=8,
     soft_nms_alpha=0.75,
     soft_nms_low_threshold=0.65,
