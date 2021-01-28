@@ -1,6 +1,7 @@
 # import argparse
 import os
 import os.path as osp
+from multiprocessing import Process
 
 import mmcv
 import numpy as np
@@ -382,7 +383,7 @@ def tag_post_processing(result, video_info, soft_nms_alpha,
     if len(result) > 1:
         result = tag_soft_nms(result, soft_nms_alpha, soft_nms_low_threshold,
                               soft_nms_high_threshold, post_process_top_k)
-    result = result[result[:, -1].argsort()[::-1]]
+    result = result[result[:, 2].argsort()[::-1]]
     # start, end, score, iou, iop
     video_duration = float(video_info['duration_second'])
     proposal_list = []
@@ -398,16 +399,14 @@ def tag_post_processing(result, video_info, soft_nms_alpha,
     return proposal_list, result[:post_process_top_k]
 
 
-def dump_results(pgm_proposals_dir,
-                 tag_pgm_result_dir,
-                 ann_file,
-                 out,
-                 file_ext='.csv',
-                 **kwargs):
-    os.makedirs(pgm_proposals_dir, exist_ok=True)
-    os.makedirs(tag_pgm_result_dir, exist_ok=True)
-    video_infos = load_video_infos(ann_file)
-    results = []
+def multithread_dump_results(video_infos,
+                             pgm_proposals_dir,
+                             tag_pgm_result_dir,
+                             result_dict,
+                             file_ext='.csv',
+                             **kwargs):
+    prog_bar = mmcv.ProgressBar(len(video_infos))
+    prog_bar.start()
     for vinfo in video_infos:
         video_name = vinfo['video_name']
         file_name = osp.join(pgm_proposals_dir, video_name + file_ext)
@@ -415,9 +414,6 @@ def dump_results(pgm_proposals_dir,
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
         proposal_list, post_proposal = tag_post_processing(
             proposal, vinfo, **kwargs)
-        result = dict()
-        result['video_name'] = video_name
-        result['proposal_list'] = proposal_list
         tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + file_ext)
         header = 'tmin,tmax,action_score,match_iou,match_ioa'
         np.savetxt(
@@ -427,45 +423,31 @@ def dump_results(pgm_proposals_dir,
             delimiter=',',
             comments='')
 
-    result_dict = {}
-    prog_bar = mmcv.ProgressBar(len(results))
-    for result in results:
-        video_name = result['video_name']
-        result_dict[video_name] = result['proposal_list']
+        result_dict[video_name] = proposal_list
         prog_bar.update()
+
+
+def dump_results(pgm_proposals_dir,
+                 tag_pgm_result_dir,
+                 ann_file,
+                 out,
+                 file_ext='.csv',
+                 **kwargs):
+    os.makedirs(pgm_proposals_dir, exist_ok=True)
+    os.makedirs(tag_pgm_result_dir, exist_ok=True)
+    video_infos = load_video_infos(ann_file)
+    thread_num = kwargs.pop('threads', 1)
+    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    jobs = []
+    result_dict = {}
+    for i in range(thread_num):
+        proc = Process(
+            target=multithread_dump_results,
+            args=(video_infos[i * videos_per_thread:(i + 1) *
+                              videos_per_thread], pgm_proposals_dir,
+                  tag_pgm_result_dir, result_dict, file_ext, kwargs))
+        proc.start()
+        jobs.append(proc)
+    for job in jobs:
+        job.join()
     mmcv.dump(result_dict, out)
-
-
-# def parse_args():
-#     parser = argparse.ArgumentParser(
-#         description='generate tag proposal results.')
-#     parser.add_argument('config', help='test config file path')
-#     parser.add_argument(
-#         '--mode',
-#         choices=['train', 'test'],
-#         default='test',
-#         help='train or test')
-#     args = parser.parse_args()
-#     return args
-#
-#
-# def main():
-#     """generate tag proposal results."""
-#     print(f'Begin generate post process proposals.')
-#     args = parse_args()
-#     cfg = mmcv.Config.fromfile(args.config)
-#     pgm_proposals_dir = cfg.pgm_proposals_dir
-#     tag_pgm_result_dir = cfg.tag_pgm_result_dir
-#     out = cfg.output_config.out
-#     mode = args.mode
-#     if mode == 'train':
-#         dump_results(pgm_proposals_dir, tag_pgm_result_dir,
-#                      cfg.ann_file_train, out, **cfg.tag_results_config)
-#     elif mode == 'test':
-#         dump_results(pgm_proposals_dir, tag_pgm_result_dir, cfg.ann_file_val,
-#                      out, **cfg.tag_results_config)
-#     print(f'Finish generate post process proposals.')
-#
-#
-# if __name__ == '__main__':
-#     main()

@@ -14,6 +14,7 @@ output_config = dict(
     out=f'{tag_proposal_result_dir}/results.json', output_format='json')
 
 tag_results_config = dict(
+    threads=8,
     soft_nms_alpha=0.75,
     soft_nms_low_threshold=0.65,
     soft_nms_high_threshold=0.9,
