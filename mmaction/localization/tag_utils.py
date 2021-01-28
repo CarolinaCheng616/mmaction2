@@ -437,6 +437,7 @@ def dump_results(pgm_proposals_dir,
     os.makedirs(tag_pgm_result_dir, exist_ok=True)
     video_infos = load_video_infos(ann_file)
     thread_num = kwargs.pop('threads', 1)
+    print(kwargs)
     videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
     jobs = []
     result_dict = {}
