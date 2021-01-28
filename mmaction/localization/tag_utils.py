@@ -43,23 +43,23 @@ def generate_tag_proposals(video_list,
         tem_results = np.loadtxt(
             tem_path, dtype=np.float32, delimiter=',', skiprows=1)
         # action, start, end, tmin, tmax
-        length = len(tem_results)
-        tgap = 1. / length
         action_scores = tem_results[:, 0]
         # start_scores = tem_results[:, 1]
         # end_scores = tem_results[:, 2]
+        length = len(tem_results)
+        tgap = 1. / length
         max_action = max(action_scores)
 
         new_props = []
         labels = []
         for alpha in alpha_list:
-            label = np.nonzero(action_scores > alpha * max_action)[0]
+            label = (action_scores > alpha * max_action).astype(int)
             labels.append(label)
         for label in labels:
             diff = np.empty(length + 1)
             diff[1:-1] = label[1:].astype(int) - label[:-1].astype(int)
             diff[0] = float(label[0])
-            diff[length] = 0 - float(label[-1])  # 每个位置与前一个位置的差值
+            diff[-1] = 0 - float(label[-1])  # 每个位置与前一个位置的差值
             cs = np.cumsum(1 - label)  # cs[i]表示第i个位置以及之前有多少0(即actionness低于阈值)
             offset = np.arange(0, length, 1)
 
