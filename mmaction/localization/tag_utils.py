@@ -424,6 +424,8 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
 
 def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
                  **kwargs):
+    print(out)
+    exit(0)
     os.makedirs(pgm_proposals_dir, exist_ok=True)
     os.makedirs(tag_pgm_result_dir, exist_ok=True)
     video_infos = load_video_infos(ann_file)
