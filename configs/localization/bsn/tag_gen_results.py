@@ -26,6 +26,9 @@ tag_results_config = dict(
 
 tag_highest_iou_config = dict(
     threads=8,
+    soft_nms_alpha=0.75,
+    soft_nms_low_threshold=0.65,
+    soft_nms_high_threshold=0.9,
     post_process_top_k=100,
     tag_pgm_result_dir=f'{tag_proposal_result_dir}/iou_pgm_proposals/',
     output_config=dict(
