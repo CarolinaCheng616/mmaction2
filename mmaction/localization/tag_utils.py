@@ -427,17 +427,13 @@ def multithread_dump_results(video_infos,
         prog_bar.update()
 
 
-def dump_results(pgm_proposals_dir,
-                 tag_pgm_result_dir,
-                 ann_file,
-                 out,
-                 file_ext='.csv',
+def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
                  **kwargs):
     os.makedirs(pgm_proposals_dir, exist_ok=True)
     os.makedirs(tag_pgm_result_dir, exist_ok=True)
     video_infos = load_video_infos(ann_file)
     thread_num = kwargs.pop('threads', 1)
-    print(kwargs)
+    # print(kwargs)
     # exit(0)
     videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
     jobs = []
