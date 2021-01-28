@@ -18,15 +18,13 @@ test_cfg = dict(average_clips='score')
 # dataset settings
 dataset_type = 'SnippetDataset'
 data_root = 'data/TruNet/train_feature/'
-# data_root = 'data/TruNet/val_feature/'
-# data_root_val = 'data/TruNet/val_feature/'
-data_root_val = data_root
+data_root_val = 'data/TruNet/val_feature/'
+# data_root_val = data_root
 ann_file_train = 'data/TruNet/train_meta.json'
-# ann_file_train = 'data/TruNet/val_meta.json'
-# ann_file_val = 'data/TruNet/val_meta.json'
-# ann_file_test = 'data/TruNet/val_meta.json'
-ann_file_val = ann_file_train
-ann_file_test = ann_file_train
+ann_file_val = 'data/TruNet/val_meta.json'
+ann_file_test = 'data/TruNet/val_meta.json'
+# ann_file_val = ann_file_train
+# ann_file_test = ann_file_train
 
 work_dir = 'work_dirs/tem_snippet/'
 tem_results_dir = f'{work_dir}/tem_results/'
@@ -92,14 +90,10 @@ data = dict(
     workers_per_gpu=0,
     train_dataloader=dict(drop_last=False, shuffle=False),
     val_dataloader=dict(
-        videos_per_gpu=4096 * 8,
-        workers_per_gpu=0,
-        drop_last=False,
+        videos_per_gpu=4096, workers_per_gpu=0, drop_last=False,
         shuffle=False),
     test_dataloader=dict(
-        videos_per_gpu=4096 * 8,
-        workers_per_gpu=0,
-        drop_last=False,
+        videos_per_gpu=4096, workers_per_gpu=0, drop_last=False,
         shuffle=False),
     test=dict(
         type=dataset_type,

@@ -5,13 +5,14 @@ import numpy as np
 from .proposal_utils import temporal_iop, temporal_iou
 
 
-def generate_tag_proposals(video_list,
-                           video_infos,
-                           tem_results_dir,
-                           alpha_list=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95, ],
-                           beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
-                           tem_results_ext='.csv',
-                           result_dict=None):
+def generate_tag_proposals(
+        video_list,
+        video_infos,
+        tem_results_dir,
+        alpha_list=[0.01, 0.05, 0.1, .15, 0.25, .4, .5, .6, .7, .8, .9, .95],
+        beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+        tem_results_ext='.csv',
+        result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results.
     Each proposal file will contain:
     'tmin,tmax,mean_action,tmin_score,tmax_score,score,match_iou,match_ioa'.
@@ -46,8 +47,8 @@ def generate_tag_proposals(video_list,
         length = len(tem_results)
         tgap = 1. / length
         action_scores = tem_results[:, 0]
-        start_scores = tem_results[:, 1]
-        end_scores = tem_results[:, 2]
+        # start_scores = tem_results[:, 1]
+        # end_scores = tem_results[:, 2]
         max_action = max(action_scores)
 
         new_props = []
@@ -66,40 +67,39 @@ def generate_tag_proposals(video_list,
             up = np.nonzero(diff == 1)[0]  # segment开始位置
             down = np.nonzero(diff == -1)[0]  # segment结束位置
 
-            assert len(up) == len(down), "{} != {}".format(len(up), len(down))
-            for i, t in enumerate(beta_list):  # t为给定的阈值, t * offset=每个位置允许的0的个数
+            assert len(up) == len(down), '{} != {}'.format(len(up), len(down))
+            for i, t in enumerate(
+                    beta_list):  # t为给定的阈值, t * offset=每个位置允许的0的个数
                 signal = cs - t * offset
                 for x in range(len(up)):
                     s = signal[up[x]]  # 在每个segment开始位置的信号
                     for y in range(x + 1, len(up)):  # x segment后面的segment
-                        if y < len(down) and signal[up[y]] > s:  # y segment 开始位置的信号大于x segment开始位置的信号
-                            new_props.append((up[x] * tgap, down[y - 1] * tgap,
-                                              np.mean(action_scores[up[x]:down[y - 1]]),
-                                              start_scores[up[x]], end_scores[down[y - 1] - 1]))
+                        if y < len(down) and signal[up[
+                                y]] > s:  # y segment 开始位置的信号大于x segment开始位置的信号
+                            new_props.append(
+                                (up[x] * tgap, down[y - 1] * tgap,
+                                 np.mean(action_scores[up[x]:down[y - 1]])))
                             break
                     else:  # x 是最后一个segment 或 y 是最后一个segment
-                        new_props.append((up[x] * tgap, down[-1] * tgap,
-                                          np.mean(action_scores[up[x]:down[-1]]),
-                                          start_scores[up[x]], end_scores[down[-1] - 1]))
+                        new_props.append(
+                            (up[x] * tgap, down[-1] * tgap,
+                             np.mean(action_scores[up[x]:down[-1]])))
 
                 for x in range(len(down) - 1, -1, -1):  # 反过来做一遍
-                    # s = signal[down[x]-1] if down[x] < length else signal[-1] - t
+                    # s = signal[down[x]-1] if down[x] < length else signal[-1] - t  # noqa
                     s = signal[down[x] - 1]
                     for y in range(x - 1, -1, -1):
-                        if y >= 0 and signal[down[y]-1] < s:
-                            new_props.append((up[y + 1] * tgap, down[x] * tgap,
-                                              np.mean(action_scores[up[y + 1]:down[x]]),
-                                              start_scores[up[y + 1]], end_scores[down[x] - 1]))
+                        if y >= 0 and signal[down[y] - 1] < s:
+                            new_props.append(
+                                (up[y + 1] * tgap, down[x] * tgap,
+                                 np.mean(action_scores[up[y + 1]:down[x]])))
                             break
                     else:
                         new_props.append((up[0] * tgap, down[x] * tgap,
-                                          np.mean(action_scores[0: down[x]]),
-                                          start_scores[up[0]], end_scores[down[x] - 1]))
+                                          np.mean(action_scores[0:down[x]])))
         new_props = np.stack(new_props)
-        # tmin, tmax, action_score, start_score, end_score
+        # tmin, tmax, action_score
         new_props = new_props[new_props[:, 2].argsort()[::-1]]
-        score_list = (new_props[:, 3] * new_props[:, 4]).reshape(-1, 1)
-        new_props = np.concatenate((new_props, score_list), axis=1)
         video_info = video_infos[video_index]
         corrected_second = float(video_info['duration_second'])
 
@@ -124,7 +124,7 @@ def generate_tag_proposals(video_list,
         new_props = np.concatenate((new_props, new_iou_list), axis=1)
         new_props = np.concatenate((new_props, new_ioa_list), axis=1)
         proposal_dict[video_name] = new_props
-        # tmin, tmax, action_score, start_score, end_score, score, iou, iop
+        # tmin, tmax, action_score, iou, iop
         if result_dict is not None:
             result_dict[video_name] = new_props
     return proposal_dict
