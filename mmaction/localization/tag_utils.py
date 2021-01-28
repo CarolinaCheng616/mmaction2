@@ -442,4 +442,6 @@ def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
         jobs.append(proc)
     for job in jobs:
         job.join()
+    import pdb
+    pdb.set_trace()
     mmcv.dump(result_dict, out)
