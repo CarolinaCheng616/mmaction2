@@ -10,7 +10,7 @@ import numpy as np
 from .proposal_utils import temporal_iop, temporal_iou
 
 
-def load_video_infos(ann_file):
+def _load_video_infos(ann_file):
     """Load the video annotations.
 
     Args:
@@ -67,8 +67,6 @@ def generate_tag_proposals(video_list,
             tem_path, dtype=np.float32, delimiter=',', skiprows=1)
         # action, start, end, tmin, tmax
         action_scores = tem_results[:, 0]
-        # start_scores = tem_results[:, 1]
-        # end_scores = tem_results[:, 2]
         length = len(tem_results)
         tgap = 1. / length
         max_action = max(action_scores)
@@ -298,8 +296,8 @@ def generate_tag_feature(video_list,
     return bsp_feature_dict
 
 
-def tag_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k,
-                 score_idx):
+def _proposals_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k,
+                        score_idx):
     """Soft NMS for tag temporal proposals.
 
     Args:
@@ -363,9 +361,9 @@ def tag_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k,
     return new_proposals
 
 
-def tag_post_processing(result, video_info, score_idx, soft_nms_alpha,
-                        soft_nms_low_threshold, soft_nms_high_threshold,
-                        post_process_top_k):
+def proposals_post_processing(result, video_info, score_idx, soft_nms_alpha,
+                              soft_nms_low_threshold, soft_nms_high_threshold,
+                              post_process_top_k):
     """Post process for tag temporal proposals generation.
 
     Args:
@@ -376,7 +374,6 @@ def tag_post_processing(result, video_info, score_idx, soft_nms_alpha,
         soft_nms_low_threshold (float): Low threshold for soft nms.
         soft_nms_high_threshold (float): High threshold for soft nms.
         post_process_top_k (int): Top k values to be considered.
-        feature_extraction_interval (int): Interval used in feature extraction.
 
     Returns:
         list[dict]: The updated proposals, e.g.
@@ -385,11 +382,12 @@ def tag_post_processing(result, video_info, score_idx, soft_nms_alpha,
             ...].
     """
     if len(result) > 1:
-        result = tag_soft_nms(result, soft_nms_alpha, soft_nms_low_threshold,
-                              soft_nms_high_threshold, post_process_top_k,
-                              score_idx)
+        result = _proposals_soft_nms(result, soft_nms_alpha,
+                                     soft_nms_low_threshold,
+                                     soft_nms_high_threshold,
+                                     post_process_top_k, score_idx)
     result = result[result[:, score_idx].argsort()[::-1]][:post_process_top_k]
-    # start, end, score, iou, iop
+    # tmin, tmax, score, iou, iop
     video_duration = float(video_info['duration_second'])
     proposal_list = []
 
@@ -404,8 +402,9 @@ def tag_post_processing(result, video_info, score_idx, soft_nms_alpha,
     return proposal_list, result
 
 
-def multithread_dump_results(video_infos, pgm_proposals_dir,
-                             tag_pgm_result_dir, result_dict, kwargs):
+def _multithread_nms_and_dump_results(video_infos, pgm_proposals_dir,
+                                      tag_pgm_result_dir, result_dict,
+                                      score_idx, kwargs):
     prog_bar = mmcv.ProgressBar(len(video_infos))
     prog_bar.start()
     for vinfo in video_infos:
@@ -413,8 +412,8 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
         file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
         proposal = np.loadtxt(
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
-        proposal_list, post_proposal = tag_post_processing(
-            proposal, vinfo, score_idx=2, **kwargs)
+        proposal_list, post_proposal = proposals_post_processing(
+            proposal, vinfo, score_idx, **kwargs)
         tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
         header = 'tmin,tmax,action_score,match_iou,match_ioa'
         np.savetxt(
@@ -427,95 +426,25 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
         prog_bar.update()
 
 
-def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
-                 **kwargs):
+def nms_and_dump_results(pgm_proposals_dir,
+                         tag_pgm_result_dir,
+                         ann_file,
+                         out,
+                         iou_nms=True,
+                         **kwargs):
     os.makedirs(tag_pgm_result_dir, exist_ok=True)
-    video_infos = load_video_infos(ann_file)
+    video_infos = _load_video_infos(ann_file)
     thread_num = kwargs.pop('threads', 1)
     videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
     jobs = []
     result_dict = Manager().dict()
+    score_idx = 3 if iou_nms else 2
     for i in range(thread_num):
         proc = Process(
-            target=multithread_dump_results,
+            target=_multithread_nms_and_dump_results,
             args=(video_infos[i * videos_per_thread:(i + 1) *
                               videos_per_thread], pgm_proposals_dir,
-                  tag_pgm_result_dir, result_dict, kwargs))
-        proc.start()
-        jobs.append(proc)
-    for job in jobs:
-        job.join()
-    mmcv.dump(result_dict.copy(), out)
-
-
-def multithread_dump_highest_iou_results(video_infos, pgm_proposals_dir,
-                                         tag_pgm_result_dir, result_dict,
-                                         kwargs):
-    # prog_bar = mmcv.ProgressBar(len(video_infos))
-    # prog_bar.start()
-    # for vinfo in video_infos:
-    #     video_name = vinfo['video_name']
-    #     video_duration = vinfo['duration_second']
-    #     file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
-    #     proposal = np.loadtxt(
-    #         file_name, dtype=np.float32, delimiter=',', skiprows=1)
-    #     # tmin, tmax, score, iou, iop
-    #     post_proposal = proposal[proposal[:, 3].argsort()
-    #                              [::-1]][:kwargs['post_process_top_k']]
-    #     tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
-    #     header = 'tmin,tmax,action_score,match_iou,match_ioa'
-    #     np.savetxt(
-    #         tag_pgm_file,
-    #         post_proposal,
-    #         header=header,
-    #         delimiter=',',
-    #         comments='')
-    #     proposal_list = []
-    #     for result in post_proposal:
-    #         proposal = dict()
-    #         proposal['score'] = float(result[3])
-    #         proposal['segment'] = [
-    #             max(0, result[0]) * video_duration,
-    #             min(1, result[1]) * video_duration
-    #         ]
-    #         proposal_list.append(proposal)
-    #     result_dict[video_name] = proposal_list
-    #     prog_bar.update()
-    prog_bar = mmcv.ProgressBar(len(video_infos))
-    prog_bar.start()
-    for vinfo in video_infos:
-        video_name = vinfo['video_name']
-        file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
-        proposal = np.loadtxt(
-            file_name, dtype=np.float32, delimiter=',', skiprows=1)
-        proposal_list, post_proposal = tag_post_processing(
-            proposal, vinfo, score_idx=3, **kwargs)
-        tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
-        header = 'tmin,tmax,action_score,match_iou,match_ioa'
-        np.savetxt(
-            tag_pgm_file,
-            post_proposal,
-            header=header,
-            delimiter=',',
-            comments='')
-        result_dict[video_name] = proposal_list
-        prog_bar.update()
-
-
-def dump_highest_iou_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file,
-                             out, **kwargs):
-    os.makedirs(tag_pgm_result_dir, exist_ok=True)
-    video_infos = load_video_infos(ann_file)
-    thread_num = kwargs.pop('threads', 1)
-    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
-    jobs = []
-    result_dict = Manager().dict()
-    for i in range(thread_num):
-        proc = Process(
-            target=multithread_dump_highest_iou_results,
-            args=(video_infos[i * videos_per_thread:(i + 1) *
-                              videos_per_thread], pgm_proposals_dir,
-                  tag_pgm_result_dir, result_dict, kwargs))
+                  tag_pgm_result_dir, result_dict, score_idx, kwargs))
         proc.start()
         jobs.append(proc)
     for job in jobs:

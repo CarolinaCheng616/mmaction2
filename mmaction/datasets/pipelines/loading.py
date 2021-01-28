@@ -1921,13 +1921,11 @@ class LoadTAGProposals:
             pgm_proposals = np.loadtxt(
                 proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
 
+        # tmin, tmax, action_score, match_iou, match_ioa
         pgm_proposals = np.array(pgm_proposals[:self.top_k])
         tmin = pgm_proposals[:, 0]
         tmax = pgm_proposals[:, 1]
-        # tmin_score = pgm_proposals[:, 2]
-        # tmax_score = pgm_proposals[:, 3]
-        # reference_temporal_iou = pgm_proposals[:, 5]
-        action_score = pgm_proposals[:, 2]
+        # action_score = pgm_proposals[:, 2]
         reference_temporal_iou = pgm_proposals[:, 3]
 
         feature_path = osp.join(self.pgm_features_dir,
@@ -1940,9 +1938,7 @@ class LoadTAGProposals:
         results['bsp_feature'] = bsp_feature
         results['tmin'] = tmin
         results['tmax'] = tmax
-        # results['tmin_score'] = tmin_score
-        # results['tmax_score'] = tmax_score
-        results['action_score'] = action_score
+        # results['action_score'] = action_score
         results['reference_temporal_iou'] = reference_temporal_iou
 
         return results

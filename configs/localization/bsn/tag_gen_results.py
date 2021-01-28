@@ -35,4 +35,4 @@ tag_highest_iou_config = dict(
         out=f'{tag_proposal_result_dir}/iou_results.json',
         output_format='json'))
 
-highest_iou = True
+iou_nms = True
