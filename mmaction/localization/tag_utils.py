@@ -409,6 +409,8 @@ def multithread_dump_results(video_infos,
     prog_bar.start()
     for vinfo in video_infos:
         video_name = vinfo['video_name']
+        print(video_name)
+        exit(0)
         file_name = osp.join(pgm_proposals_dir, video_name + file_ext)
         proposal = np.loadtxt(
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
@@ -433,8 +435,6 @@ def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
     os.makedirs(tag_pgm_result_dir, exist_ok=True)
     video_infos = load_video_infos(ann_file)
     thread_num = kwargs.pop('threads', 1)
-    # print(kwargs)
-    # exit(0)
     videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
     jobs = []
     result_dict = {}
