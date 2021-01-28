@@ -1,4 +1,5 @@
 # import argparse
+import copy
 import os
 import os.path as osp
 from multiprocessing import Manager, Process
@@ -297,7 +298,8 @@ def generate_tag_feature(video_list,
     return bsp_feature_dict
 
 
-def tag_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k):
+def tag_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k,
+                 score_idx):
     """Soft NMS for tag temporal proposals.
 
     Args:
@@ -311,39 +313,41 @@ def tag_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k):
         np.ndarray: The updated proposals.
     """
     # tmin, tmax, action_score, match_iou, match_iop
-    # proposals = proposals[proposals[:, -1].argsort()[::-1]]
-    proposals = proposals[proposals[:, 2].argsort()[::-1]]
+    proposals = proposals[proposals[:, score_idx].argsort()[::-1]]
+    tscores = copy.copy(list(proposals[:, score_idx]))
     tstart = list(proposals[:, 0])
     tend = list(proposals[:, 1])
-    # tscore = list(proposals[:, -1])
     tscore = list(proposals[:, 2])
     tiou = list(proposals[:, 3])
     tiop = list(proposals[:, 4])
+    rscores = []
     rstart = []
     rend = []
     rscore = []
     riou = []
     riop = []
 
-    while len(tscore) > 0 and len(rscore) <= top_k:
-        max_index = np.argmax(tscore)
+    while len(tscores) > 0 and len(rscores) <= top_k:
+        max_index = np.argmax(tscores)
         max_width = tend[max_index] - tstart[max_index]
         iou_list = temporal_iou(tstart[max_index], tend[max_index],
                                 np.array(tstart), np.array(tend))
         iou_exp_list = np.exp(-np.square(iou_list) / alpha)
 
-        for idx, _ in enumerate(tscore):
+        for idx, _ in enumerate(tscores):
             if idx != max_index:
                 current_iou = iou_list[idx]
                 if current_iou > low_threshold + (high_threshold -
                                                   low_threshold) * max_width:
-                    tscore[idx] = tscore[idx] * iou_exp_list[idx]
+                    tscores[idx] = tscores[idx] * iou_exp_list[idx]
 
+        rscores.append(tscores[max_index])
         rstart.append(tstart[max_index])
         rend.append(tend[max_index])
         rscore.append(tscore[max_index])
         riou.append(tiou[max_index])
         riop.append(tiop[max_index])
+        tscores.pop(max_index)
         tstart.pop(max_index)
         tend.pop(max_index)
         tscore.pop(max_index)
@@ -359,7 +363,7 @@ def tag_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k):
     return new_proposals
 
 
-def tag_post_processing(result, video_info, soft_nms_alpha,
+def tag_post_processing(result, video_info, score_idx, soft_nms_alpha,
                         soft_nms_low_threshold, soft_nms_high_threshold,
                         post_process_top_k):
     """Post process for tag temporal proposals generation.
@@ -382,21 +386,22 @@ def tag_post_processing(result, video_info, soft_nms_alpha,
     """
     if len(result) > 1:
         result = tag_soft_nms(result, soft_nms_alpha, soft_nms_low_threshold,
-                              soft_nms_high_threshold, post_process_top_k)
-    result = result[result[:, 2].argsort()[::-1]]
+                              soft_nms_high_threshold, post_process_top_k,
+                              score_idx)
+    result = result[result[:, score_idx].argsort()[::-1]][:post_process_top_k]
     # start, end, score, iou, iop
     video_duration = float(video_info['duration_second'])
     proposal_list = []
 
-    for j in range(min(post_process_top_k, len(result))):
+    for j in range(len(result)):
         proposal = dict()
-        proposal['score'] = float(result[j, 2])
+        proposal['score'] = float(result[j, score_idx])
         proposal['segment'] = [
             max(0, result[j, 0]) * video_duration,
             min(1, result[j, 1]) * video_duration
         ]
         proposal_list.append(proposal)
-    return proposal_list, result[:post_process_top_k]
+    return proposal_list, result
 
 
 def multithread_dump_results(video_infos, pgm_proposals_dir,
@@ -409,7 +414,7 @@ def multithread_dump_results(video_infos, pgm_proposals_dir,
         proposal = np.loadtxt(
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
         proposal_list, post_proposal = tag_post_processing(
-            proposal, vinfo, **kwargs)
+            proposal, vinfo, score_idx=2, **kwargs)
         tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
         header = 'tmin,tmax,action_score,match_iou,match_ioa'
         np.savetxt(
@@ -446,17 +451,45 @@ def dump_results(pgm_proposals_dir, tag_pgm_result_dir, ann_file, out,
 def multithread_dump_highest_iou_results(video_infos, pgm_proposals_dir,
                                          tag_pgm_result_dir, result_dict,
                                          kwargs):
+    # prog_bar = mmcv.ProgressBar(len(video_infos))
+    # prog_bar.start()
+    # for vinfo in video_infos:
+    #     video_name = vinfo['video_name']
+    #     video_duration = vinfo['duration_second']
+    #     file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
+    #     proposal = np.loadtxt(
+    #         file_name, dtype=np.float32, delimiter=',', skiprows=1)
+    #     # tmin, tmax, score, iou, iop
+    #     post_proposal = proposal[proposal[:, 3].argsort()
+    #                              [::-1]][:kwargs['post_process_top_k']]
+    #     tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
+    #     header = 'tmin,tmax,action_score,match_iou,match_ioa'
+    #     np.savetxt(
+    #         tag_pgm_file,
+    #         post_proposal,
+    #         header=header,
+    #         delimiter=',',
+    #         comments='')
+    #     proposal_list = []
+    #     for result in post_proposal:
+    #         proposal = dict()
+    #         proposal['score'] = float(result[3])
+    #         proposal['segment'] = [
+    #             max(0, result[0]) * video_duration,
+    #             min(1, result[1]) * video_duration
+    #         ]
+    #         proposal_list.append(proposal)
+    #     result_dict[video_name] = proposal_list
+    #     prog_bar.update()
     prog_bar = mmcv.ProgressBar(len(video_infos))
     prog_bar.start()
     for vinfo in video_infos:
         video_name = vinfo['video_name']
-        video_duration = vinfo['duration_second']
         file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
         proposal = np.loadtxt(
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
-        # tmin, tmax, score, iou, iop
-        post_proposal = proposal[proposal[:, 3].argsort()
-                                 [::-1]][:kwargs['post_process_top_k']]
+        proposal_list, post_proposal = tag_post_processing(
+            proposal, vinfo, score_idx=3, **kwargs)
         tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
         header = 'tmin,tmax,action_score,match_iou,match_ioa'
         np.savetxt(
@@ -465,15 +498,6 @@ def multithread_dump_highest_iou_results(video_infos, pgm_proposals_dir,
             header=header,
             delimiter=',',
             comments='')
-        proposal_list = []
-        for result in post_proposal:
-            proposal = dict()
-            proposal['score'] = float(result[3])
-            proposal['segment'] = [
-                max(0, result[0]) * video_duration,
-                min(1, result[1]) * video_duration
-            ]
-            proposal_list.append(proposal)
         result_dict[video_name] = proposal_list
         prog_bar.update()
 
