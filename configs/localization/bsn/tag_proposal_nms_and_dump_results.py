@@ -12,7 +12,6 @@ tem_results_dir = 'work_dirs/tem_snippet/tem_results/'
 tag_proposal_result_dir = 'work_dirs/tag_result_snippet'
 topk = 100
 threads = 8
-# iou_nms = True
 
 tag_score_nms_config = dict(
     thread_num=threads,
@@ -42,5 +41,4 @@ feature_kwargs = dict(
     num_sample_start=8,
     num_sample_end=8,
     num_sample_action=16,
-    num_sample_interp=3
-)
+    num_sample_interp=3)

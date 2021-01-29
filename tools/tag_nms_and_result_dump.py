@@ -18,6 +18,7 @@ def parse_args():
         '--iou_nms',
         choices=[True, False],
         default=True,
+        type=bool,
         help='True or False')
     args = parser.parse_args()
     return args
@@ -44,16 +45,9 @@ def main():
         proposal_kwargs = cfg.tag_score_nms_config
     feature_kwargs = cfg.feature_kwargs
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
-    nms_and_dump_results(
-        pgm_proposals_dir,
-        tem_results_dir,
-        nms_proposals_dir,
-        nms_features_dir,
-        ann_file,
-        out,
-        iou_nms,
-        proposal_kwargs,
-        feature_kwargs)
+    nms_and_dump_results(pgm_proposals_dir, tem_results_dir, nms_proposals_dir,
+                         nms_features_dir, ann_file, out, iou_nms,
+                         proposal_kwargs, feature_kwargs)
     print('Finish generate post process proposals.')
 
 
