@@ -34,16 +34,16 @@ ann_file_test = 'data/TruNet/val_meta.json'
 nms_type = 'iou'
 
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
-# pem_work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
-pem_work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
+pem_work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr0.0001/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# pem_work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{pem_work_dir}/results.json', output_format='json')
 
