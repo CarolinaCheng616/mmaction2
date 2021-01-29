@@ -27,11 +27,13 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # ann_file_val = ann_file_train
 # ann_file_test = ann_file_train
 
-pgm_work_dir = 'work_dirs/pgm_snippet/'
-pem_work_dir = 'work_dirs/pem_snippet'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-output_config = dict(out=f'{pem_work_dir}/results.json', output_format='json')
+nms_type = 'iou'
+pgm_work_dir = 'work_dirs/tag_pgm_nms_snippet/'
+pem_work_dir = 'work_dirs/tag_pem_nms_snippet'
+pgm_proposals_dir = f'{pgm_work_dir}/{nms_type}_pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/{nms_type}_pgm_features/'
+output_config = dict(
+    out=f'{pem_work_dir}/{nms_type}_results.json', output_format='json')
 
 test_pipeline = [
     dict(
@@ -77,7 +79,7 @@ val_pipeline = [
     dict(type='ToTensor', keys=['bsp_feature'])
 ]
 data = dict(
-    videos_per_gpu=64,
+    videos_per_gpu=32,
     workers_per_gpu=8,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
@@ -101,15 +103,20 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
+gpu_per_node = 8
+machines = 1
 optimizer = dict(
-    type='SGD', lr=0.001 * 64 * 1 * 2 / 256, momentum=0.9, weight_decay=0.0005)
+    type='SGD',
+    lr=0.001 * data['videos_per_gpu'] * gpu_per_node * machines / 256,
+    momentum=0.9,
+    weight_decay=0.0005)
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=25)
 
 total_epochs = 70
-checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
+checkpoint_config = dict(interval=2, filename_tmpl='pem_epoch_{}.pth')
 
 # evaluation = dict(interval=1, metrics=['AR@AN'])
 
