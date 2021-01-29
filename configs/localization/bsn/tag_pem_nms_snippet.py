@@ -50,7 +50,7 @@ output_config = dict(out=f'{pem_work_dir}/results.json', output_format='json')
 test_pipeline = [
     dict(
         type='LoadTAGProposals',
-        top_k=500,
+        # top_k=500,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(
@@ -63,7 +63,7 @@ test_pipeline = [
 train_pipeline = [
     dict(
         type='LoadTAGProposals',
-        top_k=500,
+        # top_k=500,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(
@@ -80,7 +80,7 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='LoadTAGProposals',
-        top_k=500,
+        # top_k=500,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(

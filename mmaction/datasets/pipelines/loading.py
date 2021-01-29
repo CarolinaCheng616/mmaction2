@@ -1860,13 +1860,14 @@ class LoadTAGProposals:
         feature_ext (str): Feature file extension. Default: '.npy'.
     """
 
-    def __init__(self,
-                 top_k,
-                 pgm_proposals_dir,
-                 pgm_features_dir,
-                 proposal_ext='.csv',
-                 feature_ext='.npy'):
-        self.top_k = top_k
+    def __init__(
+            self,
+            # top_k,
+            pgm_proposals_dir,
+            pgm_features_dir,
+            proposal_ext='.csv',
+            feature_ext='.npy'):
+        # self.top_k = top_k
         self.pgm_proposals_dir = pgm_proposals_dir
         self.pgm_features_dir = pgm_features_dir
         valid_proposal_ext = ('.csv', )
@@ -1893,7 +1894,8 @@ class LoadTAGProposals:
                 proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
 
         # tmin, tmax, action_score, match_iou, match_ioa
-        pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        # pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        pgm_proposals = np.array(pgm_proposals)
         tmin = pgm_proposals[:, 0]
         tmax = pgm_proposals[:, 1]
         # action_score = pgm_proposals[:, 2]
@@ -1904,7 +1906,7 @@ class LoadTAGProposals:
         if self.feature_ext == '.npy':
             bsp_feature = np.load(feature_path).astype(np.float32)
 
-        bsp_feature = bsp_feature[:self.top_k, :]
+        # bsp_feature = bsp_feature[:self.top_k, :]
 
         results['bsp_feature'] = bsp_feature
         results['tmin'] = tmin

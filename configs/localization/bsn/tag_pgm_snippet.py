@@ -16,7 +16,7 @@ pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 pgm_proposals_cfg = dict(pgm_proposals_thread=8, )
 pgm_features_test_cfg = dict(
     pgm_features_thread=4,
-    top_k=1000,
+    top_k=1000000,
     num_sample_start=8,
     num_sample_end=8,
     num_sample_action=16,
