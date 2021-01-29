@@ -14,11 +14,7 @@ def parse_args():
         choices=['train', 'test'],
         default='test',
         help='train or test')
-    parser.add_argument(
-        '--iou_nms',
-        action="store_true",
-        type=bool,
-        help='True or False')
+    parser.add_argument('--iou_nms', action='store_true', help='True or False')
     args = parser.parse_args()
     return args
 
