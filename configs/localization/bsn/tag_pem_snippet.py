@@ -27,7 +27,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # ann_file_val = ann_file_train
 # ann_file_test = ann_file_train
 
-nms_type = 'iou'
+nms_type = 'score'
 pgm_work_dir = 'work_dirs/tag_pgm_nms_snippet/'
 pem_work_dir = 'work_dirs/tag_pem_nms_snippet'
 pgm_proposals_dir = f'{pgm_work_dir}/{nms_type}_pgm_proposals/'
