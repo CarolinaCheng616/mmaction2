@@ -40,7 +40,7 @@ def main():
         proposal_kwargs = cfg.tag_iou_nms_config
     else:
         nms_proposals_dir = cfg.tag_score_nms_config.pop('proposals_dir')
-        nms_features_dir = cfg.tag_iou_nms_config.pop('features_dir')
+        nms_features_dir = cfg.tag_score_nms_config.pop('features_dir')
         out = cfg.tag_score_nms_config.pop('output_config')['out']
         proposal_kwargs = cfg.tag_score_nms_config
     feature_kwargs = cfg.feature_kwargs

@@ -31,6 +31,7 @@ pgm_work_dir = 'work_dirs/pgm_snippet/'
 pem_work_dir = 'work_dirs/pem_snippet'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+output_config = dict(out=f'{pem_work_dir}/results.json', output_format='json')
 
 test_pipeline = [
     dict(
@@ -70,9 +71,9 @@ val_pipeline = [
         pgm_features_dir=pgm_features_dir),
     dict(
         type='Collect',
-        keys=['bsp_feature', 'tmin', 'tmax', 'tmin_score', 'tmax_score'],
+        keys=['bsp_feature', 'tmin', 'tmax'],
         meta_name='video_meta',
-        meta_keys=['video_name', 'duration_second', 'annotations']),
+        meta_keys=['video_name']),
     dict(type='ToTensor', keys=['bsp_feature'])
 ]
 data = dict(
@@ -122,4 +123,3 @@ log_level = 'INFO'
 load_from = None
 resume_from = None
 workflow = [('train', 1)]
-output_config = dict(out=f'{pem_work_dir}/results.json', output_format='json')
