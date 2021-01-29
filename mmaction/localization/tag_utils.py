@@ -469,21 +469,21 @@ def nms_and_dump_results(pgm_proposals_dir, tem_results_dir, nms_proposals_dir,
     os.makedirs(nms_proposals_dir, exist_ok=True)
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
-    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
-    jobs = []
-    result_dict = Manager().dict()
-    score_idx = 3 if iou_nms else 2
-    for i in range(thread_num):
-        proc = Process(
-            target=_multithread_nms_and_dump_results,
-            args=(video_infos[i * videos_per_thread:(i + 1) *
-                              videos_per_thread], pgm_proposals_dir,
-                  nms_proposals_dir, result_dict, score_idx, proposal_kwargs))
-        proc.start()
-        jobs.append(proc)
-    for job in jobs:
-        job.join()
-    mmcv.dump(result_dict.copy(), out)
+    # videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    # jobs = []
+    # result_dict = Manager().dict()
+    # score_idx = 3 if iou_nms else 2
+    # for i in range(thread_num):
+    #     proc = Process(
+    #         target=_multithread_nms_and_dump_results,
+    #         args=(video_infos[i * videos_per_thread:(i + 1) *
+    #                           videos_per_thread], pgm_proposals_dir,
+    #               nms_proposals_dir, result_dict, score_idx, proposal_kwargs))
+    #     proc.start()
+    #     jobs.append(proc)
+    # for job in jobs:
+    #     job.join()
+    # mmcv.dump(result_dict.copy(), out)
 
     generate_nms_features(video_infos, tem_results_dir, nms_proposals_dir,
                           nms_features_dir, thread_num, feature_kwargs)
