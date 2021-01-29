@@ -38,8 +38,6 @@ def main():
         nms_features_dir = cfg.tag_score_nms_config.pop('features_dir')
         out = cfg.tag_score_nms_config.pop('output_config')['out']
         proposal_kwargs = cfg.tag_score_nms_config
-    import pdb
-    pdb.set_trace()
     feature_kwargs = cfg.feature_kwargs
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
     nms_and_dump_results(pgm_proposals_dir, tem_results_dir, nms_proposals_dir,
