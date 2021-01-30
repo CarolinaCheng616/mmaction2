@@ -1014,3 +1014,7 @@ class TAG_PEM(BaseLocalizer):
             return self.forward_train(bsp_feature, reference_temporal_iou)
 
         return self.forward_test(bsp_feature, tmin, tmax, video_meta)
+
+
+# @LOCALIZERS.register_module()
+# class ClaPEM(BaseLocalizer):

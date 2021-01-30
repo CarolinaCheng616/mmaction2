@@ -28,10 +28,10 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # ann_file_test = ann_file_train
 
 # for score nms
-nms_type = 'score'
+# nms_type = 'score'
 
 # for iou nms
-# nms_type = 'iou'
+nms_type = 'iou'
 
 lr = 1e-2
 # for train
