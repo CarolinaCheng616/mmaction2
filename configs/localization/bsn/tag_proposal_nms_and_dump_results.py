@@ -6,14 +6,14 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
+topk = 500
+threads = 8
+
 pgm_work_dir = 'work_dirs/tag_pgm_snippet'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 tem_results_dir = 'work_dirs/tem_snippet/tem_results/'
-tag_pgm_score_nms_dir = 'work_dirs/tag_pgm_score_nms_snippet'
-tag_pgm_iou_nms_dir = 'work_dirs/tag_pgm_iou_nms_snippet'
-
-topk = 100
-threads = 8
+tag_pgm_score_nms_dir = f'work_dirs/tag_pgm_score_nms_snippet_{topk}'
+tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_{topk}'
 
 tag_score_nms_config = dict(
     thread_num=threads,
