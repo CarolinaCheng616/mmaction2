@@ -109,4 +109,12 @@ def compute_iou_for_results(result_file, meta_file, new_file):
 
 
 if __name__ == '__main__':
-    compute_iou_for_results()
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--result_file')
+    parser.add_argument('--meta_file')
+    parser.add_argument('--new_file')
+    args = parser.parse_args()
+    result_file = args.result_file
+    meta_file = args.meta_file
+    new_file = args.new_file
+    compute_iou_for_results(result_file, meta_file, new_file)
