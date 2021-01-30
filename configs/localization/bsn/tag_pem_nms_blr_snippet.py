@@ -38,16 +38,16 @@ nms_type = 'iou'
 
 lr = 0.1
 # for train
-pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
-work_dir = f'work_dirs/tag_pem_{nms_type}_nms_blr_snippet_lr{lr}/'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
 # work_dir = f'work_dirs/tag_pem_{nms_type}_nms_blr_snippet_lr{lr}/'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+work_dir = f'work_dirs/tag_pem_{nms_type}_nms_blr_snippet_lr{lr}/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
