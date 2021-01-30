@@ -33,19 +33,20 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # for iou nms
 nms_type = 'iou'
 
+lr = 1e-4
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
-pem_work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr0.0001/'
+work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 # for test
 # pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
-# pem_work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet'
+# work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
-output_config = dict(out=f'{pem_work_dir}/results.json', output_format='json')
+output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
 test_pipeline = [
     dict(
@@ -119,7 +120,7 @@ gpu_per_node = 4
 machines = 1
 optimizer = dict(
     type='SGD',
-    lr=0.0001 * data['videos_per_gpu'] * gpu_per_node * machines / 256,
+    lr=lr * data['videos_per_gpu'] * gpu_per_node * machines / 256,
     momentum=0.9,
     weight_decay=0.0005)
 
@@ -128,7 +129,7 @@ optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=25)
 
 total_epochs = 70
-checkpoint_config = dict(interval=2, filename_tmpl='pem_epoch_{}.pth')
+checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
 
 # evaluation = dict(interval=1, metrics=['AR@AN'])
 
