@@ -577,8 +577,6 @@ class TEM(BaseLocalizer):
         score_start = tem_output[:, 1, :]
         score_end = tem_output[:, 2, :]
 
-        import pdb
-        pdb.set_trace()
         loss_action = self.loss_cls(score_action, label_action,
                                     self.match_threshold)
         loss_start_small = self.loss_cls(score_start, label_start,
@@ -1096,7 +1094,8 @@ class ClassifyPEM(BaseLocalizer):
         # bsp_feature: list of features, size: videos_per_gpu, feature size
         # reference_temporal_iou: list of ious(num:feature num of a video)
         # pem_output: torch.tensor, shape=[videos_per_gpu*feature_size, 1]
-        # anchors_temporal_iou.shape=reference_temporal_iou.shape=[videos_per_gpu*feature_size]
+        # anchors_temporal_iou.shape=reference_temporal_iou.shape=
+        # [videos_per_gpu*feature_size]
         # pem_output = self._forward(bsp_feature)
         import pdb
         pdb.set_trace()
@@ -1104,10 +1103,10 @@ class ClassifyPEM(BaseLocalizer):
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
         device = pem_output.device
         reference_temporal_iou = reference_temporal_iou.to(device)
-
         anchors_temporal_iou = pem_output.view(-1)
         # anchors_temporal_iou.shape=reference_temporal_iou.shape=[batch],
         # type=torch.tensor
+
         u_hmask = (reference_temporal_iou >
                    self.pem_high_temporal_iou_threshold).float()
         u_mmask = (
