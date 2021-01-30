@@ -6,6 +6,8 @@ from multiprocessing import Manager, Process
 
 import numpy as np
 
+from mmaction.localization import temporal_iou
+
 
 def multi_statistic(meta, pgm_proposal, iou, dic, iou_idx, if_train=True):
     with open(meta, 'r', encoding='utf-8') as f:
@@ -71,7 +73,40 @@ def train_pem():
     # pem_cmd = ''
 
 
-# def test_tag_proposal():
+def _multi_compute_iou_for_results(videos, results, meta):
+    for video in videos:
+        result = results[video]
+        anchors = np.array([item['segment'] for item in result])
+        gt = meta[video]['annotations']
+        references = np.array([item['segment'] for item in gt])
+        ious = temporal_iou(anchors[:, 0], anchors[:, 1], references[:, 0],
+                            references[:, 1])
+        for idx in range(len(result)):
+            result[idx]['iou'] = ious[idx]
+
+
+def compute_iou_for_results(result_file, meta_file, new_file):
+    with open(result_file, 'r') as f:
+        results = json.load(f)
+    with open(meta_file, 'r') as f:
+        meta = json.load(f)
+    assert len(results) == len(meta), 'incorrect file'
+    threads = 8
+    videos_per_thread = (len(results) + threads - 1) // threads
+    jobs = []
+    videos = list(results.keys())
+    for i in range(threads):
+        proc = Process(
+            target=_multi_compute_iou_for_results,
+            args=(videos[i * videos_per_thread:(i + 1) * videos_per_thread],
+                  results, meta))
+        proc.start()
+        jobs.append(proc)
+    for job in jobs:
+        job.join()
+    with open(new_file, 'w') as f:
+        json.dump(results, f)
+
 
 if __name__ == '__main__':
-    statistic()
+    compute_iou_for_results()
