@@ -36,7 +36,7 @@ proposal_topk = 100
 # for iou nms
 nms_type = 'iou'
 
-lr = 2
+lr = 0.1
 # for train
 # pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
 # work_dir = f'work_dirs/tag_pem_{nms_type}_nms_blr_snippet_lr{lr}/'
