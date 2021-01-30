@@ -33,7 +33,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # for iou nms
 nms_type = 'iou'
 
-lr = 1e-1
+lr = 1
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
 work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
@@ -116,7 +116,7 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
-gpu_per_node = 1
+gpu_per_node = 4
 machines = 1
 optimizer = dict(
     type='SGD',

@@ -936,8 +936,6 @@ class TAG_PEM(BaseLocalizer):
 
     def forward_train(self, bsp_feature, reference_temporal_iou):
         """Define the computation performed at every call when training."""
-        import pdb
-        pdb.set_trace()
         pem_output = self._forward(bsp_feature)
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
         device = pem_output.device
@@ -1095,6 +1093,10 @@ class ClassifyPEM(BaseLocalizer):
 
     def forward_train(self, bsp_feature, reference_temporal_iou):
         """Define the computation performed at every call when training."""
+        # bsp_feature: list of features, size: videos_per_gpu, feature size
+        # reference_temporal_iou: list of ious(num:feature num of a video)
+        # pem_output: torch.tensor, shape=[videos_per_gpu*feature_size, 1]
+        # anchors_temporal_iou.shape=reference_temporal_iou.shape=[videos_per_gpu*feature_size]
         # pem_output = self._forward(bsp_feature)
         import pdb
         pdb.set_trace()
