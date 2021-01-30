@@ -78,7 +78,7 @@ def _multi_compute_iou_for_results(videos, results, meta, result_dict):
         result = results[video]
         gt = meta[video]['annotations']
         references = np.array([item['segment'] for item in gt])
-        result_dict[video] = list()
+        video_list = list()
         for idx in range(len(result)):
             segment = result[idx]['segment']
             iou = np.max(
@@ -88,11 +88,8 @@ def _multi_compute_iou_for_results(videos, results, meta, result_dict):
                 score=result[idx]['score'],
                 segment=result[idx]['segment'],
                 iou=iou)
-            print(iou)
-            print(dic)
-            result_dict[video].append(dic)
-            print(result_dict[video])
-            exit(0)
+            video_list.append(dic)
+        result_dict[video] = video_list
 
 
 def compute_iou_for_results(result_file, meta_file, new_file):
