@@ -73,16 +73,22 @@ def train_pem():
     # pem_cmd = ''
 
 
-def _multi_compute_iou_for_results(videos, results, meta):
+def _multi_compute_iou_for_results(videos, results, meta, result_dict):
     for video in videos:
         result = results[video]
         gt = meta[video]['annotations']
         references = np.array([item['segment'] for item in gt])
+        result_dict[video] = list()
         for idx in range(len(result)):
             segment = result[idx]['segment']
-            result[idx]['iou'] = np.max(
+            iou = np.max(
                 temporal_iou(segment[0], segment[1], references[:, 0],
                              references[:, 1]))
+            dic = dict(
+                score=result[idx]['score'],
+                segment=result[idx]['segment'],
+                iou=iou)
+            result_dict[video].append(dic)
 
 
 def compute_iou_for_results(result_file, meta_file, new_file):
@@ -95,17 +101,18 @@ def compute_iou_for_results(result_file, meta_file, new_file):
     videos_per_thread = (len(results) + threads - 1) // threads
     jobs = []
     videos = list(results.keys())
+    result_dict = Manager().dict()
     for i in range(threads):
         proc = Process(
             target=_multi_compute_iou_for_results,
             args=(videos[i * videos_per_thread:(i + 1) * videos_per_thread],
-                  results, meta))
+                  results, meta, result_dict))
         proc.start()
         jobs.append(proc)
     for job in jobs:
         job.join()
     with open(new_file, 'w') as f:
-        json.dump(results, f)
+        json.dump(result_dict.copy(), f)
 
 
 if __name__ == '__main__':
