@@ -33,7 +33,7 @@ nms_type = 'score'
 # for iou nms
 # nms_type = 'iou'
 
-lr = 1e-5
+lr = 1e-2
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
 work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
