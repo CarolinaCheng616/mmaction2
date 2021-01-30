@@ -89,6 +89,8 @@ def _multi_compute_iou_for_results(videos, results, meta, result_dict):
                 segment=result[idx]['segment'],
                 iou=iou)
             result_dict[video].append(dic)
+            print(result_dict[video])
+            exit(0)
 
 
 def compute_iou_for_results(result_file, meta_file, new_file):
