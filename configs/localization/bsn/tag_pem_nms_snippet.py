@@ -35,16 +35,16 @@ nms_type = 'iou'
 
 lr = 1e-1
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
-# work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
 work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
@@ -116,7 +116,7 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
-gpu_per_node = 4
+gpu_per_node = 1
 machines = 1
 optimizer = dict(
     type='SGD',

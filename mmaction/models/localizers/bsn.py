@@ -1093,8 +1093,9 @@ class ClassifyPEM(BaseLocalizer):
 
     def forward_train(self, bsp_feature, reference_temporal_iou):
         """Define the computation performed at every call when training."""
-        pem_output = self._forward(bsp_feature)
-
+        # pem_output = self._forward(bsp_feature)
+        import pdb
+        pdb.set_trace()
         pem_output = self._forward(bsp_feature)
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
         device = pem_output.device
