@@ -1016,5 +1016,120 @@ class TAG_PEM(BaseLocalizer):
         return self.forward_test(bsp_feature, tmin, tmax, video_meta)
 
 
-# @LOCALIZERS.register_module()
-# class ClaPEM(BaseLocalizer):
+@LOCALIZERS.register_module()
+class ClassifyPEM(BaseLocalizer):
+    """Classify proposal into binary category: background or foreground
+    Args:
+        pem_feat_dim (int): Feature dimension.
+        pem_hidden_dim (int): Hidden layer dimension.
+        pem_u_ratio_m (float): Ratio for medium score proposals to balance
+            data.
+        pem_u_ratio_l (float): Ratio for low score proposals to balance data.
+        pem_high_temporal_iou_threshold (float): High IoU threshold.
+        pem_low_temporal_iou_threshold (float): Low IoU threshold.
+        soft_nms_alpha (float): Soft NMS alpha.
+        soft_nms_low_threshold (float): Soft NMS low threshold.
+        soft_nms_high_threshold (float): Soft NMS high threshold.
+        post_process_top_k (int): Top k proposals in post process.
+        feature_extraction_interval (int):
+            Interval used in feature extraction. Default: 16.
+        fc1_ratio (float): Ratio for fc1 layer output. Default: 0.1.
+        fc2_ratio (float): Ratio for fc2 layer output. Default: 0.1.
+        output_dim (int): Output dimension. Default: 1.
+    """
+
+    def __init__(self,
+                 pem_feat_dim,
+                 pem_hidden_dim,
+                 pem_u_ratio_m,
+                 pem_u_ratio_l,
+                 pem_high_temporal_iou_threshold,
+                 pem_low_temporal_iou_threshold,
+                 soft_nms_alpha,
+                 soft_nms_low_threshold,
+                 soft_nms_high_threshold,
+                 post_process_top_k,
+                 feature_extraction_interval=16,
+                 fc1_ratio=0.1,
+                 fc2_ratio=0.1,
+                 output_dim=1):
+        super(BaseLocalizer, self).__init__()
+
+        self.feat_dim = pem_feat_dim
+        self.hidden_dim = pem_hidden_dim
+        self.u_ratio_m = pem_u_ratio_m
+        self.u_ratio_l = pem_u_ratio_l
+        self.pem_high_temporal_iou_threshold = pem_high_temporal_iou_threshold
+        self.pem_low_temporal_iou_threshold = pem_low_temporal_iou_threshold
+        self.soft_nms_alpha = soft_nms_alpha
+        self.soft_nms_low_threshold = soft_nms_low_threshold
+        self.soft_nms_high_threshold = soft_nms_high_threshold
+        self.post_process_top_k = post_process_top_k
+        self.feature_extraction_interval = feature_extraction_interval
+        self.fc1_ratio = fc1_ratio
+        self.fc2_ratio = fc2_ratio
+        self.output_dim = output_dim
+
+        self.fc1 = nn.Linear(
+            in_features=self.feat_dim, out_features=self.hidden_dim, bias=True)
+        self.fc2 = nn.Linear(
+            in_features=self.hidden_dim,
+            out_features=self.output_dim,
+            bias=True)
+
+    def _forward(self, x):
+        """Define the computation performed at every call.
+
+        Args:
+            x (torch.Tensor): The input data.
+
+        Returns:
+            torch.Tensor: The output of the module.
+        """
+        x = torch.cat(list(x))
+        x = F.relu(self.fc1_ratio * self.fc1(x))
+        x = torch.sigmoid(self.fc2_ratio * self.fc2(x))
+        return x
+
+    def forward_train(self, bsp_feature, reference_temporal_iou):
+        """Define the computation performed at every call when training."""
+        pem_output = self._forward(bsp_feature)
+        reference_temporal_iou = torch.cat(list(reference_temporal_iou))
+        device = pem_output.device
+        reference_temporal_iou = reference_temporal_iou.to(device)
+
+        anchors_temporal_iou = pem_output.view(-1)
+        u_hmask = (reference_temporal_iou >
+                   self.pem_high_temporal_iou_threshold).float()
+        u_mmask = (
+            (reference_temporal_iou <= self.pem_high_temporal_iou_threshold)
+            & (reference_temporal_iou > self.pem_low_temporal_iou_threshold)
+        ).float()
+        u_lmask = (reference_temporal_iou <=
+                   self.pem_low_temporal_iou_threshold).float()
+
+        num_h = torch.sum(u_hmask)
+        num_m = torch.sum(u_mmask)
+        num_l = torch.sum(u_lmask)
+
+        r_m = self.u_ratio_m * num_h / (num_m)
+        r_m = torch.min(r_m, torch.Tensor([1.0]).to(device))[0]
+        u_smmask = torch.rand(u_hmask.size()[0], device=device)
+        u_smmask = u_smmask * u_mmask
+        u_smmask = (u_smmask > (1. - r_m)).float()
+
+        r_l = self.u_ratio_l * num_h / (num_l)
+        r_l = torch.min(r_l, torch.Tensor([1.0]).to(device))[0]
+        u_slmask = torch.rand(u_hmask.size()[0], device=device)
+        u_slmask = u_slmask * u_lmask
+        u_slmask = (u_slmask > (1. - r_l)).float()
+
+        temporal_iou_weights = u_hmask + u_smmask + u_slmask
+        temporal_iou_loss = F.smooth_l1_loss(anchors_temporal_iou,
+                                             reference_temporal_iou)
+        temporal_iou_loss = torch.sum(
+            temporal_iou_loss *
+            temporal_iou_weights) / torch.sum(temporal_iou_weights)
+        loss_dict = dict(temporal_iou_loss=temporal_iou_loss)
+
+        return loss_dict
