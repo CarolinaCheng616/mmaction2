@@ -1,6 +1,11 @@
+# tag proposal generation
+# proposals used to train are pre soft nms by action_score or iou
+# proposals used to test are totally loaded
+# binary logistic regression loss at a given threshold
+# tem trained on snippets
 # model settings
 model = dict(
-    type='TAG_PEM',
+    type='ClassifyPEM',
     pem_feat_dim=32,
     pem_hidden_dim=256,
     pem_u_ratio_m=1,
@@ -25,24 +30,24 @@ ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
 proposal_topk = 100
+
 # for score nms
 # nms_type = 'score'
-
 # for iou nms
 nms_type = 'iou'
 
 lr = 2
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
+work_dir = f'work_dirs/tag_pem_{nms_type}_nms_blr_snippet_lr{lr}/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
 # work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
-work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 

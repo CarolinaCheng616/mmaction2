@@ -1034,6 +1034,7 @@ class ClassifyPEM(BaseLocalizer):
         fc1_ratio (float): Ratio for fc1 layer output. Default: 0.1.
         fc2_ratio (float): Ratio for fc2 layer output. Default: 0.1.
         output_dim (int): Output dimension. Default: 1.
+        loss_cls (dict): loss class
     """
 
     def __init__(self,
@@ -1050,7 +1051,9 @@ class ClassifyPEM(BaseLocalizer):
                  feature_extraction_interval=16,
                  fc1_ratio=0.1,
                  fc2_ratio=0.1,
-                 output_dim=1):
+                 output_dim=1,
+                 loss_cls=dict(type='BinaryLogisticRegressionLoss'),
+                 match_threshold=0.5):
         super(BaseLocalizer, self).__init__()
 
         self.feat_dim = pem_feat_dim
@@ -1067,6 +1070,8 @@ class ClassifyPEM(BaseLocalizer):
         self.fc1_ratio = fc1_ratio
         self.fc2_ratio = fc2_ratio
         self.output_dim = output_dim
+        self.loss_cls = build_loss(loss_cls)
+        self.match_threshold = match_threshold
 
         self.fc1 = nn.Linear(
             in_features=self.feat_dim, out_features=self.hidden_dim, bias=True)
@@ -1106,39 +1111,42 @@ class ClassifyPEM(BaseLocalizer):
         anchors_temporal_iou = pem_output.view(-1)
         # anchors_temporal_iou.shape=reference_temporal_iou.shape=[batch],
         # type=torch.tensor
+        loss = self.loss_cls(anchors_temporal_iou, reference_temporal_iou,
+                             self.match_threshold)
+        loss_dict = dict(temporal_iou_loss=loss)
 
-        u_hmask = (reference_temporal_iou >
-                   self.pem_high_temporal_iou_threshold).float()
-        u_mmask = (
-            (reference_temporal_iou <= self.pem_high_temporal_iou_threshold)
-            & (reference_temporal_iou > self.pem_low_temporal_iou_threshold)
-        ).float()
-        u_lmask = (reference_temporal_iou <=
-                   self.pem_low_temporal_iou_threshold).float()
-
-        num_h = torch.sum(u_hmask)
-        num_m = torch.sum(u_mmask)
-        num_l = torch.sum(u_lmask)
-
-        r_m = self.u_ratio_m * num_h / (num_m)
-        r_m = torch.min(r_m, torch.Tensor([1.0]).to(device))[0]
-        u_smmask = torch.rand(u_hmask.size()[0], device=device)
-        u_smmask = u_smmask * u_mmask
-        u_smmask = (u_smmask > (1. - r_m)).float()
-
-        r_l = self.u_ratio_l * num_h / (num_l)
-        r_l = torch.min(r_l, torch.Tensor([1.0]).to(device))[0]
-        u_slmask = torch.rand(u_hmask.size()[0], device=device)
-        u_slmask = u_slmask * u_lmask
-        u_slmask = (u_slmask > (1. - r_l)).float()
-
-        temporal_iou_weights = u_hmask + u_smmask + u_slmask
-        temporal_iou_loss = F.smooth_l1_loss(anchors_temporal_iou,
-                                             reference_temporal_iou)
-        temporal_iou_loss = torch.sum(
-            temporal_iou_loss *
-            temporal_iou_weights) / torch.sum(temporal_iou_weights)
-        loss_dict = dict(temporal_iou_loss=temporal_iou_loss)
+        # u_hmask = (reference_temporal_iou >
+        #            self.pem_high_temporal_iou_threshold).float()
+        # u_mmask = (
+        #     (reference_temporal_iou <= self.pem_high_temporal_iou_threshold)
+        #     & (reference_temporal_iou > self.pem_low_temporal_iou_threshold)
+        # ).float()
+        # u_lmask = (reference_temporal_iou <=
+        #            self.pem_low_temporal_iou_threshold).float()
+        #
+        # num_h = torch.sum(u_hmask)
+        # num_m = torch.sum(u_mmask)
+        # num_l = torch.sum(u_lmask)
+        #
+        # r_m = self.u_ratio_m * num_h / (num_m)
+        # r_m = torch.min(r_m, torch.Tensor([1.0]).to(device))[0]
+        # u_smmask = torch.rand(u_hmask.size()[0], device=device)
+        # u_smmask = u_smmask * u_mmask
+        # u_smmask = (u_smmask > (1. - r_m)).float()
+        #
+        # r_l = self.u_ratio_l * num_h / (num_l)
+        # r_l = torch.min(r_l, torch.Tensor([1.0]).to(device))[0]
+        # u_slmask = torch.rand(u_hmask.size()[0], device=device)
+        # u_slmask = u_slmask * u_lmask
+        # u_slmask = (u_slmask > (1. - r_l)).float()
+        #
+        # temporal_iou_weights = u_hmask + u_smmask + u_slmask
+        # temporal_iou_loss = F.smooth_l1_loss(anchors_temporal_iou,
+        #                                      reference_temporal_iou)
+        # temporal_iou_loss = torch.sum(
+        #     temporal_iou_loss *
+        #     temporal_iou_weights) / torch.sum(temporal_iou_weights)
+        # loss_dict = dict(temporal_iou_loss=temporal_iou_loss)
 
         return loss_dict
 
