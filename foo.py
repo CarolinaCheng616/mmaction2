@@ -76,13 +76,13 @@ def train_pem():
 def _multi_compute_iou_for_results(videos, results, meta):
     for video in videos:
         result = results[video]
-        anchors = np.array([item['segment'] for item in result])
         gt = meta[video]['annotations']
         references = np.array([item['segment'] for item in gt])
-        ious = temporal_iou(anchors[:, 0], anchors[:, 1], references[:, 0],
-                            references[:, 1])
         for idx in range(len(result)):
-            result[idx]['iou'] = ious[idx]
+            segment = results[idx]['segment']
+            result[idx]['iou'] = np.max(
+                temporal_iou(segment[0], segment[1], references[:, 0],
+                             references[:, 1]))
 
 
 def compute_iou_for_results(result_file, meta_file, new_file):
