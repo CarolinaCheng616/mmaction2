@@ -33,7 +33,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # for iou nms
 nms_type = 'iou'
 
-lr = 10
+lr = 2
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet/'
 work_dir = f'work_dirs/tag_pem_{nms_type}_nms_snippet_lr{lr}/'
@@ -92,7 +92,7 @@ val_pipeline = [
     dict(type='ToTensor', keys=['bsp_feature'])
 ]
 data = dict(
-    videos_per_gpu=16,
+    videos_per_gpu=64,
     workers_per_gpu=8,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
