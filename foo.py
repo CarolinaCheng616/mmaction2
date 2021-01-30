@@ -79,7 +79,7 @@ def _multi_compute_iou_for_results(videos, results, meta):
         gt = meta[video]['annotations']
         references = np.array([item['segment'] for item in gt])
         for idx in range(len(result)):
-            segment = results[idx]['segment']
+            segment = result[idx]['segment']
             result[idx]['iou'] = np.max(
                 temporal_iou(segment[0], segment[1], references[:, 0],
                              references[:, 1]))
