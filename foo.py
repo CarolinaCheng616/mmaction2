@@ -88,6 +88,8 @@ def _multi_compute_iou_for_results(videos, results, meta, result_dict):
                 score=result[idx]['score'],
                 segment=result[idx]['segment'],
                 iou=iou)
+            print(iou)
+            print(dic)
             result_dict[video].append(dic)
             print(result_dict[video])
             exit(0)
