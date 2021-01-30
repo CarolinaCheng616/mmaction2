@@ -15,7 +15,8 @@ def parse_args():
         choices=['train', 'test'],
         default='test',
         help='train or test')
-    parser.add_argument('--iou_nms', action='store_true', help='True or False')
+    parser.add_argument(
+        '--nms', choices=['iou', 'score'], help='iou nms or score nms')
     args = parser.parse_args()
     return args
 
@@ -28,25 +29,28 @@ def main():
     cfg = mmcv.Config.fromfile(args.config)
     pgm_proposals_dir = cfg.pgm_proposals_dir
     tem_results_dir = cfg.tem_results_dir
-    iou_nms = args.iou_nms
-    if iou_nms:
+    nms = args.nms
+    if nms == 'iou':
         nms_proposals_dir = cfg.tag_iou_nms_config.pop('proposals_dir')
         nms_features_dir = cfg.tag_iou_nms_config.pop('features_dir')
         out = cfg.tag_iou_nms_config.pop('output_config')['out']
         proposal_kwargs = cfg.tag_iou_nms_config
-    else:
+    elif nms == 'score':
         nms_proposals_dir = cfg.tag_score_nms_config.pop('proposals_dir')
         nms_features_dir = cfg.tag_score_nms_config.pop('features_dir')
         out = cfg.tag_score_nms_config.pop('output_config')['out']
         proposal_kwargs = cfg.tag_score_nms_config
+    else:
+        print('nms should be iou or score.')
+        exit(0)
     dir_name, base_name = osp.dirname(out), osp.basename(out)
     base_name = f'{mode}_{base_name}'
     out = osp.join(dir_name, base_name)
     feature_kwargs = cfg.feature_kwargs
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
     nms_and_dump_results(pgm_proposals_dir, tem_results_dir, nms_proposals_dir,
-                         nms_features_dir, ann_file, out, iou_nms,
-                         proposal_kwargs, feature_kwargs)
+                         nms_features_dir, ann_file, out, nms, proposal_kwargs,
+                         feature_kwargs)
     print('Finish generate post process proposals.')
 
 
