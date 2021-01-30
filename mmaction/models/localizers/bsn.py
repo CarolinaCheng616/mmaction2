@@ -1094,6 +1094,8 @@ class ClassifyPEM(BaseLocalizer):
     def forward_train(self, bsp_feature, reference_temporal_iou):
         """Define the computation performed at every call when training."""
         pem_output = self._forward(bsp_feature)
+
+        pem_output = self._forward(bsp_feature)
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
         device = pem_output.device
         reference_temporal_iou = reference_temporal_iou.to(device)
@@ -1133,3 +1135,40 @@ class ClassifyPEM(BaseLocalizer):
         loss_dict = dict(temporal_iou_loss=temporal_iou_loss)
 
         return loss_dict
+
+    def forward_test(self, bsp_feature, tmin, tmax, video_meta):
+        """Define the computation performed at every call when testing.
+
+        proposal score is computed by pem_output entirely.
+        """
+        score = self._forward(bsp_feature)
+        score = score.view(-1).cpu().numpy().reshape(-1, 1)
+        tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
+        tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
+        result = np.concatenate((tmin, tmax, score), axis=1)
+        result = result.reshape(-1, 3)
+        video_info = dict(video_meta[0])
+        proposal_list = post_processing(result, video_info,
+                                        self.soft_nms_alpha,
+                                        self.soft_nms_low_threshold,
+                                        self.soft_nms_high_threshold,
+                                        self.post_process_top_k,
+                                        self.feature_extraction_interval)
+        output = [
+            dict(
+                video_name=video_info['video_name'],
+                proposal_list=proposal_list)
+        ]
+        return output
+
+    def forward(self,
+                bsp_feature,
+                reference_temporal_iou=None,
+                tmin=None,
+                tmax=None,
+                video_meta=None,
+                return_loss=True):
+        """Define the computation performed at every call."""
+        if return_loss:
+            return self.forward_train(bsp_feature, reference_temporal_iou)
+        return self.forward_test(bsp_feature, tmin, tmax, video_meta)
