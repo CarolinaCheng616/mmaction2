@@ -1106,6 +1106,8 @@ class ClassifyPEM(BaseLocalizer):
         reference_temporal_iou = reference_temporal_iou.to(device)
 
         anchors_temporal_iou = pem_output.view(-1)
+        # anchors_temporal_iou.shape=reference_temporal_iou.shape=[batch],
+        # type=torch.tensor
         u_hmask = (reference_temporal_iou >
                    self.pem_high_temporal_iou_threshold).float()
         u_mmask = (
