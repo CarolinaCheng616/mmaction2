@@ -111,6 +111,8 @@ def compute_iou_for_results(result_file, meta_file, new_file):
         jobs.append(proc)
     for job in jobs:
         job.join()
+    import pdb
+    pdb.set_trace()
     with open(new_file, 'w') as f:
         json.dump(result_dict.copy(), f)
 
