@@ -29,7 +29,7 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-proposal_topk = 100
+proposal_topk = 500
 
 # for score nms
 # nms_type = 'score'
@@ -38,16 +38,17 @@ nms_type = 'iou'
 
 lr = 0.1
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
+work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
+           f'{proposal_topk}_blr_snippet_lr{lr}/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
 # work_dir = f'work_dirs/tag_pem_{nms_type}_nms_blr_snippet_lr{lr}/'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
-work_dir = f'work_dirs/tag_pem_{nms_type}_nms_blr_snippet_lr{lr}/'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
@@ -129,7 +130,7 @@ optimizer = dict(
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(policy='step', step=80)
+lr_config = dict(policy='step', step=25)
 
 total_epochs = 70
 checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
