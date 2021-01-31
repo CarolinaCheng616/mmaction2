@@ -132,7 +132,7 @@ optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=25)
 
-total_epochs = 70
+total_epochs = 100
 checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
 
 # evaluation = dict(interval=1, metrics=['AR@AN'])
