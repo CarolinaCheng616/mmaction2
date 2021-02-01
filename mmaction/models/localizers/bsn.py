@@ -1052,9 +1052,7 @@ class ClassifyPEM(BaseLocalizer):
                  fc1_ratio=0.1,
                  fc2_ratio=0.1,
                  output_dim=1,
-                 loss_cls=dict(
-                     type='BinaryThresholdClassificationLoss',
-                     low_threshold=0.5)):
+                 loss_cls=dict(type='BinaryThresholdClassificationLoss')):
         super(BaseLocalizer, self).__init__()
 
         self.feat_dim = pem_feat_dim
@@ -1073,7 +1071,6 @@ class ClassifyPEM(BaseLocalizer):
         self.output_dim = output_dim
         self.loss_type = loss_cls['type']
         self.loss_cls = build_loss(loss_cls)
-        # self.match_threshold = match_threshold
 
         self.fc1 = nn.Linear(
             in_features=self.feat_dim, out_features=self.hidden_dim, bias=True)
