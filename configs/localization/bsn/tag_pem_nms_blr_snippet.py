@@ -17,7 +17,8 @@ model = dict(
     soft_nms_high_threshold=0.9,
     post_process_top_k=100,
     fc1_ratio=1,
-    fc2_ratio=1)
+    fc2_ratio=1,
+    loss_cls=dict(type='BinaryThresholdClassificationLoss', low_threshold=0.5))
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -36,20 +37,20 @@ proposal_topk = 500
 # for iou nms
 nms_type = 'iou'
 
-lr = 0.1
+lr = 100
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
-# work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
-#            f'{proposal_topk}_blr_snippet_lr{lr}/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
 work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
            f'{proposal_topk}_blr_snippet_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
+#            f'{proposal_topk}_blr_snippet_lr{lr}/'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 

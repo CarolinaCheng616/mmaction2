@@ -1,5 +1,6 @@
 from .base import BaseWeightedLoss
 from .binary_logistic_regression_loss import BinaryLogisticRegressionLoss
+from .binary_threshold_loss import BinaryThresholdClassificationLoss
 from .bmn_loss import BMNLoss
 from .cross_entropy_loss import BCELossWithLogits, CrossEntropyLoss
 from .hvu_loss import HVULoss
@@ -10,5 +11,5 @@ from .ssn_loss import SSNLoss
 __all__ = [
     'BaseWeightedLoss', 'CrossEntropyLoss', 'NLLLoss', 'BCELossWithLogits',
     'BinaryLogisticRegressionLoss', 'BMNLoss', 'OHEMHingeLoss', 'SSNLoss',
-    'HVULoss'
+    'HVULoss', 'BinaryThresholdClassificationLoss'
 ]
