@@ -11,9 +11,18 @@ threads = 8
 
 pgm_work_dir = 'work_dirs/tag_pgm_snippet'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-tem_results_dir = 'work_dirs/tem_snippet/tem_results/'
-tag_pgm_score_nms_dir = f'work_dirs/tag_pgm_score_nms_snippet_{topk}'
-tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_{topk}'
+
+origin = True
+
+if origin:
+    features_dir = 'data/TruNet/train_feature/'
+    tag_pgm_score_nms_dir = f'work_dirs/' \
+                            f'tag_pgm_score_nms_snippet_orifeat_{topk}'
+    tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_orifeat_{topk}'
+else:
+    features_dir = 'work_dirs/tem_snippet/tem_results/'
+    tag_pgm_score_nms_dir = f'work_dirs/tag_pgm_score_nms_snippet_{topk}'
+    tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_{topk}'
 
 tag_score_nms_config = dict(
     thread_num=threads,

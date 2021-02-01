@@ -28,7 +28,8 @@ def main():
     mode = args.mode
     cfg = mmcv.Config.fromfile(args.config)
     pgm_proposals_dir = cfg.pgm_proposals_dir
-    tem_results_dir = cfg.tem_results_dir
+    features_dir = cfg.features_dir
+    origin = cfg.origin
     nms = args.nms
     if nms == 'iou':
         nms_proposals_dir = cfg.tag_iou_nms_config.pop('proposals_dir')
@@ -48,9 +49,9 @@ def main():
     out = osp.join(dir_name, base_name)
     feature_kwargs = cfg.feature_kwargs
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
-    nms_and_dump_results(pgm_proposals_dir, tem_results_dir, nms_proposals_dir,
+    nms_and_dump_results(pgm_proposals_dir, features_dir, nms_proposals_dir,
                          nms_features_dir, ann_file, out, nms, proposal_kwargs,
-                         feature_kwargs)
+                         feature_kwargs, origin)
     print('Finish generate post process proposals.')
 
 

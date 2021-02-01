@@ -2,10 +2,12 @@
 import copy
 import os
 import os.path as osp
+import pickle
 from multiprocessing import Manager, Process
 
 import mmcv
 import numpy as np
+from scipy import interpolate
 
 from .proposal_utils import temporal_iop, temporal_iou
 
@@ -150,19 +152,19 @@ def generate_tag_proposals(video_list,
     return proposal_dict
 
 
-def generate_tag_feature(video_list,
-                         video_infos,
-                         tem_results_dir,
-                         pgm_proposals_dir,
-                         top_k=1000,
-                         bsp_boundary_ratio=0.2,
-                         num_sample_start=8,
-                         num_sample_end=8,
-                         num_sample_action=16,
-                         num_sample_interp=3,
-                         tem_results_ext='.csv',
-                         pgm_proposal_ext='.csv',
-                         result_dict=None):
+def _generate_tag_feature(video_list,
+                          video_infos,
+                          tem_results_dir,
+                          pgm_proposals_dir,
+                          top_k=1000,
+                          bsp_boundary_ratio=0.2,
+                          num_sample_start=8,
+                          num_sample_end=8,
+                          num_sample_action=16,
+                          num_sample_interp=3,
+                          tem_results_ext='.csv',
+                          pgm_proposal_ext='.csv',
+                          result_dict=None):
     """Generate Boundary-Sensitive Proposal Feature with given proposals.
 
     Args:
@@ -361,9 +363,9 @@ def _proposals_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k,
     return new_proposals
 
 
-def proposals_post_processing(result, video_info, score_idx, soft_nms_alpha,
-                              soft_nms_low_threshold, soft_nms_high_threshold,
-                              top_k):
+def _proposals_post_processing(result, video_info, score_idx, soft_nms_alpha,
+                               soft_nms_low_threshold, soft_nms_high_threshold,
+                               top_k):
     """sort proposals by score_idx and soft nms, get top k proposals.
 
     Args:
@@ -412,7 +414,7 @@ def _multithread_nms_and_dump_results(video_infos, pgm_proposals_dir,
         file_name = osp.join(pgm_proposals_dir, video_name + '.csv')
         proposal = np.loadtxt(
             file_name, dtype=np.float32, delimiter=',', skiprows=1)
-        proposal_list, post_proposal = proposals_post_processing(
+        proposal_list, post_proposal = _proposals_post_processing(
             proposal, vinfo, score_idx, **kwargs)
         tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
         header = 'tmin,tmax,action_score,match_iou,match_ioa'
@@ -428,13 +430,26 @@ def _multithread_nms_and_dump_results(video_infos, pgm_proposals_dir,
 
 def generate_nms_features(video_infos, tem_results_dir, nms_proposals_dir,
                           nms_features_dir, thread_num, feature_kwargs):
+    """
+    generate proposal features from actioness.
+    Args:
+        video_infos:
+        tem_results_dir:
+        nms_proposals_dir:
+        nms_features_dir:
+        thread_num:
+        feature_kwargs:
+
+    Returns:
+
+    """
     videos_per_thread = len(video_infos) // thread_num
     jobs = []
     result_dict = Manager().dict()
     feature_kwargs['result_dict'] = result_dict
     for i in range(thread_num - 1):
         proc = Process(
-            target=generate_tag_feature,
+            target=_generate_tag_feature,
             args=(range(i * videos_per_thread, (i + 1) * videos_per_thread),
                   video_infos, tem_results_dir, nms_proposals_dir),
             kwargs=feature_kwargs)
@@ -442,7 +457,7 @@ def generate_nms_features(video_infos, tem_results_dir, nms_proposals_dir,
         jobs.append(proc)
 
     proc = Process(
-        target=generate_tag_feature,
+        target=_generate_tag_feature,
         args=(range((thread_num - 1) * videos_per_thread, len(video_infos)),
               video_infos, tem_results_dir, nms_proposals_dir),
         kwargs=feature_kwargs)
@@ -463,9 +478,224 @@ def generate_nms_features(video_infos, tem_results_dir, nms_proposals_dir,
         prog_bar.update()
 
 
-def nms_and_dump_results(pgm_proposals_dir, tem_results_dir, nms_proposals_dir,
-                         nms_features_dir, ann_file, out, iou_nms,
-                         proposal_kwargs, feature_kwargs):
+def _generate_tag_original_feature(video_list,
+                                   video_infos,
+                                   origin_feature_dir,
+                                   pgm_proposals_dir,
+                                   top_k=1000,
+                                   bsp_boundary_ratio=0.2,
+                                   num_sample_start=8,
+                                   num_sample_end=8,
+                                   num_sample_action=16,
+                                   num_sample_interp=3,
+                                   origin_feature_ext='.pkl',
+                                   pgm_proposal_ext='.csv',
+                                   result_dict=None):
+    """Generate Boundary-Sensitive Proposal Feature with given proposals from
+    original features.
+
+    Args:
+        video_list (list[int]): List of video indexs to generate bsp_feature.
+        video_infos (list[dict]): List of video_info dict that contains
+            'video_name'.
+        origin_feature_dir (str): Directory to load temporal evaluation
+            results.
+        pgm_proposals_dir (str): Directory to load proposals.
+        top_k (int): Number of proposals to be considered. Default: 1000
+        bsp_boundary_ratio (float): Ratio for proposal boundary
+            (start/end). Default: 0.2.
+        num_sample_start (int): Num of samples for actionness in
+            start region. Default: 8.
+        num_sample_end (int): Num of samples for actionness in end region.
+            Default: 8.
+        num_sample_action (int): Num of samples for actionness in center
+            region. Default: 16.
+        num_sample_interp (int): Num of samples for interpolation for
+            each sample point. Default: 3.
+        origin_feature_ext (str): File extension for temporal evaluation
+            model output. Default: '.csv'.
+        pgm_proposal_ext (str): File extension for proposals. Default: '.csv'.
+        result_dict (dict | None): The dict to save the results. Default: None.
+
+    Returns:
+        bsp_feature_dict (dict): A dict contains video_name as keys and
+            bsp_feature as value. If result_dict is not None, save the
+            results to it.
+    """
+    if origin_feature_ext != '.pkl' or pgm_proposal_ext != '.csv':
+        raise NotImplementedError('Only support csv format now.')
+
+    bsp_feature_dict = {}
+    for video_index in video_list:
+        video_name = video_infos[video_index]['video_name']
+        duration = video_infos[video_index]['duration_second']
+
+        pkl_path = osp.join(origin_feature_dir,
+                            video_name + origin_feature_ext)
+        with open(pkl_path, 'rb') as f:
+            origin_feature = pickle.load(f, encoding='bytes')
+        temporal, dim = origin_feature.shape
+        if temporal < duration:
+            end_frame = np.array([origin_feature[-1]] * (duration - temporal))
+            origin_feature = np.concatenate((origin_feature, end_frame),
+                                            axis=0)
+        score_action = origin_feature
+        # score_action shape: [temporal, 4096]
+        video_scale = duration
+        points = np.linspace(0, 1, video_scale + 1, endpoint=True)
+        seg_tmins = points[:-1]
+        seg_tmaxs = points[1:]
+        video_gap = seg_tmaxs[0] - seg_tmins[0]
+        video_extend = int(video_scale / 4 + 10)
+
+        # Load proposals results
+        proposal_path = osp.join(pgm_proposals_dir,
+                                 video_name + pgm_proposal_ext)
+        pgm_proposals = np.loadtxt(
+            proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
+        pgm_proposals = pgm_proposals[:top_k]
+
+        # Generate temporal sample points
+        boundary_zeros = np.zeros([video_extend, dim])
+        score_action = np.concatenate(
+            (boundary_zeros, score_action, boundary_zeros))
+        # score_action.shape=[extended_temporal, 4096]
+        begin_tp = []
+        middle_tp = []
+        end_tp = []
+        for i in range(video_extend):
+            begin_tp.append(-video_gap / 2 -
+                            (video_extend - 1 - i) * video_gap)
+            end_tp.append(video_gap / 2 + seg_tmaxs[-1] + i * video_gap)
+        for i in range(video_scale):
+            middle_tp.append(video_gap / 2 + i * video_gap)
+        t_points = begin_tp + middle_tp + end_tp
+
+        bsp_feature = []
+        f = interpolate.interp1d(t_points, score_action, axis=0)
+        for pgm_proposal in pgm_proposals:
+            # tmin, tmax, action_score, iou, iop
+            tmin = pgm_proposal[0]
+            tmax = pgm_proposal[1]
+
+            tlen = tmax - tmin
+            # Temporal range for start
+            tmin_0 = tmin - tlen * bsp_boundary_ratio
+            tmin_1 = tmin + tlen * bsp_boundary_ratio
+            # Temporal range for end
+            tmax_0 = tmax - tlen * bsp_boundary_ratio
+            tmax_1 = tmax + tlen * bsp_boundary_ratio
+
+            # Generate features at start boundary
+            tlen_start = (tmin_1 - tmin_0) / (num_sample_start - 1)
+            tlen_start_sample = tlen_start / num_sample_interp
+            t_new = [
+                tmin_0 - tlen_start / 2 + tlen_start_sample * i
+                for i in range(num_sample_start * num_sample_interp + 1)
+            ]
+            y_new_start_action = f(t_new)
+            y_new_start = [
+                np.mean(y_new_start_action[i * num_sample_interp:(i + 1) *
+                                           num_sample_interp + 1])
+                for i in range(num_sample_start)
+            ]
+            # Generate features at end boundary
+            tlen_end = (tmax_1 - tmax_0) / (num_sample_end - 1)
+            tlen_end_sample = tlen_end / num_sample_interp
+            t_new = [
+                tmax_0 - tlen_end / 2 + tlen_end_sample * i
+                for i in range(num_sample_end * num_sample_interp + 1)
+            ]
+            y_new_end_action = f(t_new)
+            y_new_end = [
+                np.mean(y_new_end_action[i * num_sample_interp:(i + 1) *
+                                         num_sample_interp + 1])
+                for i in range(num_sample_end)
+            ]
+            # Generate features for action
+            tlen_action = (tmax - tmin) / (num_sample_action - 1)
+            tlen_action_sample = tlen_action / num_sample_interp
+            t_new = [
+                tmin - tlen_action / 2 + tlen_action_sample * i
+                for i in range(num_sample_action * num_sample_interp + 1)
+            ]
+            y_new_action = f(t_new)
+            y_new_action = [
+                np.mean(y_new_action[i * num_sample_interp:(i + 1) *
+                                     num_sample_interp + 1])
+                for i in range(num_sample_action)
+            ]
+            feature = np.concatenate([y_new_action, y_new_start, y_new_end])
+            bsp_feature.append(feature)
+        bsp_feature = np.array(bsp_feature)
+        bsp_feature_dict[video_name] = bsp_feature
+        if result_dict is not None:
+            result_dict[video_name] = bsp_feature
+    return bsp_feature_dict
+
+
+def generate_nms_original_features(video_infos, origin_feature_dir,
+                                   nms_proposals_dir, nms_features_dir,
+                                   thread_num, feature_kwargs):
+    """
+    generate proposal features from original features
+    Args:
+        video_infos:
+        origin_feature_dir:
+        nms_proposals_dir:
+        nms_features_dir:
+        thread_num:
+        feature_kwargs:
+
+    Returns:
+
+    """
+    videos_per_thread = len(video_infos) // thread_num
+    jobs = []
+    result_dict = Manager().dict()
+    feature_kwargs['result_dict'] = result_dict
+    for i in range(thread_num - 1):
+        proc = Process(
+            target=_generate_tag_original_feature,
+            args=(range(i * videos_per_thread, (i + 1) * videos_per_thread),
+                  video_infos, origin_feature_dir, nms_proposals_dir),
+            kwargs=feature_kwargs)
+        proc.start()
+        jobs.append(proc)
+
+    proc = Process(
+        target=_generate_tag_original_feature,
+        args=(range((thread_num - 1) * videos_per_thread, len(video_infos)),
+              video_infos, origin_feature_dir, nms_proposals_dir),
+        kwargs=feature_kwargs)
+    proc.start()
+    jobs.append(proc)
+
+    for job in jobs:
+        job.join()
+
+    # save results
+    os.makedirs(nms_features_dir, exist_ok=True)
+    prog_bar = mmcv.ProgressBar(len(video_infos))
+    print(f'len(result_dict): {len(result_dict)}\n')
+    for video_name in result_dict.keys():
+        bsp_feature = result_dict[video_name]
+        feature_path = osp.join(nms_features_dir, video_name + '.npy')
+        np.save(feature_path, bsp_feature)
+        prog_bar.update()
+
+
+def nms_and_dump_results(pgm_proposals_dir,
+                         features_dir,
+                         nms_proposals_dir,
+                         nms_features_dir,
+                         ann_file,
+                         out,
+                         iou_nms,
+                         proposal_kwargs,
+                         feature_kwargs,
+                         origin=False):
+    print('Begin Proposal Generation.')
     os.makedirs(nms_proposals_dir, exist_ok=True)
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
@@ -484,6 +714,16 @@ def nms_and_dump_results(pgm_proposals_dir, tem_results_dir, nms_proposals_dir,
     for job in jobs:
         job.join()
     mmcv.dump(result_dict.copy(), out)
+    print('End Proposal Generation.')
 
-    generate_nms_features(video_infos, tem_results_dir, nms_proposals_dir,
-                          nms_features_dir, thread_num, feature_kwargs)
+    if origin:
+        print('Begin Original Features Generation.')
+        generate_nms_original_features(video_infos, features_dir,
+                                       nms_proposals_dir, nms_features_dir,
+                                       thread_num, feature_kwargs)
+        print('End Original Features Generation.')
+    else:
+        print('Begin action score Features Generation.')
+        generate_nms_features(video_infos, features_dir, nms_proposals_dir,
+                              nms_features_dir, thread_num, feature_kwargs)
+        print('End action score Features Generation.')
