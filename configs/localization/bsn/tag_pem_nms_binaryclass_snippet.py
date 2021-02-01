@@ -18,7 +18,7 @@ model = dict(
     post_process_top_k=100,
     fc1_ratio=1,
     fc2_ratio=1,
-    loss_cls=dict(type='BinaryLogisticRegressionLoss'))
+    loss_cls=dict(type='BinaryThresholdClassificationLoss'))
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -34,8 +34,10 @@ proposal_topk = 500
 lr = 0.1
 if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
     loss_cls = 'blr'
-else:
+elif model['loss_cls']['type'] == 'BinaryThresholdClassificationLoss':
     loss_cls = 'btc'
+else:
+    loss_cls = ''
 
 # for score nms
 # nms_type = 'score'
