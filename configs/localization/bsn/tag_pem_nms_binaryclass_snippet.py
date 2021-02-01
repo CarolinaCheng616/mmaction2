@@ -18,7 +18,7 @@ model = dict(
     post_process_top_k=100,
     fc1_ratio=1,
     fc2_ratio=1,
-    loss_cls=dict(type='BinaryThresholdClassificationLoss'))
+    loss_cls=dict(type='BinaryLogisticRegressionLoss'))
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -45,7 +45,7 @@ nms_type = 'iou'
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
 work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
-           f'{proposal_topk}_{loss_cls}_snippet_lr{lr}_stepno/'
+           f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 

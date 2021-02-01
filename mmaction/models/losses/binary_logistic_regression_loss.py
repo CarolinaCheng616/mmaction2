@@ -36,6 +36,10 @@ class BinaryLogisticRegressionLoss(nn.Module):
     label.
     """
 
+    def __init__(self, match_threshold=0.5):
+        super().__init__()
+        self.match_threshold = match_threshold
+
     def forward(self,
                 reg_score,
                 label,
@@ -57,5 +61,6 @@ class BinaryLogisticRegressionLoss(nn.Module):
                 torch.Tensor: Returned binary logistic loss.
         """
 
-        return binary_logistic_regression_loss(reg_score, label, threshold,
+        return binary_logistic_regression_loss(reg_score, label,
+                                               self.match_threshold,
                                                ratio_range, eps)
