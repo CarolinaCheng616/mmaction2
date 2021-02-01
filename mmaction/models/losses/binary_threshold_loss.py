@@ -47,7 +47,7 @@ class BinaryThresholdClassificationLoss(nn.Module):
                  high_threshold=0.7,
                  ratio_range=(1.05, 21),
                  eps=1e-5):
-        super(nn.Module, self).__init__()
+        super().__init__()
         self.low_threshold = low_threshold
         self.high_threshold = high_threshold
         self.ratio_range = ratio_range
