@@ -49,8 +49,6 @@ def main():
     out = osp.join(dir_name, base_name)
     feature_kwargs = cfg.feature_kwargs
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
-    import pdb
-    pdb.set_trace()
     nms_and_dump_results(pgm_proposals_dir, features_dir, nms_proposals_dir,
                          nms_features_dir, ann_file, out, nms, proposal_kwargs,
                          feature_kwargs, origin)
