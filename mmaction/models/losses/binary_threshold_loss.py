@@ -71,9 +71,6 @@ class BinaryThresholdClassificationLoss(nn.Module):
                 torch.Tensor: Returned binary logistic loss.
         """
 
-        import pdb
-        pdb.set_trace()
-
         return binary_threshold_classification_loss(reg_score, label,
                                                     self.low_threshold,
                                                     self.high_threshold,
