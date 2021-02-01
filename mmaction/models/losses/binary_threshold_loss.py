@@ -15,10 +15,10 @@ def binary_threshold_classification_loss(reg_score,
     label = label.view(-1).to(device)
     reg_score = reg_score.contiguous().view(-1)
 
-    hmask = (label > high_threshold).float().to(device)
-    lmask = (label < low_threshold).float().to(device)
-    num_positive = max(torch.sum(hmask), torch.tensor(1))
-    num_negative = max(torch.sum(lmask), torch.tensor(1))
+    hmask = (label >= high_threshold).float().to(device)
+    lmask = (label <= low_threshold).float().to(device)
+    num_positive = max(torch.sum(hmask), 1)
+    num_negative = max(torch.sum(lmask), 1)
     num_entries = num_positive + num_negative
 
     ratio = num_entries / num_positive
