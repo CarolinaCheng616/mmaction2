@@ -43,18 +43,18 @@ else:
 nms_type = 'iou'
 
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
+work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
+           f'{proposal_topk}_{loss_cls}_snippet_lr{lr}_stepno/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
 # work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
 #            f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
-work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
-           f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
@@ -136,7 +136,7 @@ optimizer = dict(
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(policy='step', step=20)
+lr_config = dict(policy='step', step=110)
 
 total_epochs = 100
 checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
