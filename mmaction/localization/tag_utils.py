@@ -482,6 +482,7 @@ def _generate_tag_original_feature(video_list,
                                    video_infos,
                                    origin_feature_dir,
                                    pgm_proposals_dir,
+                                   pgm_features_dir,
                                    top_k=1000,
                                    bsp_boundary_ratio=0.2,
                                    num_sample_start=8,
@@ -489,8 +490,7 @@ def _generate_tag_original_feature(video_list,
                                    num_sample_action=16,
                                    num_sample_interp=3,
                                    origin_feature_ext='.pkl',
-                                   pgm_proposal_ext='.csv',
-                                   result_dict=None):
+                                   pgm_proposal_ext='.csv'):
     """Generate Boundary-Sensitive Proposal Feature with given proposals from
     original features.
 
@@ -501,6 +501,7 @@ def _generate_tag_original_feature(video_list,
         origin_feature_dir (str): Directory to load temporal evaluation
             results.
         pgm_proposals_dir (str): Directory to load proposals.
+        pgm_features_dir (str): Directory to save features.
         top_k (int): Number of proposals to be considered. Default: 1000
         bsp_boundary_ratio (float): Ratio for proposal boundary
             (start/end). Default: 0.2.
@@ -515,17 +516,11 @@ def _generate_tag_original_feature(video_list,
         origin_feature_ext (str): File extension for temporal evaluation
             model output. Default: '.csv'.
         pgm_proposal_ext (str): File extension for proposals. Default: '.csv'.
-        result_dict (dict | None): The dict to save the results. Default: None.
-
-    Returns:
-        bsp_feature_dict (dict): A dict contains video_name as keys and
-            bsp_feature as value. If result_dict is not None, save the
-            results to it.
     """
     if origin_feature_ext != '.pkl' or pgm_proposal_ext != '.csv':
         raise NotImplementedError('Only support csv format now.')
 
-    bsp_feature_dict = {}
+    prog_bar = mmcv.ProgressBar(len(video_list))
     for video_index in video_list:
         video_name = video_infos[video_index]['video_name']
         duration = video_infos[video_index]['duration_second']
@@ -633,10 +628,9 @@ def _generate_tag_original_feature(video_list,
             feature = np.concatenate([y_new_action, y_new_start, y_new_end])
             bsp_feature.append(feature)
         bsp_feature = np.array(bsp_feature)
-        bsp_feature_dict[video_name] = bsp_feature
-        if result_dict is not None:
-            result_dict[video_name] = bsp_feature
-    return bsp_feature_dict
+        feature_path = osp.join(pgm_features_dir, video_name + '.npy')
+        np.save(feature_path, bsp_feature)
+        prog_bar.update()
 
 
 def generate_nms_original_features(video_infos, origin_feature_dir,
@@ -655,6 +649,7 @@ def generate_nms_original_features(video_infos, origin_feature_dir,
     Returns:
 
     """
+    os.makedirs(nms_features_dir, exist_ok=True)
     videos_per_thread = len(video_infos) // thread_num
     jobs = []
     result_dict = Manager().dict()
@@ -662,32 +657,24 @@ def generate_nms_original_features(video_infos, origin_feature_dir,
     for i in range(thread_num - 1):
         proc = Process(
             target=_generate_tag_original_feature,
-            args=(range(i * videos_per_thread, (i + 1) * videos_per_thread),
-                  video_infos, origin_feature_dir, nms_proposals_dir),
+            args=(range(i * videos_per_thread,
+                        (i + 1) * videos_per_thread), video_infos,
+                  origin_feature_dir, nms_proposals_dir, nms_features_dir),
             kwargs=feature_kwargs)
         proc.start()
         jobs.append(proc)
 
     proc = Process(
         target=_generate_tag_original_feature,
-        args=(range((thread_num - 1) * videos_per_thread, len(video_infos)),
-              video_infos, origin_feature_dir, nms_proposals_dir),
+        args=(range((thread_num - 1) * videos_per_thread,
+                    len(video_infos)), video_infos, origin_feature_dir,
+              nms_proposals_dir, nms_features_dir),
         kwargs=feature_kwargs)
     proc.start()
     jobs.append(proc)
 
     for job in jobs:
         job.join()
-
-    # save results
-    os.makedirs(nms_features_dir, exist_ok=True)
-    prog_bar = mmcv.ProgressBar(len(video_infos))
-    print(f'len(result_dict): {len(result_dict)}\n')
-    for video_name in result_dict.keys():
-        bsp_feature = result_dict[video_name]
-        feature_path = osp.join(nms_features_dir, video_name + '.npy')
-        np.save(feature_path, bsp_feature)
-        prog_bar.update()
 
 
 def nms_and_dump_results(pgm_proposals_dir,
