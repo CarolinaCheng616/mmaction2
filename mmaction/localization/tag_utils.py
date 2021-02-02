@@ -652,8 +652,6 @@ def generate_nms_original_features(video_infos, origin_feature_dir,
     os.makedirs(nms_features_dir, exist_ok=True)
     videos_per_thread = len(video_infos) // thread_num
     jobs = []
-    result_dict = Manager().dict()
-    feature_kwargs['result_dict'] = result_dict
     for i in range(thread_num - 1):
         proc = Process(
             target=_generate_tag_original_feature,
