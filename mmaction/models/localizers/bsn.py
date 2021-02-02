@@ -1245,7 +1245,7 @@ class OriFeatPEM(BaseLocalizer):
         self.loss_type = loss_cls['type']
         self.loss_cls = build_loss(loss_cls)
 
-        self.conv1 = nn.Sequential(
+        self.conv = nn.Sequential(
             nn.Conv1d(
                 in_channels=self.feat_dim,
                 out_channels=self.hidden_dim1,
