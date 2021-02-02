@@ -634,8 +634,6 @@ def _generate_tag_original_feature(video_list,
             bsp_feature.append(feature)
         bsp_feature = np.array(bsp_feature)
         bsp_feature_dict[video_name] = bsp_feature
-        print(bsp_feature.shape)
-        exit(0)
         if result_dict is not None:
             result_dict[video_name] = bsp_feature
     return bsp_feature_dict

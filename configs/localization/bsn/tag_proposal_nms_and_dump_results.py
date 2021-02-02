@@ -6,8 +6,8 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-topk = 100
-threads = 8
+topk = 500
+threads = 16
 
 pgm_work_dir = 'work_dirs/tag_pgm_snippet'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
