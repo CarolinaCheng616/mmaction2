@@ -32,6 +32,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 
 proposal_topk = 500
 lr = 0.1
+
 if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
     loss_cls = 'blr'
 elif model['loss_cls']['type'] == 'BinaryThresholdClassificationLoss':
@@ -45,18 +46,18 @@ else:
 nms_type = 'iou'
 
 # for train
-pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
-work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
-           f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
 # work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
 #            f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
+           f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
