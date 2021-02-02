@@ -44,6 +44,8 @@ def main():
     else:
         print('nms should be iou or score.')
         exit(0)
+    import pdb
+    pdb.set_trace()
     dir_name, base_name = osp.dirname(out), osp.basename(out)
     base_name = f'{mode}_{base_name}'
     out = osp.join(dir_name, base_name)

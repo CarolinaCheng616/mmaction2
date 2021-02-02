@@ -1290,6 +1290,7 @@ class OriFeatPEM(BaseLocalizer):
     def forward_train(self, bsp_feature, reference_temporal_iou):
         """Define the computation performed at every call when training."""
         # bsp_feature: list of features, size: videos_per_gpu, feature size
+        # e.g. [100*32*4096, 100*32*4096]
         # reference_temporal_iou: list of ious(num:feature num of a video)
         # pem_output: torch.tensor, shape=[videos_per_gpu*feature_size, 1]
         # anchors_temporal_iou.shape=reference_temporal_iou.shape=
