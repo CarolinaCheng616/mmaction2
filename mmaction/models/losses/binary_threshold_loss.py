@@ -23,12 +23,15 @@ def binary_threshold_classification_loss(reg_score,
 
     ratio = num_entries / num_positive
     # clip ratio value between ratio_range
+    # print(f'ratio: {ratio}')
+    import pdb
+    pdb.set_trace()
     ratio = min(max(ratio, ratio_range[0]), ratio_range[1])
 
-    coef_0 = 0.5 * ratio / (ratio - 1)
-    coef_1 = 0.5 * ratio
-    loss = coef_1 * hmask * torch.log(reg_score + eps) + coef_0 * (
-        1.0 - lmask) * torch.log(1.0 - reg_score + eps)
+    coef_n = 0.5 * ratio / (ratio - 1)
+    coef_p = 0.5 * ratio
+    loss = coef_p * hmask * torch.log(reg_score + eps) + \
+        coef_n * lmask * torch.log(1.0 - reg_score + eps)
     loss = -torch.mean(loss)
     return loss
 
