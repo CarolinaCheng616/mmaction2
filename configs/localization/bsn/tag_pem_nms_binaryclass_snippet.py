@@ -30,7 +30,7 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-proposal_topk = 100
+proposal_topk = 500
 lr = 0.1
 if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
     loss_cls = 'blr'
@@ -138,7 +138,7 @@ optimizer = dict(
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(policy='step', step=210)
+lr_config = dict(policy='step', step=110)
 
 total_epochs = 200
 checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
