@@ -629,6 +629,8 @@ def _generate_tag_original_feature(video_list,
             bsp_feature.append(feature)
         bsp_feature = np.array(bsp_feature)
         bsp_feature_dict[video_name] = bsp_feature
+        print(bsp_feature.shape)
+        exit(0)
         if result_dict is not None:
             result_dict[video_name] = bsp_feature
     return bsp_feature_dict
@@ -695,26 +697,27 @@ def nms_and_dump_results(pgm_proposals_dir,
                          proposal_kwargs,
                          feature_kwargs,
                          origin=False):
-    print('Begin Proposal Generation.')
-    os.makedirs(nms_proposals_dir, exist_ok=True)
+    # print('Begin Proposal Generation.')
+    # os.makedirs(nms_proposals_dir, exist_ok=True)
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
-    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
-    jobs = []
-    result_dict = Manager().dict()
-    score_idx = 3 if iou_nms else 2
-    for i in range(thread_num):
-        proc = Process(
-            target=_multithread_nms_and_dump_results,
-            args=(video_infos[i * videos_per_thread:(i + 1) *
-                              videos_per_thread], pgm_proposals_dir,
-                  nms_proposals_dir, result_dict, score_idx, proposal_kwargs))
-        proc.start()
-        jobs.append(proc)
-    for job in jobs:
-        job.join()
-    mmcv.dump(result_dict.copy(), out)
-    print('End Proposal Generation.')
+    # videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    # jobs = []
+    # result_dict = Manager().dict()
+    # score_idx = 3 if iou_nms else 2
+    # for i in range(thread_num):
+    #     proc = Process(
+    #         target=_multithread_nms_and_dump_results,
+    #         args=(video_infos[i * videos_per_thread:(i + 1) *
+    #                           videos_per_thread], pgm_proposals_dir,
+    #               nms_proposals_dir, result_dict,
+    #               score_idx, proposal_kwargs))
+    #     proc.start()
+    #     jobs.append(proc)
+    # for job in jobs:
+    #     job.join()
+    # mmcv.dump(result_dict.copy(), out)
+    # print('End Proposal Generation.')
 
     if origin:
         print('Begin Original Features Generation.')
