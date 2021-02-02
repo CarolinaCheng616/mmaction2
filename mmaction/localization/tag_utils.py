@@ -559,7 +559,6 @@ def _generate_tag_original_feature(video_list,
         boundary_zeros = np.zeros([video_extend, dim])
         score_action = np.concatenate(
             (boundary_zeros, score_action, boundary_zeros))
-        print(score_action.shape)
         # score_action.shape=[extended_temporal, 4096]
         begin_tp = []
         middle_tp = []
@@ -571,6 +570,9 @@ def _generate_tag_original_feature(video_list,
         for i in range(video_scale):
             middle_tp.append(video_gap / 2 + i * video_gap)
         t_points = begin_tp + middle_tp + end_tp
+        print(score_action.shape)
+        print(len(t_points))
+        print('\n')
 
         bsp_feature = []
         f = interpolate.interp1d(t_points, score_action, axis=0)
@@ -594,12 +596,14 @@ def _generate_tag_original_feature(video_list,
                 tmin_0 - tlen_start / 2 + tlen_start_sample * i
                 for i in range(num_sample_start * num_sample_interp + 1)
             ]
+            print(f't_new.len={len(t_new)}')
             y_new_start_action = f(t_new)
             y_new_start = [
                 np.mean(y_new_start_action[i * num_sample_interp:(i + 1) *
                                            num_sample_interp + 1])
                 for i in range(num_sample_start)
             ]
+            print(f'y_new_start.shape = {len(y_new_start)}')
             # Generate features at end boundary
             tlen_end = (tmax_1 - tmax_0) / (num_sample_end - 1)
             tlen_end_sample = tlen_end / num_sample_interp
