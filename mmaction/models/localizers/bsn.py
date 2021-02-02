@@ -1072,8 +1072,10 @@ class ClassifyPEM(BaseLocalizer):
         self.loss_type = loss_cls['type']
         self.loss_cls = build_loss(loss_cls)
 
+        self.bn1 = nn.BatchNorm1d(self.feat_dim)
         self.fc1 = nn.Linear(
             in_features=self.feat_dim, out_features=self.hidden_dim, bias=True)
+        self.bn2 = nn.BatchNorm1d(self.hidden_dim)
         self.fc2 = nn.Linear(
             in_features=self.hidden_dim,
             out_features=self.output_dim,
@@ -1089,7 +1091,9 @@ class ClassifyPEM(BaseLocalizer):
             torch.Tensor: The output of the module.
         """
         x = torch.cat(list(x))
+        x = self.bn1(x)
         x = F.relu(self.fc1_ratio * self.fc1(x))
+        x = self.bn2(x)
         x = torch.sigmoid(self.fc2_ratio * self.fc2(x))
         return x
 
