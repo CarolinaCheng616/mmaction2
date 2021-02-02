@@ -559,6 +559,7 @@ def _generate_tag_original_feature(video_list,
         boundary_zeros = np.zeros([video_extend, dim])
         score_action = np.concatenate(
             (boundary_zeros, score_action, boundary_zeros))
+        print(score_action.shape)
         # score_action.shape=[extended_temporal, 4096]
         begin_tp = []
         middle_tp = []
