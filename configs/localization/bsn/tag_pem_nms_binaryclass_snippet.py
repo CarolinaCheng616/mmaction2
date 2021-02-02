@@ -18,7 +18,7 @@ model = dict(
     post_process_top_k=100,
     fc1_ratio=1,
     fc2_ratio=1,
-    loss_cls=dict(type='BinaryThresholdClassificationLoss'))
+    loss_cls=dict(type='BinaryLogisticRegressionLoss'))
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
