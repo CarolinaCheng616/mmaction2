@@ -5,7 +5,7 @@
 # tem trained on snippets
 # model settings
 model = dict(
-    type='ClassifyPEM',
+    type='ClassifyBNPEM',
     pem_feat_dim=32,
     pem_hidden_dim=256,
     pem_u_ratio_m=1,
@@ -47,14 +47,14 @@ nms_type = 'iou'
 
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}/'
-work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
+work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 # for test
 # pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
-# work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
+# work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
 #            f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
@@ -140,6 +140,13 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=None)
 # learning policy
 lr_config = dict(policy='step', step=210)
+# lr_config = dict(
+#     policy='CosineAnnealing',
+#     warmup='linear',
+#     warmup_iters=5,
+#     warmup_ratio=1.0 / 10,
+#     min_lr_ratio=1e-5,
+#     warmup_by_epoch=True)
 
 total_epochs = 200
 checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
