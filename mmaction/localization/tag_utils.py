@@ -611,9 +611,10 @@ def _generate_tag_original_feature(video_list,
             ]
             y_new_end_action = f(t_new)
             y_new_end = [
-                np.mean(y_new_end_action[i * num_sample_interp:(i + 1) *
-                                         num_sample_interp + 1])
-                for i in range(num_sample_end)
+                np.mean(
+                    y_new_end_action[i * num_sample_interp:(i + 1) *
+                                     num_sample_interp + 1],
+                    axis=0) for i in range(num_sample_end)
             ]
             # Generate features for action
             tlen_action = (tmax - tmin) / (num_sample_action - 1)
@@ -624,9 +625,10 @@ def _generate_tag_original_feature(video_list,
             ]
             y_new_action = f(t_new)
             y_new_action = [
-                np.mean(y_new_action[i * num_sample_interp:(i + 1) *
-                                     num_sample_interp + 1])
-                for i in range(num_sample_action)
+                np.mean(
+                    y_new_action[i * num_sample_interp:(i + 1) *
+                                 num_sample_interp + 1],
+                    axis=0) for i in range(num_sample_action)
             ]
             feature = np.concatenate([y_new_action, y_new_start, y_new_end])
             bsp_feature.append(feature)
