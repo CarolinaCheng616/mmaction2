@@ -23,9 +23,6 @@ def binary_threshold_classification_loss(reg_score,
 
     ratio = num_entries / num_positive
     # clip ratio value between ratio_range
-    # print(f'ratio: {ratio}')
-    import pdb
-    pdb.set_trace()
     ratio = min(max(ratio, ratio_range[0]), ratio_range[1])
 
     coef_n = 0.5 * ratio / (ratio - 1)
