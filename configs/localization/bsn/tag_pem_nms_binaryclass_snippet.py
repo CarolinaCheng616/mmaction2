@@ -18,7 +18,7 @@ model = dict(
     post_process_top_k=100,
     fc1_ratio=1,
     fc2_ratio=1,
-    loss_cls=dict(type='BinaryThresholdClassificationLoss'))
+    loss_cls=dict(type='BinaryLogisticRegressionLoss'))
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -30,7 +30,7 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-proposal_topk = 500
+proposal_topk = 100
 lr = 0.1
 if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
     loss_cls = 'blr'
