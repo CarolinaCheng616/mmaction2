@@ -1245,22 +1245,21 @@ class OriFeatPEM(BaseLocalizer):
         self.loss_type = loss_cls['type']
         self.loss_cls = build_loss(loss_cls)
 
-        self.conv = nn.Sequential(
+        self.conv1 = nn.Sequential(
             nn.Conv1d(
                 in_channels=self.feat_dim,
                 out_channels=self.hidden_dim1,
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                groups=1),
+                groups=1), nn.BatchNorm1d(self.hidden_dim1),
             nn.Conv1d(
                 in_channels=self.hidden_dim1,
                 out_channels=self.hidden_dim1,
                 kernel_size=3,
                 stride=1,
                 padding=1,
-                groups=1))
-        # batch norm?
+                groups=1), nn.BatchNorm1d(self.hidden_dim1))
         self.pooling = nn.AdaptiveAvgPool1d(1)
         self.fc1 = nn.Linear(
             in_features=self.hidden_dim1,
@@ -1281,10 +1280,17 @@ class OriFeatPEM(BaseLocalizer):
             torch.Tensor: The output of the module.
         """
         x = torch.cat(list(x))
+        # batch, 32, 4096(N, L, C)
+        x = torch.transpose(x, 1, 2)
+        # transposed to N, C, L
         x = F.relu(self.conv(x))
-        x = self.pooling(x)
+        # N, C1, L
+        x = self.pooling(x).squeeze(2)
+        # N, C1
         x = F.relu(self.fc1_ratio * self.fc1(x))
+        # N, C2
         x = torch.sigmoid(self.fc2_ratio * self.fc2(x))
+        # N, 1
         return x
 
     def forward_train(self, bsp_feature, reference_temporal_iou):
