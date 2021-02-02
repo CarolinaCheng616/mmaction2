@@ -1355,6 +1355,8 @@ class OriFeatPEM(BaseLocalizer):
 
         proposal score is computed by pem_output entirely.
         """
+        import pdb
+        pdb.set_trace()
         score = self._forward(bsp_feature)
         score = score.view(-1).cpu().numpy().reshape(-1, 1)
         tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
