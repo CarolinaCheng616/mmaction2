@@ -596,14 +596,16 @@ def _generate_tag_original_feature(video_list,
                 tmin_0 - tlen_start / 2 + tlen_start_sample * i
                 for i in range(num_sample_start * num_sample_interp + 1)
             ]
-            print(f't_new.len={len(t_new)}')
+            # print(f't_new.len={len(t_new)}')
             y_new_start_action = f(t_new)
+            print(f'y_new_start_action.shape={y_new_start_action.shape}')
+            exit(0)
             y_new_start = [
                 np.mean(y_new_start_action[i * num_sample_interp:(i + 1) *
                                            num_sample_interp + 1])
                 for i in range(num_sample_start)
             ]
-            print(f'y_new_start.shape = {len(y_new_start)}')
+            # print(f'y_new_start.shape = {len(y_new_start)}')
             # Generate features at end boundary
             tlen_end = (tmax_1 - tmax_0) / (num_sample_end - 1)
             tlen_end_sample = tlen_end / num_sample_interp
