@@ -523,6 +523,9 @@ def _generate_tag_original_feature(video_list,
     prog_bar = mmcv.ProgressBar(len(video_list))
     for video_index in video_list:
         video_name = video_infos[video_index]['video_name']
+        feature_path = osp.join(pgm_features_dir, video_name + '.npy')
+        if osp.exists(feature_path):
+            continue
         duration = video_infos[video_index]['duration_second']
 
         pkl_path = osp.join(origin_feature_dir,
@@ -549,7 +552,7 @@ def _generate_tag_original_feature(video_list,
                                  video_name + pgm_proposal_ext)
         pgm_proposals = np.loadtxt(
             proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
-        pgm_proposals = pgm_proposals[:top_k]
+        # pgm_proposals = pgm_proposals[:top_k]
 
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend, dim])
@@ -629,7 +632,7 @@ def _generate_tag_original_feature(video_list,
             feature = np.concatenate([y_new_action, y_new_start, y_new_end])
             bsp_feature.append(feature)
         bsp_feature = np.array(bsp_feature)
-        feature_path = osp.join(pgm_features_dir, video_name + '.npy')
+
         np.save(feature_path, bsp_feature)
         prog_bar.update()
 
@@ -729,9 +732,9 @@ if __name__ == '__main__':
     ann_file = 'data/TruNet/val_meta.json'
     out = 'a'
     iou_nms = True
-    proposal_kwargs = dict(thread_num=16)
+    proposal_kwargs = dict(thread_num=2)
     feature_kwargs = dict(
-        top_k=10000,
+        top_k=10000000,
         bsp_boundary_ratio=0.2,
         num_sample_start=8,
         num_sample_end=8,
