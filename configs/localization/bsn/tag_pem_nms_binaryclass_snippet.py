@@ -30,7 +30,7 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-proposal_topk = 100
+proposal_topk = 500
 lr = 0.1
 
 if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
@@ -59,8 +59,7 @@ work_dir = f'work_dirs/tag_pem_{nms_type}_nms_' \
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
-output_config = dict(
-    out=f'{work_dir}/epoch_70_results.json', output_format='json')
+output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
 test_pipeline = [
     dict(
