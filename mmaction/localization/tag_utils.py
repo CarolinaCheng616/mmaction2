@@ -548,7 +548,7 @@ def _generate_tag_original_feature(video_list,
                                  video_name + pgm_proposal_ext)
         pgm_proposals = np.loadtxt(
             proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
-        pgm_proposals = pgm_proposals[:top_k]
+        # pgm_proposals = pgm_proposals[:top_k]
 
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend, dim])
@@ -724,13 +724,13 @@ if __name__ == '__main__':
     pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet/pgm_proposals/'
     features_dir = 'data/TruNet/val_feature/'
     nms_proposal_dir = pgm_propopsals_dir
-    nms_features_dir = 'work_dirs/tag_pgm_snippet/pgm_origin_features_1000/'
+    nms_features_dir = 'work_dirs/tag_pgm_snippet/pgm_origin_features/'
     ann_file = 'data/TruNet/val_meta.json'
     out = 'a'
     iou_nms = True
     proposal_kwargs = dict(thread_num=16)
     feature_kwargs = dict(
-        top_k=1000,
+        top_k=10000000,
         bsp_boundary_ratio=0.2,
         num_sample_start=8,
         num_sample_end=8,
