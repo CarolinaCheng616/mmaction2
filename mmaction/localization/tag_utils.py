@@ -733,7 +733,7 @@ if __name__ == '__main__':
     ann_file = 'data/TruNet/val_meta.json'
     out = 'a'
     iou_nms = True
-    proposal_kwargs = dict(thread_num=2)
+    proposal_kwargs = dict(thread_num=16)
     feature_kwargs = dict(
         top_k=10000000,
         bsp_boundary_ratio=0.2,
