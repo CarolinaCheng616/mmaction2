@@ -20,7 +20,7 @@ model = dict(
     post_process_top_k=100,
     fc1_ratio=1,
     fc2_ratio=1,
-    loss_cls=dict(type='BinaryLogisticRegressionLoss'))
+    loss_cls=dict(type='BinaryThresholdClassificationLoss'))
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -32,7 +32,7 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-proposal_topk = 100
+proposal_topk = 500
 lr = 0.1
 if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
     loss_cls = 'blr'
@@ -47,19 +47,19 @@ else:
 nms_type = 'iou'
 
 # for train
-# pgm_work_dir = f'work_dirs/' \
-#                f'tag_pgm_{nms_type}_nms_snippet_orifeat_{proposal_topk}/'
-# work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
-#            f'{proposal_topk}_{loss_cls}_snippet_orifeat_lr{lr}/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+pgm_work_dir = f'work_dirs/' \
+               f'tag_pgm_{nms_type}_nms_snippet_orifeat_{proposal_topk}/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_orifeat_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_10000/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
+#            f'{proposal_topk}_{loss_cls}_snippet_orifeat_lr{lr}/'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_10000/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
@@ -70,7 +70,7 @@ mc_cfg = dict(
 test_pipeline = [
     dict(
         type='LoadTAGProposals',
-        top_k=1000,
+        top_k=10000,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir,
         **mc_cfg),
@@ -102,7 +102,7 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='LoadTAGProposals',
-        top_k=1000,
+        top_k=10000,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir,
         *mc_cfg),
@@ -115,7 +115,7 @@ val_pipeline = [
 ]
 data = dict(
     videos_per_gpu=16,
-    workers_per_gpu=0,
+    workers_per_gpu=8,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
     test_dataloader=dict(videos_per_gpu=1),
