@@ -528,7 +528,8 @@ def _generate_tag_original_feature(video_list,
         pkl_path = osp.join(origin_feature_dir,
                             video_name + origin_feature_ext)
         with open(pkl_path, 'rb') as f:
-            origin_feature = pickle.load(f, encoding='bytes')
+            origin_feature = pickle.load(
+                f, encoding='bytes').astype(np.float32)
         temporal, dim = origin_feature.shape
         if temporal < duration:
             end_frame = np.array([origin_feature[-1]] * (duration - temporal))
@@ -685,27 +686,27 @@ def nms_and_dump_results(pgm_proposals_dir,
                          proposal_kwargs,
                          feature_kwargs,
                          origin=False):
-    print('Begin Proposal Generation.')
-    os.makedirs(nms_proposals_dir, exist_ok=True)
+    # print('Begin Proposal Generation.')
+    # os.makedirs(nms_proposals_dir, exist_ok=True)
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
-    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
-    jobs = []
-    result_dict = Manager().dict()
-    score_idx = 3 if iou_nms else 2
-    for i in range(thread_num):
-        proc = Process(
-            target=_multithread_nms_and_dump_results,
-            args=(video_infos[i * videos_per_thread:(i + 1) *
-                              videos_per_thread], pgm_proposals_dir,
-                  nms_proposals_dir, result_dict,
-                  score_idx, proposal_kwargs))
-        proc.start()
-        jobs.append(proc)
-    for job in jobs:
-        job.join()
-    mmcv.dump(result_dict.copy(), out)
-    print('End Proposal Generation.')
+    # videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    # jobs = []
+    # result_dict = Manager().dict()
+    # score_idx = 3 if iou_nms else 2
+    # for i in range(thread_num):
+    #     proc = Process(
+    #         target=_multithread_nms_and_dump_results,
+    #         args=(video_infos[i * videos_per_thread:(i + 1) *
+    #                           videos_per_thread], pgm_proposals_dir,
+    #               nms_proposals_dir, result_dict,
+    #               score_idx, proposal_kwargs))
+    #     proc.start()
+    #     jobs.append(proc)
+    # for job in jobs:
+    #     job.join()
+    # mmcv.dump(result_dict.copy(), out)
+    # print('End Proposal Generation.')
 
     if origin:
         print('Begin Original Features Generation.')
@@ -730,7 +731,7 @@ if __name__ == '__main__':
     iou_nms = True
     proposal_kwargs = dict(thread_num=16)
     feature_kwargs = dict(
-        top_k=10000000,
+        top_k=10000,
         bsp_boundary_ratio=0.2,
         num_sample_start=8,
         num_sample_end=8,
