@@ -524,9 +524,9 @@ def _generate_tag_original_feature(video_list,
     for video_index in video_list:
         video_name = video_infos[video_index]['video_name']
         feature_path = osp.join(pgm_features_dir, video_name + '.npy')
-        if osp.exists(feature_path):
-            prog_bar.update()
-            continue
+        # if osp.exists(feature_path):
+        #     prog_bar.update()
+        #     continue
         duration = video_infos[video_index]['duration_second']
 
         pkl_path = osp.join(origin_feature_dir,
