@@ -549,7 +549,7 @@ def _generate_tag_original_feature(video_list,
                                  video_name + pgm_proposal_ext)
         pgm_proposals = np.loadtxt(
             proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
-        # pgm_proposals = pgm_proposals[:top_k]
+        pgm_proposals = pgm_proposals[:top_k]
 
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend, dim])
