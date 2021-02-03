@@ -558,7 +558,7 @@ def _generate_tag_original_feature(video_list,
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend, dim])
         score_action = np.concatenate(
-            (boundary_zeros, score_action, boundary_zeros))
+            (boundary_zeros, score_action, boundary_zeros)).astype(np.float32)
         # score_action.shape=[extended_temporal, 4096]
         begin_tp = []
         middle_tp = []
@@ -594,7 +594,7 @@ def _generate_tag_original_feature(video_list,
                 for i in range(num_sample_start * num_sample_interp + 1)
             ]
             # print(f't_new.len={len(t_new)}')
-            y_new_start_action = f(t_new)
+            y_new_start_action = f(t_new).astype(np.float32)
             y_new_start = [
                 np.mean(
                     y_new_start_action[i * num_sample_interp:(i + 1) *
@@ -609,7 +609,7 @@ def _generate_tag_original_feature(video_list,
                 tmax_0 - tlen_end / 2 + tlen_end_sample * i
                 for i in range(num_sample_end * num_sample_interp + 1)
             ]
-            y_new_end_action = f(t_new)
+            y_new_end_action = f(t_new).astype(np.float32)
             y_new_end = [
                 np.mean(
                     y_new_end_action[i * num_sample_interp:(i + 1) *
@@ -623,14 +623,15 @@ def _generate_tag_original_feature(video_list,
                 tmin - tlen_action / 2 + tlen_action_sample * i
                 for i in range(num_sample_action * num_sample_interp + 1)
             ]
-            y_new_action = f(t_new)
+            y_new_action = f(t_new).astype(np.float32)
             y_new_action = [
                 np.mean(
                     y_new_action[i * num_sample_interp:(i + 1) *
                                  num_sample_interp + 1],
                     axis=0) for i in range(num_sample_action)
             ]
-            feature = np.concatenate([y_new_action, y_new_start, y_new_end])
+            feature = np.concatenate([y_new_action, y_new_start,
+                                      y_new_end]).astype(np.float32)
             bsp_feature.append(feature)
         bsp_feature = np.array(bsp_feature)
 
