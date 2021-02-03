@@ -63,12 +63,17 @@ pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_10000/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
+mc_cfg = dict(
+    server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
+    client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+    sys_path='/mnt/lustre/share/pymc/py3')
 test_pipeline = [
     dict(
         type='LoadTAGProposals',
         top_k=1000,
         pgm_proposals_dir=pgm_proposals_dir,
-        pgm_features_dir=pgm_features_dir),
+        pgm_features_dir=pgm_features_dir,
+        **mc_cfg),
     dict(
         type='Collect',
         keys=['bsp_feature', 'tmin', 'tmax'],
@@ -81,7 +86,8 @@ train_pipeline = [
         type='LoadTAGProposals',
         top_k=500,
         pgm_proposals_dir=pgm_proposals_dir,
-        pgm_features_dir=pgm_features_dir),
+        pgm_features_dir=pgm_features_dir,
+        **mc_cfg),
     dict(
         type='Collect',
         keys=['bsp_feature', 'reference_temporal_iou'],
@@ -98,7 +104,8 @@ val_pipeline = [
         type='LoadTAGProposals',
         top_k=1000,
         pgm_proposals_dir=pgm_proposals_dir,
-        pgm_features_dir=pgm_features_dir),
+        pgm_features_dir=pgm_features_dir,
+        *mc_cfg),
     dict(
         type='Collect',
         keys=['bsp_feature', 'tmin', 'tmax'],
@@ -108,7 +115,7 @@ val_pipeline = [
 ]
 data = dict(
     videos_per_gpu=16,
-    workers_per_gpu=8,
+    workers_per_gpu=0,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
     test_dataloader=dict(videos_per_gpu=1),

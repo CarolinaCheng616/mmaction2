@@ -1865,7 +1865,9 @@ class LoadTAGProposals:
                  pgm_proposals_dir,
                  pgm_features_dir,
                  proposal_ext='.csv',
-                 feature_ext='.npy'):
+                 feature_ext='.npy',
+                 io_backend='memcached',
+                 **kwargs):
         self.top_k = top_k
         self.pgm_proposals_dir = pgm_proposals_dir
         self.pgm_features_dir = pgm_features_dir
@@ -1877,6 +1879,9 @@ class LoadTAGProposals:
         if feature_ext not in valid_feature_ext:
             raise NotImplementedError
         self.feature_ext = feature_ext
+        self.io_backend = io_backend
+        self.kwargs = kwargs
+        self.file_client = FileClient(self.io_backend, **self.kwargs)
 
     def __call__(self, results):
         """Perform the LoadTAGProposals loading.
@@ -1889,8 +1894,11 @@ class LoadTAGProposals:
         proposal_path = osp.join(self.pgm_proposals_dir,
                                  video_name + self.proposal_ext)
         if self.proposal_ext == '.csv':
-            pgm_proposals = np.loadtxt(
-                proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
+            # pgm_proposals = np.loadtxt(
+            #     proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
+            buf = self.file_client.get(proposal_path)
+            buf = io.StringIO(buf)
+            pgm_proposals = np.load(buf).astype(np.float32)
 
         # tmin, tmax, action_score, match_iou, match_ioa
         pgm_proposals = np.array(pgm_proposals[:self.top_k])
@@ -1903,7 +1911,10 @@ class LoadTAGProposals:
         feature_path = osp.join(self.pgm_features_dir,
                                 video_name + self.feature_ext)
         if self.feature_ext == '.npy':
-            bsp_feature = np.load(feature_path).astype(np.float32)
+            # bsp_feature = np.load(feature_path).astype(np.float32)
+            buf = self.file_client.get(feature_path)
+            buf = io.BytesIO(buf)
+            bsp_feature = np.load(buf, allow_pickle=True).astype(np.float32)
 
         bsp_feature = bsp_feature[:self.top_k]
 
