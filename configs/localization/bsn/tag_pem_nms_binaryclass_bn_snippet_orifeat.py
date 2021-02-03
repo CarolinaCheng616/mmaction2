@@ -141,7 +141,15 @@ optimizer = dict(
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(policy='step', step=210)
+# lr_config = dict(policy='step', step=210)
+
+lr_config = dict(
+    policy='CosineAnnealing',
+    warmup='linear',
+    warmup_iters=5,
+    warmup_ratio=1.0 / 10,
+    min_lr_ratio=1e-5,
+    warmup_by_epoch=True)
 
 total_epochs = 200
 checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
