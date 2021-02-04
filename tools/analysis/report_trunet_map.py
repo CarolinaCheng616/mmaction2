@@ -64,6 +64,7 @@ def parse_args():
     #     default='det_result.json',
     #     help='the path to store detection results')
     parser.add_argument('--proposal-num', type=int, default=13)
+    parser.add_argument('--threshold', type=float, default=0.5)
     args = parser.parse_args()
     return args
 
@@ -85,6 +86,7 @@ def main():
         args.gt,
         args.proposal,
         args.proposal_num,
+        args.threshold,
         tiou_thresholds=np.linspace(0.5, 0.95, 10),
         verbose=True)
     mAP, average_mAP = trunet_detection.evaluate()

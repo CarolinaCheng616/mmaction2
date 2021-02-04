@@ -206,6 +206,7 @@ class TruNetDetection:
                  ground_truth_filename=None,
                  prediction_filename=None,
                  proposal_num=13,
+                 threshold=0.5,
                  tiou_thresholds=np.linspace(0.5, 0.95, 10),
                  verbose=False):
         if not ground_truth_filename:
@@ -215,6 +216,7 @@ class TruNetDetection:
         self.ground_truth_filename = ground_truth_filename
         self.prediction_filename = prediction_filename
         self.proposal_num = proposal_num
+        self.threshold = threshold
         self.tiou_thresholds = tiou_thresholds
         self.verbose = verbose
         self.ap = None
@@ -280,7 +282,7 @@ class TruNetDetection:
             List: List containing the prediction instances (dictionaries).
         """
 
-        threshold = 0.5
+        # threshold = 0.5
 
         with open(prediction_filename, 'r') as f:
             data = json.load(f)
@@ -294,7 +296,7 @@ class TruNetDetection:
                 video_info, key=lambda x: x['score'], reverse=True)
             # for result in video_info[:self.proposal_num]:
             for result in video_info:
-                if result['score'] < threshold:
+                if result['score'] < self.threshold:
                     break
                 prediction_item = dict()
                 prediction_item['video-id'] = video_id
