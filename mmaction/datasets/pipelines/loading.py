@@ -1877,12 +1877,12 @@ class LoadTAGProposals:
         if feature_ext not in valid_feature_ext:
             raise NotImplementedError
         self.feature_ext = feature_ext
-        mc_cfg = dict(
+        self.mc_cfg = dict(
             server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
             client_cfg='/mnt/lustre/share/memcached_client/client.conf',
             sys_path='/mnt/lustre/share/pymc/py3')
-        io_backend = 'memcached'
-        self.file_client = FileClient(io_backend, **mc_cfg)
+        self.io_backend = 'memcached'
+        self.file_client = None
 
     def __call__(self, results):
         """Perform the LoadTAGProposals loading.
@@ -1891,6 +1891,8 @@ class LoadTAGProposals:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
+        if self.file_client is None:
+            self.file_client = FileClient(self.io_backend, **self.kwargs)
         video_name = results['video_name']
         proposal_path = osp.join(self.pgm_proposals_dir,
                                  video_name + self.proposal_ext)
