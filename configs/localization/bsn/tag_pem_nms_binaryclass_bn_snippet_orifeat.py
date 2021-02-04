@@ -135,7 +135,7 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
-gpu_per_node = 2
+gpu_per_node = 8
 machines = 1
 optimizer = dict(
     type='SGD',
@@ -156,7 +156,7 @@ lr_config = dict(
     warmup_by_epoch=True)
 
 total_epochs = 200
-checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
+checkpoint_config = dict(interval=2, filename_tmpl='pem_epoch_{}.pth')
 
 # evaluation = dict(interval=1, metrics=['AR@AN'])
 
