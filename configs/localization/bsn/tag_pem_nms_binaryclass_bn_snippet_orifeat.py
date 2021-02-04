@@ -63,18 +63,16 @@ pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/results.json', output_format='json')
 
-mc_cfg = dict(
-    server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
-    client_cfg='/mnt/lustre/share/memcached_client/client.conf',
-    sys_path='/mnt/lustre/share/pymc/py3')
+# mc_cfg = dict(
+#     server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
+#     client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+#     sys_path='/mnt/lustre/share/pymc/py3')
 test_pipeline = [
     dict(
         type='LoadTAGProposals',
         top_k=10000,
         pgm_proposals_dir=pgm_proposals_dir,
-        pgm_features_dir=pgm_features_dir,
-        io_backend='memcached',
-        **mc_cfg),
+        pgm_features_dir=pgm_features_dir),
     dict(
         type='Collect',
         keys=['bsp_feature', 'tmin', 'tmax'],
@@ -87,9 +85,7 @@ train_pipeline = [
         type='LoadTAGProposals',
         top_k=500,
         pgm_proposals_dir=pgm_proposals_dir,
-        pgm_features_dir=pgm_features_dir,
-        io_backend='memcached',
-        **mc_cfg),
+        pgm_features_dir=pgm_features_dir),
     dict(
         type='Collect',
         keys=['bsp_feature', 'reference_temporal_iou'],
@@ -106,9 +102,7 @@ val_pipeline = [
         type='LoadTAGProposals',
         top_k=10000,
         pgm_proposals_dir=pgm_proposals_dir,
-        pgm_features_dir=pgm_features_dir,
-        io_backend='memcached',
-        *mc_cfg),
+        pgm_features_dir=pgm_features_dir),
     dict(
         type='Collect',
         keys=['bsp_feature', 'tmin', 'tmax'],
