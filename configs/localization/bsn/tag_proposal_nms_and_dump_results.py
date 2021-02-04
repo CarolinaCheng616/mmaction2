@@ -12,7 +12,7 @@ threads = 16
 pgm_work_dir = 'work_dirs/tag_pgm_snippet'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 
-origin = False
+origin = True
 
 if origin:
     features_dir = 'data/TruNet/train_feature/'
