@@ -368,8 +368,12 @@ class TruNetDetection:
         prediction = dict()
         total_num_proposals = 0
         for video_id, video_info in data.items():
+            video_info = sorted(
+                video_info, key=lambda x: x['score'], reverse=True)
             vinfo = []
             for anno in video_info:
+                if anno['score'] < self.threshold:
+                    break
                 total_num_proposals += 1
                 vinfo.append(
                     [anno['segment'][0], anno['segment'][1], anno['score']])
