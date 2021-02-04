@@ -73,6 +73,7 @@ test_pipeline = [
         top_k=10000,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir,
+        io_backend='memcached',
         **mc_cfg),
     dict(
         type='Collect',
@@ -87,6 +88,7 @@ train_pipeline = [
         top_k=500,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir,
+        io_backend='memcached',
         **mc_cfg),
     dict(
         type='Collect',
@@ -105,6 +107,7 @@ val_pipeline = [
         top_k=10000,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir,
+        io_backend='memcached',
         *mc_cfg),
     dict(
         type='Collect',

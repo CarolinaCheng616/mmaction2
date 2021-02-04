@@ -1879,9 +1879,9 @@ class LoadTAGProposals:
         if feature_ext not in valid_feature_ext:
             raise NotImplementedError
         self.feature_ext = feature_ext
-        self.io_backend = io_backend
-        self.kwargs = kwargs
-        self.file_client = FileClient(self.io_backend, **self.kwargs)
+        # self.io_backend = io_backend
+        # self.kwargs = kwargs
+        self.file_client = FileClient(io_backend, **kwargs)
 
     def __call__(self, results):
         """Perform the LoadTAGProposals loading.
