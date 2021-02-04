@@ -71,11 +71,11 @@ def main():
 
     # import pdb
     # pdb.set_trace()
-    with open(args.config, 'r') as f:
-        # print(f.readlines())
-        for line in f:
-            print(line)
-    exit(0)
+    # with open(args.config, 'r') as f:
+    #     # print(f.readlines())
+    #     for line in f:
+    #         print(line)
+    # exit(0)
     cfg = Config.fromfile(args.config)
 
     cfg.merge_from_dict(args.cfg_options)
