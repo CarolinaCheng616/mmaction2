@@ -1896,6 +1896,8 @@ class LoadTAGProposals:
                                  video_name + self.proposal_ext)
         if self.proposal_ext == '.csv':
             if self.file_client is not None:
+                import pdb
+                pdb.set_trace()
                 buf = self.file_client.get(proposal_path)
                 buf = io.StringIO(buf)
                 pgm_proposals = np.load(buf).astype(np.float32)
