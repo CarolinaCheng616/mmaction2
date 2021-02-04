@@ -280,7 +280,7 @@ class TruNetDetection:
             List: List containing the prediction instances (dictionaries).
         """
 
-        # threshold = 0.9
+        threshold = 0.5
 
         with open(prediction_filename, 'r') as f:
             data = json.load(f)
@@ -294,8 +294,8 @@ class TruNetDetection:
                 video_info, key=lambda x: x['score'], reverse=True)
             # for result in video_info[:self.proposal_num]:
             for result in video_info:
-                # if result['score'] < threshold:
-                #     break
+                if result['score'] < threshold:
+                    break
                 prediction_item = dict()
                 prediction_item['video-id'] = video_id
                 prediction_item['label'] = 0
