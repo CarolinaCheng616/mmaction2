@@ -1892,7 +1892,7 @@ class LoadTAGProposals:
                 to the next transform in pipeline.
         """
         if self.file_client is None:
-            self.file_client = FileClient(self.io_backend, **self.kwargs)
+            self.file_client = FileClient(self.io_backend, **self.mc_cfg)
         video_name = results['video_name']
         proposal_path = osp.join(self.pgm_proposals_dir,
                                  video_name + self.proposal_ext)
