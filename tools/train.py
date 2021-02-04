@@ -69,8 +69,11 @@ def parse_args():
 def main():
     args = parse_args()
 
-    import pdb
-    pdb.set_trace()
+    # import pdb
+    # pdb.set_trace()
+    with open(args.config, 'r') as f:
+        print(f.readlines())
+    exit(0)
     cfg = Config.fromfile(args.config)
 
     cfg.merge_from_dict(args.cfg_options)
