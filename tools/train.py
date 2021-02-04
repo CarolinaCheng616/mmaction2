@@ -72,7 +72,9 @@ def main():
     # import pdb
     # pdb.set_trace()
     with open(args.config, 'r') as f:
-        print(f.readlines())
+        # print(f.readlines())
+        for line in f:
+            print(line)
     exit(0)
     cfg = Config.fromfile(args.config)
 
