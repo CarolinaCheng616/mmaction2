@@ -69,6 +69,8 @@ def parse_args():
 def main():
     args = parse_args()
 
+    import pdb
+    pdb.set_trace()
     cfg = Config.fromfile(args.config)
 
     cfg.merge_from_dict(args.cfg_options)
