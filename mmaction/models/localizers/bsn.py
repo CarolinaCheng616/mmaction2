@@ -1398,8 +1398,6 @@ class ClassifyBNPEMReg(BaseLocalizer):
         # pem_output: torch.tensor, shape=[videos_per_gpu*feature_size, 1]
         # anchors_temporal_iou.shape=reference_temporal_iou.shape=
         # [videos_per_gpu*feature_size]
-        import pdb
-        pdb.set_trace()
         classify, regression = self._forward(bsp_feature)
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
         device = classify.device
@@ -1408,8 +1406,10 @@ class ClassifyBNPEMReg(BaseLocalizer):
         classify_loss = self.classify_loss_ratio * self.loss_cls(
             anchors_temporal_iou, reference_temporal_iou)
 
-        positive_idx = (reference_temporal_iou >=
-                        self.pem_high_temporal_iou_threshold).float()
+        import pdb
+        pdb.set_trace()
+        positive_idx = reference_temporal_iou >= \
+            self.pem_high_temporal_iou_threshold
         regression_pos = regression[positive_idx]
         offset_pos = offset[positive_idx]
         regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
