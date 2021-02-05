@@ -24,7 +24,7 @@ model = dict(
         low_threshold=0.3,
         high_threshold=0.7),
     classify_loss_ratio=1,
-    regression_loss_ratio=1)
+    regression_loss_ratio=100)
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -118,8 +118,8 @@ val_pipeline = [
     dict(type='ToTensor', keys=['bsp_feature'])
 ]
 data = dict(
-    videos_per_gpu=1,
-    workers_per_gpu=0,
+    videos_per_gpu=64,
+    workers_per_gpu=8,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
     test_dataloader=dict(videos_per_gpu=1),
@@ -142,7 +142,7 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
-gpu_per_node = 1
+gpu_per_node = 4
 machines = 1
 optimizer = dict(
     type='SGD',
