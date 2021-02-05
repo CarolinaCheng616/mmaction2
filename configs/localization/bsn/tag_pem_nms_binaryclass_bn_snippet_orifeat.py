@@ -34,6 +34,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 
 proposal_topk = 500
 lr = 0.1
+topk = 1000
 if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
     loss_cls = 'blr'
 elif model['loss_cls']['type'] == 'BinaryThresholdClassificationLoss':
@@ -59,7 +60,7 @@ pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_orifeat_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_1000/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_{topk}/'
 
 output_config = dict(out=f'{work_dir}/50_results.json', output_format='json')
 
@@ -70,7 +71,7 @@ output_config = dict(out=f'{work_dir}/50_results.json', output_format='json')
 test_pipeline = [
     dict(
         type='LoadTAGProposals',
-        top_k=10000,
+        top_k=topk,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(
@@ -100,7 +101,7 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='LoadTAGProposals',
-        top_k=10000,
+        top_k=topk,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(
