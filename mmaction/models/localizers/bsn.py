@@ -1400,8 +1400,10 @@ class ClassifyBNPEMReg(BaseLocalizer):
         # [videos_per_gpu*feature_size]
         classify, regression = self._forward(bsp_feature)
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
+        offset = torch.cat(list(offset))
         device = classify.device
         reference_temporal_iou = reference_temporal_iou.to(device)
+        offset = offset.to(device)
         anchors_temporal_iou = classify.view(-1)
         classify_loss = self.classify_loss_ratio * self.loss_cls(
             anchors_temporal_iou, reference_temporal_iou)
