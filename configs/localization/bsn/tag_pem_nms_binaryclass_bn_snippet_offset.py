@@ -19,7 +19,10 @@ model = dict(
     fc_ratio=1,
     classify_ratio=1,
     regression_ratio=1,
-    loss_cls=dict(type='BinaryThresholdClassificationLoss', low_threshold=0.3, high_threshold=0.7),
+    loss_cls=dict(
+        type='BinaryThresholdClassificationLoss',
+        low_threshold=0.3,
+        high_threshold=0.7),
     classify_loss_ratio=1,
     regression_loss_ratio=1)
 # model training and testing settings
@@ -49,7 +52,8 @@ else:
 nms_type = 'iou'
 
 # for train
-pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_{proposal_topk}_offset/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_' \
+               f'snippet_{proposal_topk}_offset/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_offset_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
@@ -89,13 +93,15 @@ train_pipeline = [
         type='Collect',
         keys=['bsp_feature', 'reference_temporal_iou', 'offset'],
         meta_name='video_meta',
-        meta_keys=[]),
-    dict(type='ToTensor', keys=['bsp_feature', 'reference_temporal_iou', 'offset']),
+        meta_keys=['video_name']),
+    dict(
+        type='ToTensor',
+        keys=['bsp_feature', 'reference_temporal_iou', 'offset']),
     dict(
         type='ToDataContainer',
         fields=(dict(key='bsp_feature', stack=False),
-                dict(key='reference_temporal_iou', stack=False),
-                dict(key='offset', stack=False)))
+                dict(key='reference_temporal_iou',
+                     stack=False), dict(key='offset', stack=False)))
 ]
 val_pipeline = [
     dict(

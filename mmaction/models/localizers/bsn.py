@@ -1296,6 +1296,7 @@ class ClassifyBNPEM(BaseLocalizer):
 class ClassifyBNPEMReg(BaseLocalizer):
     """Classify proposal into binary category: background or foreground two
     batch norm layers.
+
     loss includes classification loss and regression loss
     Args:
         pem_feat_dim (int): Feature dimension.
@@ -1313,7 +1314,7 @@ class ClassifyBNPEMReg(BaseLocalizer):
             Interval used in feature extraction. Default: 16.
         fc_ratio (float): Ratio for fc layer output. Default: 1.
         classify_ratio (float): Ratio for classify layer output. Default: 1.
-        regression_ratio (float): Ratio for regression layer output. Default: 1.
+        regression_ratio (float): Ratio for regression layer output. Default: 1.  # noqa
         output_dim (int): Output dimension. Default: 1.
         loss_cls (dict): loss class
         classify_loss_ratio (float): Ratio for classify loss. Default: 1.
@@ -1368,13 +1369,9 @@ class ClassifyBNPEMReg(BaseLocalizer):
         self.classify = nn.Linear(
             in_features=self.hidden_dim,
             out_features=self.output_dim,
-            bias=True
-        )
+            bias=True)
         self.regression = nn.Linear(
-            in_features=self.hidden_dim,
-            out_features=2,
-            bias=True
-        )
+            in_features=self.hidden_dim, out_features=2, bias=True)
 
     def _forward(self, x):
         """Define the computation performed at every call.
@@ -1393,7 +1390,8 @@ class ClassifyBNPEMReg(BaseLocalizer):
         regression = self.regression_ratio * self.regression(x)
         return classify, regression
 
-    def forward_train(self, bsp_feature, reference_temporal_iou, offset):
+    def forward_train(self, bsp_feature, reference_temporal_iou, offset,
+                      video_meta):
         """Define the computation performed at every call when training."""
         # bsp_feature: list of features, size: videos_per_gpu, feature size
         # reference_temporal_iou: list of ious(num:feature num of a video)
@@ -1407,12 +1405,15 @@ class ClassifyBNPEMReg(BaseLocalizer):
         device = classify.device
         reference_temporal_iou = reference_temporal_iou.to(device)
         anchors_temporal_iou = classify.view(-1)
-        classify_loss = self.classify_loss_ratio * self.loss_cls(anchors_temporal_iou, reference_temporal_iou)
+        classify_loss = self.classify_loss_ratio * self.loss_cls(
+            anchors_temporal_iou, reference_temporal_iou)
 
-        positive_idx = (reference_temporal_iou >= self.pem_high_temporal_iou_threshold).float()
+        positive_idx = (reference_temporal_iou >=
+                        self.pem_high_temporal_iou_threshold).float()
         regression_pos = regression[positive_idx]
         offset_pos = offset[positive_idx]
-        regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(regression_pos, offset_pos)
+        regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
+            regression_pos, offset_pos)
         loss_dict = dict(temporal_iou_loss=classify_loss + regression_loss)
 
         return loss_dict
@@ -1424,8 +1425,14 @@ class ClassifyBNPEMReg(BaseLocalizer):
         """
         classify, regression = self._forward(bsp_feature)
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
-        tmin = np.minimum(np.maximum(tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0], 0), 1)
-        tmax = np.minimum(np.maximum(tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1], 0), 1)
+        tmin = np.minimum(
+            np.maximum(
+                tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0],
+                0), 1)
+        tmax = np.minimum(
+            np.maximum(
+                tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1],
+                0), 1)
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
@@ -1452,7 +1459,8 @@ class ClassifyBNPEMReg(BaseLocalizer):
                 return_loss=True):
         """Define the computation performed at every call."""
         if return_loss:
-            return self.forward_train(bsp_feature, reference_temporal_iou, offset)
+            return self.forward_train(bsp_feature, reference_temporal_iou,
+                                      offset, video_meta)
         return self.forward_test(bsp_feature, tmin, tmax, video_meta)
 
 
@@ -1678,11 +1686,11 @@ class OriFeatPEMReg(BaseLocalizer):
             Interval used in feature extraction. Default: 16.
         fc_ratio (float): Ratio for fc layer output. Default: 1.
         classify_ratio (float): Ratio for classify layer output. Default: 1.
-        regression_ratio (float): Ratio for regression layer output. Default: 1.
+        regression_ratio (float): Ratio for regression layer output. Default: 1.  # noqa
         output_dim (int): Output dimension. Default: 1.
         loss_cls (dict): loss class
-        classify_loss_ratio (float): Ratio for classify layer output. Default: 1.
-        regression_loss_ratio (float): Ratio for regression layer output. Default: 1.
+        classify_loss_ratio (float): Ratio for classify layer output. Default: 1.  # noqa
+        regression_loss_ratio (float): Ratio for regression layer output. Default: 1.  # noqa
     """
 
     def __init__(self,
@@ -1751,13 +1759,9 @@ class OriFeatPEMReg(BaseLocalizer):
         self.classify = nn.Linear(
             in_features=self.hidden_dim2,
             out_features=self.output_dim,
-            bias=True
-        )
+            bias=True)
         self.regression = nn.Linear(
-            in_features=self.hidden_dim2,
-            out_features=2,
-            bias=True
-        )
+            in_features=self.hidden_dim2, out_features=2, bias=True)
 
     def _forward(self, x):
         """Define the computation performed at every call.
@@ -1798,11 +1802,13 @@ class OriFeatPEMReg(BaseLocalizer):
         reference_temporal_iou = reference_temporal_iou.to(device)
         anchors_temporal_iou = classify.view(-1)
         classify_loss = self.classify_loss_ratio * \
-                        self.loss_cls(anchors_temporal_iou, reference_temporal_iou)
-        positive_idx = (reference_temporal_iou >= self.pem_high_temporal_iou_threshold).float()
+                        self.loss_cls(anchors_temporal_iou, reference_temporal_iou)  # noqa
+        positive_idx = (reference_temporal_iou >=
+                        self.pem_high_temporal_iou_threshold).float()
         regression_pos = regression[positive_idx]
         offset_pos = offset[positive_idx]
-        regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(regression_pos, offset_pos)
+        regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
+            regression_pos, offset_pos)
 
         loss_dict = dict(temporal_iou_loss=classify_loss + regression_loss)
 
@@ -1850,8 +1856,14 @@ class OriFeatPEMReg(BaseLocalizer):
         import pdb
         pdb.set_trace()
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
-        tmin = np.minimum(np.maximum(tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0], 0), 1)
-        tmax = np.minimum(np.maximum(tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1], 0), 1)
+        tmin = np.minimum(
+            np.maximum(
+                tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0],
+                0), 1)
+        tmax = np.minimum(
+            np.maximum(
+                tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1],
+                0), 1)
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
@@ -1878,5 +1890,6 @@ class OriFeatPEMReg(BaseLocalizer):
                 return_loss=True):
         """Define the computation performed at every call."""
         if return_loss:
-            return self.forward_train(bsp_feature, reference_temporal_iou, offset)
+            return self.forward_train(bsp_feature, reference_temporal_iou,
+                                      offset)
         return self.forward_test(bsp_feature, tmin, tmax, video_meta)
