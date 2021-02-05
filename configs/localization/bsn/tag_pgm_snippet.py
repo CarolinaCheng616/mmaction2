@@ -7,7 +7,7 @@ ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
 tem_work_dir = 'work_dirs/tem_snippet'
-pgm_work_dir = 'work_dirs/tag_pgm_snippet'
+pgm_work_dir = 'work_dirs/tag_pgm_snippet_offset'
 tem_results_dir = f'{tem_work_dir}/tem_results/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
