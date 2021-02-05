@@ -17,7 +17,13 @@ def parse_args():
         help='train or test')
     parser.add_argument(
         '--nms', choices=['iou', 'score'], help='iou nms or score nms')
+    parser.add_argument(
+        '--proposal',
+        choices=['no_offset', 'offset'],
+        help='generate proposals with of without offset')
     args = parser.parse_args()
+    if args.mode == 'test' and args.proposal == 'offset':
+        raise ValueError('cannot generate test proposals with offset')
     return args
 
 
@@ -31,6 +37,9 @@ def main():
     features_dir = cfg.features_dir
     origin = cfg.origin
     nms = args.nms
+    header = 'tmin,tmax,action_score,match_iou,match_ioa'
+    if args.proposal == 'offset':
+        header += ',tmin_offset,tmax_offset'
     if nms == 'iou':
         nms_proposals_dir = cfg.tag_iou_nms_config.pop('proposals_dir')
         nms_features_dir = cfg.tag_iou_nms_config.pop('features_dir')
@@ -51,7 +60,7 @@ def main():
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
     nms_and_dump_results(pgm_proposals_dir, features_dir, nms_proposals_dir,
                          nms_features_dir, ann_file, out, nms, proposal_kwargs,
-                         feature_kwargs, origin)
+                         feature_kwargs, header, origin)
     print('Finish generate post process proposals.')
 
 

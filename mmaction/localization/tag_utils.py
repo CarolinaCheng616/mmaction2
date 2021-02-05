@@ -259,8 +259,6 @@ def generate_tag_proposals_offset(
         tmin_off_list = []
         tmax_off_list = []
         for new_prop in new_props:
-            # new_iou = max(
-            #     temporal_iou(new_prop[0], new_prop[1], gt_tmins, gt_tmaxs))
             ious = temporal_iou(new_prop[0], new_prop[1], gt_tmins, gt_tmaxs)
             new_iou = max(ious)
             idx = np.argmax(ious)
@@ -447,26 +445,33 @@ def _proposals_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k,
     Returns:
         np.ndarray: The updated proposals.
     """
-    # tmin, tmax, action_score, match_iou, match_iop
+    # tmin, tmax, action_score, match_iou, match_iop(, tmin_offset, tmax_offset)  # noqa
     proposals = proposals[proposals[:, score_idx].argsort()[::-1]]
     tscores = copy.copy(list(proposals[:, score_idx]))
-    tstart = list(proposals[:, 0])
-    tend = list(proposals[:, 1])
-    tscore = list(proposals[:, 2])
-    tiou = list(proposals[:, 3])
-    tiop = list(proposals[:, 4])
     rscores = []
-    rstart = []
-    rend = []
-    rscore = []
-    riou = []
-    riop = []
+    # tstart = list(proposals[:, 0])
+    # tend = list(proposals[:, 1])
+    # tscore = list(proposals[:, 2])
+    # tiou = list(proposals[:, 3])
+    # tiop = list(proposals[:, 4])
+    cols = len(proposals[0])
+    tcols = []
+    rcols = []
+    for i in range(cols):
+        tcols.append(list(proposals[:, i]))
+        rcols.append([])
+
+    # rstart = []
+    # rend = []
+    # rscore = []
+    # riou = []
+    # riop = []
 
     while len(tscores) > 0 and len(rscores) <= top_k:
         max_index = np.argmax(tscores)
-        max_width = tend[max_index] - tstart[max_index]
-        iou_list = temporal_iou(tstart[max_index], tend[max_index],
-                                np.array(tstart), np.array(tend))
+        max_width = tcols[1][max_index] - tcols[0][max_index]
+        iou_list = temporal_iou(tcols[0][max_index], tcols[1][max_index],
+                                np.array(tcols[0]), np.array(tcols[1]))
         iou_exp_list = np.exp(-np.square(iou_list) / alpha)
 
         for idx, _ in enumerate(tscores):
@@ -477,24 +482,29 @@ def _proposals_soft_nms(proposals, alpha, low_threshold, high_threshold, top_k,
                     tscores[idx] = tscores[idx] * iou_exp_list[idx]
 
         rscores.append(tscores[max_index])
-        rstart.append(tstart[max_index])
-        rend.append(tend[max_index])
-        rscore.append(tscore[max_index])
-        riou.append(tiou[max_index])
-        riop.append(tiop[max_index])
         tscores.pop(max_index)
-        tstart.pop(max_index)
-        tend.pop(max_index)
-        tscore.pop(max_index)
-        tiou.pop(max_index)
-        tiop.pop(max_index)
+        # rstart.append(tstart[max_index])
+        # rend.append(tend[max_index])
+        # rscore.append(tscore[max_index])
+        # riou.append(tiou[max_index])
+        # riop.append(tiop[max_index])
+        for i in range(cols):
+            rcols[i].append(tcols[i][max_index])
+            tcols[i].pop(max_index)
+        # tstart.pop(max_index)
+        # tend.pop(max_index)
+        # tscore.pop(max_index)
+        # tiou.pop(max_index)
+        # tiop.pop(max_index)
 
-    rstart = np.array(rstart).reshape(-1, 1)
-    rend = np.array(rend).reshape(-1, 1)
-    rscore = np.array(rscore).reshape(-1, 1)
-    riou = np.array(riou).reshape(-1, 1)
-    riop = np.array(riop).reshape(-1, 1)
-    new_proposals = np.concatenate((rstart, rend, rscore, riou, riop), axis=1)
+    # rstart = np.array(rstart).reshape(-1, 1)
+    # rend = np.array(rend).reshape(-1, 1)
+    # rscore = np.array(rscore).reshape(-1, 1)
+    # riou = np.array(riou).reshape(-1, 1)
+    # riop = np.array(riop).reshape(-1, 1)
+    for i in range(cols):
+        rcols[i] = np.array(rcols[i]).reshape(-1, 1)
+    new_proposals = np.concatenate(rcols, axis=1)
     return new_proposals
 
 
@@ -524,7 +534,7 @@ def _proposals_post_processing(result, video_info, score_idx, soft_nms_alpha,
                                      soft_nms_low_threshold,
                                      soft_nms_high_threshold, top_k, score_idx)
     result = result[result[:, score_idx].argsort()[::-1]][:top_k]
-    # tmin, tmax, score, iou, iop
+    # tmin, tmax, score, iou, iop(, tmin_offset, tmax_offset)
     video_duration = float(video_info['duration_second'])
     proposal_list = []
 
@@ -541,7 +551,7 @@ def _proposals_post_processing(result, video_info, score_idx, soft_nms_alpha,
 
 def _multithread_nms_and_dump_results(video_infos, pgm_proposals_dir,
                                       tag_pgm_result_dir, result_dict,
-                                      score_idx, kwargs):
+                                      score_idx, header, kwargs):
     prog_bar = mmcv.ProgressBar(len(video_infos))
     prog_bar.start()
     for vinfo in video_infos:
@@ -552,7 +562,7 @@ def _multithread_nms_and_dump_results(video_infos, pgm_proposals_dir,
         proposal_list, post_proposal = _proposals_post_processing(
             proposal, vinfo, score_idx, **kwargs)
         tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
-        header = 'tmin,tmax,action_score,match_iou,match_ioa'
+        # header = 'tmin,tmax,action_score,match_iou,match_ioa'
         np.savetxt(
             tag_pgm_file,
             post_proposal,
@@ -825,6 +835,7 @@ def nms_and_dump_results(pgm_proposals_dir,
                          iou_nms,
                          proposal_kwargs,
                          feature_kwargs,
+                         header,
                          origin=False):
     print('Begin Proposal Generation.')
     os.makedirs(nms_proposals_dir, exist_ok=True)
@@ -839,7 +850,8 @@ def nms_and_dump_results(pgm_proposals_dir,
             target=_multithread_nms_and_dump_results,
             args=(video_infos[i * videos_per_thread:(i + 1) *
                               videos_per_thread], pgm_proposals_dir,
-                  nms_proposals_dir, result_dict, score_idx, proposal_kwargs))
+                  nms_proposals_dir, result_dict, score_idx, header,
+                  proposal_kwargs))
         proc.start()
         jobs.append(proc)
     for job in jobs:
@@ -847,17 +859,17 @@ def nms_and_dump_results(pgm_proposals_dir,
     mmcv.dump(result_dict.copy(), out)
     print('End Proposal Generation.')
 
-    if origin:
-        print('Begin Original Features Generation.')
-        generate_nms_original_features(video_infos, features_dir,
-                                       nms_proposals_dir, nms_features_dir,
-                                       thread_num, feature_kwargs)
-        print('End Original Features Generation.')
-    else:
-        print('Begin action score Features Generation.')
-        generate_nms_features(video_infos, features_dir, nms_proposals_dir,
-                              nms_features_dir, thread_num, feature_kwargs)
-        print('End action score Features Generation.')
+    # if origin:
+    #     print('Begin Original Features Generation.')
+    #     generate_nms_original_features(video_infos, features_dir,
+    #                                    nms_proposals_dir, nms_features_dir,
+    #                                    thread_num, feature_kwargs)
+    #     print('End Original Features Generation.')
+    # else:
+    #     print('Begin action score Features Generation.')
+    #     generate_nms_features(video_infos, features_dir, nms_proposals_dir,
+    #                           nms_features_dir, thread_num, feature_kwargs)
+    #     print('End action score Features Generation.')
 
 
 if __name__ == '__main__':

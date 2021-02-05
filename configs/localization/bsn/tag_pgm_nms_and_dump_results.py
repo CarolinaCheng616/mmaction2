@@ -1,3 +1,8 @@
+topk = 500
+threads = 16
+origin = False
+offset = True
+
 # dataset settings
 dataset_type = 'SnippetDataset'
 data_root = 'data/TruNet/train_feature/'
@@ -6,13 +11,12 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-topk = 500
-threads = 16
-
 pgm_work_dir = 'work_dirs/tag_pgm_snippet'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 
-origin = False
+if offset:
+    pgm_work_dir += '_offset'
+
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 
 if origin:
     features_dir = 'data/TruNet/train_feature/'
@@ -23,6 +27,10 @@ else:
     features_dir = 'work_dirs/tem_snippet/tem_results/'
     tag_pgm_score_nms_dir = f'work_dirs/tag_pgm_score_nms_snippet_{topk}'
     tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_{topk}'
+
+if offset:
+    tag_pgm_iou_nms_dir += '_offset'
+    tag_pgm_score_nms_dir += '_offset'
 
 tag_score_nms_config = dict(
     thread_num=threads,
