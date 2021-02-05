@@ -269,6 +269,8 @@ def generate_tag_proposals_offset(
             tmax_off_list.append(gt_max - new_prop[1])
             print(new_prop[0])
             print(new_prop[1])
+            print(gt_tmins)
+            print(gt_tmaxs)
             print(ious)
             print(idx)
             print(new_iou)

@@ -13,7 +13,7 @@ pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 # temporal_scale = 2000
-pgm_proposals_cfg = dict(pgm_proposals_thread=8, )
+pgm_proposals_cfg = dict(pgm_proposals_thread=1, )
 pgm_features_test_cfg = dict(
     pgm_features_thread=4,
     top_k=1000000,
