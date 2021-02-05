@@ -1423,6 +1423,8 @@ class ClassifyBNPEMReg(BaseLocalizer):
 
         proposal score is computed by pem_output entirely.
         """
+        import pdb
+        pdb.set_trace()
         classify, regression = self._forward(bsp_feature)
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
         tmin = np.minimum(
@@ -1798,19 +1800,20 @@ class OriFeatPEMReg(BaseLocalizer):
         # [videos_per_gpu*feature_size]
         classify, regression = self._forward(bsp_feature)
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
+        offset = torch.cat(list(offset))
         device = classify.device
         reference_temporal_iou = reference_temporal_iou.to(device)
+        offset = offset.to(device)
         anchors_temporal_iou = classify.view(-1)
         classify_loss = self.classify_loss_ratio * \
                         self.loss_cls(anchors_temporal_iou, reference_temporal_iou)  # noqa
-        positive_idx = (reference_temporal_iou >=
-                        self.pem_high_temporal_iou_threshold).float()
+        positive_idx = reference_temporal_iou >= self.pem_high_temporal_iou_threshold  # noqa
         regression_pos = regression[positive_idx]
         offset_pos = offset[positive_idx]
         regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
             regression_pos, offset_pos)
-
-        loss_dict = dict(temporal_iou_loss=classify_loss + regression_loss)
+        loss_dict = dict(
+            classify_loss=classify_loss, regression_loss=regression_loss)
 
         # u_hmask = (reference_temporal_iou >
         #            self.pem_high_temporal_iou_threshold).float()
