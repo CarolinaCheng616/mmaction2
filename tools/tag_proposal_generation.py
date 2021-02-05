@@ -6,7 +6,9 @@ import mmcv
 import numpy as np
 import torch.multiprocessing as mp
 
-from mmaction.localization import generate_tag_feature, generate_tag_proposals, generate_tag_proposals_offset
+from mmaction.localization import (generate_tag_feature,
+                                   generate_tag_proposals,
+                                   generate_tag_proposals_offset)
 
 
 def load_video_infos(ann_file):
@@ -145,8 +147,9 @@ def generate_proposals_offset(ann_file, tem_results_dir, pgm_proposals_dir,
     # save results
     os.makedirs(pgm_proposals_dir, exist_ok=True)
     prog_bar = mmcv.ProgressBar(num_videos)
-    # tmin, tmax, action_score, match_iou, match_ioa, offset_tmin, offset_tmax
-    header = 'tmin,tmax,action_score,match_iou,match_ioa,offset_tmin,offset_tmax'
+    # tmin, tmax, action_score, match_iou, match_ioa, tmin_offset, tmax_offset
+    header = 'tmin,tmax,action_score,match_iou,' \
+             'match_ioa,tmin_offset,tmax_offset'
     for video_name in result_dict:
         proposals = result_dict[video_name]
         proposal_path = osp.join(pgm_proposals_dir, video_name + '.csv')
@@ -225,19 +228,15 @@ def parse_args():
     parser = argparse.ArgumentParser(description='Proposal generation module')
     parser.add_argument('config', help='test config file path')
     parser.add_argument(
-        '--mode',
-        choices=['train', 'test'],
-        help='train or test')
+        '--mode', choices=['train', 'test'], help='train or test')
     parser.add_argument(
         '--proposal',
         choices=['no_offset', 'offset'],
-        help='whether to generate ground truth offset'
-    )
+        help='whether to generate ground truth offset')
     args = parser.parse_args()
     if args.mode == 'test' and args.proposal == 'offset':
         raise ValueError(
-            '--mode and --proposal cannot be test and offset at the same.'
-        )
+            '--mode and --proposal cannot be test and offset at the same.')
     return args
 
 
@@ -246,21 +245,23 @@ def main():
     cfg = mmcv.Config.fromfile(args.config)
     tem_results_dir = cfg.tem_results_dir
     pgm_proposals_dir = cfg.pgm_proposals_dir
-    pgm_features_dir = cfg.pgm_features_dir
+    pgm_features_dir = cfg.pgm_features_dir  # noqa
     if args.mode == 'test':
         ann_file = cfg.ann_file_val
-        pgm_features_config = cfg.pgm_features_test_cfg
+        pgm_features_config = cfg.pgm_features_test_cfg  # noqa
     else:
         ann_file = cfg.ann_file_train
-        pgm_features_config = cfg.pgm_features_train_cfg
+        pgm_features_config = cfg.pgm_features_train_cfg  # noqa
     print('\nBegin Proposal Generation')
     if args.proposal == 'offset':
-        generate_proposals_offset(ann_file, tem_results_dir, pgm_proposals_dir, **cfg.pgm_proposals_cfg)
+        generate_proposals_offset(ann_file, tem_results_dir, pgm_proposals_dir,
+                                  **cfg.pgm_proposals_cfg)
     else:
-        generate_proposals(ann_file, tem_results_dir, pgm_proposals_dir, **cfg.pgm_proposals_cfg)
+        generate_proposals(ann_file, tem_results_dir, pgm_proposals_dir,
+                           **cfg.pgm_proposals_cfg)
     print('\nFinish Proposal Generation')
     print('\nBegin Feature Generation')
-    generate_features(ann_file, tem_results_dir, pgm_proposals_dir, pgm_features_dir, **pgm_features_config)
+    # generate_features(ann_file, tem_results_dir, pgm_proposals_dir, pgm_features_dir, **pgm_features_config)  # noqa
     print('\nFinish Feature Generation')
 
 

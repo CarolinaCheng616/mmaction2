@@ -152,13 +152,14 @@ def generate_tag_proposals(video_list,
     return proposal_dict
 
 
-def generate_tag_proposals_offset(video_list,
-                                  video_infos,
-                                  tem_results_dir,
-                                  alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
-                                  beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
-                                  tem_results_ext='.csv',
-                                  result_dict=None):
+def generate_tag_proposals_offset(
+        video_list,
+        video_infos,
+        tem_results_dir,
+        alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
+        beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+        tem_results_ext='.csv',
+        result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results
     Each proposal file will contain:
     'tmin,tmax,action_score,match_iou,match_ioa,tmin_offset,tmax_offset'.
@@ -266,6 +267,14 @@ def generate_tag_proposals_offset(video_list,
             gt_min, gt_max = gt_tmins[idx], gt_tmaxs[idx]
             tmin_off_list.append(gt_min - new_prop[0])
             tmax_off_list.append(gt_max - new_prop[1])
+            print(new_prop[0])
+            print(new_prop[1])
+            print(ious)
+            print(idx)
+            print(new_iou)
+            print(gt_min - new_prop[0])
+            print(gt_max - new_prop[1])
+            exit(0)
             new_ioa = max(
                 temporal_iop(new_prop[0], new_prop[1], gt_tmins, gt_tmaxs))
             new_iou_list.append(new_iou)
@@ -838,8 +847,7 @@ def nms_and_dump_results(pgm_proposals_dir,
             target=_multithread_nms_and_dump_results,
             args=(video_infos[i * videos_per_thread:(i + 1) *
                               videos_per_thread], pgm_proposals_dir,
-                  nms_proposals_dir, result_dict,
-                  score_idx, proposal_kwargs))
+                  nms_proposals_dir, result_dict, score_idx, proposal_kwargs))
         proc.start()
         jobs.append(proc)
     for job in jobs:
