@@ -1428,18 +1428,15 @@ class ClassifyBNPEMReg(BaseLocalizer):
         classify, regression = self._forward(bsp_feature)
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
         regression = regression.view(-1).cpu().numpy().reshape(-1, 2)
-        tmin = np.minimum(
-            np.maximum(
-                tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0],
-                0), 1)
-        tmax = np.minimum(
-            np.maximum(
-                tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1],
-                0), 1)
-        tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
-        tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
+        tmp_tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
+        tmp_tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
 
-        # keep_origin = tmin >= tmax
+        tmin = np.minimum(np.maximum(tmp_tmin + regression[:, 0], 0), 1)
+        tmax = np.minimum(np.maximum(tmp_tmax + regression[:, 1], 0), 1)
+
+        keep_origin = tmin >= tmax
+        tmin[keep_origin] = tmp_tmin[keep_origin]
+        tmax[keep_origin] = tmp_tmax[keep_origin]
 
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
@@ -1641,8 +1638,6 @@ class OriFeatPEM(BaseLocalizer):
 
         proposal score is computed by pem_output entirely.
         """
-        import pdb
-        pdb.set_trace()
         score = self._forward(bsp_feature)
         score = score.view(-1).cpu().numpy().reshape(-1, 1)
         tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)

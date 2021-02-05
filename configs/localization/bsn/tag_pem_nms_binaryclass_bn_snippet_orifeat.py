@@ -59,7 +59,7 @@ pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_orifeat_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_10000/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_1000/'
 
 output_config = dict(out=f'{work_dir}/50_results.json', output_format='json')
 

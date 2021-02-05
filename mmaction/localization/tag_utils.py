@@ -562,7 +562,6 @@ def _multithread_nms_and_dump_results(video_infos, pgm_proposals_dir,
         proposal_list, post_proposal = _proposals_post_processing(
             proposal, vinfo, score_idx, **kwargs)
         tag_pgm_file = osp.join(tag_pgm_result_dir, video_name + '.csv')
-        # header = 'tmin,tmax,action_score,match_iou,match_ioa'
         np.savetxt(
             tag_pgm_file,
             post_proposal,
