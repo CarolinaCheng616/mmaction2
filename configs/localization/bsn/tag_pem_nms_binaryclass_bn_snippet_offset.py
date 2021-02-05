@@ -93,7 +93,7 @@ train_pipeline = [
         type='Collect',
         keys=['bsp_feature', 'reference_temporal_iou', 'offset'],
         meta_name='video_meta',
-        meta_keys=['video_name']),
+        meta_keys=[]),
     dict(
         type='ToTensor',
         keys=['bsp_feature', 'reference_temporal_iou', 'offset']),

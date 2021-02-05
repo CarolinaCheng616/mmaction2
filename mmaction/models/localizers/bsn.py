@@ -1390,8 +1390,7 @@ class ClassifyBNPEMReg(BaseLocalizer):
         regression = self.regression_ratio * self.regression(x)
         return classify, regression
 
-    def forward_train(self, bsp_feature, reference_temporal_iou, offset,
-                      video_meta):
+    def forward_train(self, bsp_feature, reference_temporal_iou, offset):
         """Define the computation performed at every call when training."""
         # bsp_feature: list of features, size: videos_per_gpu, feature size
         # reference_temporal_iou: list of ious(num:feature num of a video)
@@ -1461,7 +1460,7 @@ class ClassifyBNPEMReg(BaseLocalizer):
         """Define the computation performed at every call."""
         if return_loss:
             return self.forward_train(bsp_feature, reference_temporal_iou,
-                                      offset, video_meta)
+                                      offset)
         return self.forward_test(bsp_feature, tmin, tmax, video_meta)
 
 

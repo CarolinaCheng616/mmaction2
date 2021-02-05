@@ -1877,10 +1877,11 @@ class LoadTAGProposals:
         if feature_ext not in valid_feature_ext:
             raise NotImplementedError
         self.feature_ext = feature_ext
-        self.mc_cfg = dict(
-            server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
-            client_cfg='/mnt/lustre/share/memcached_client/client.conf',
-            sys_path='/mnt/lustre/share/pymc/py3')
+        self.mc_cfg = \
+            dict(
+                server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',  # noqa
+                client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+                sys_path='/mnt/lustre/share/pymc/py3')
         self.io_backend = 'memcached'
         self.file_client = None
 
@@ -1901,14 +1902,14 @@ class LoadTAGProposals:
                 buf = self.file_client.get(proposal_path)
                 data = io.BytesIO(buf)
                 pgm_proposals = np.loadtxt(
-                    data, dtype=np.float32, delimiter=',', skiprows=1
-                )
+                    data, dtype=np.float32, delimiter=',', skiprows=1)
             else:
                 pgm_proposals = np.loadtxt(
                     proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
 
         # tmin, tmax, action_score, match_iou, match_ioa
-        pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        if self.top_k != -1:
+            pgm_proposals = np.array(pgm_proposals[:self.top_k])
         # pgm_proposals = np.array(pgm_proposals)
         tmin = pgm_proposals[:, 0]
         tmax = pgm_proposals[:, 1]
@@ -1921,7 +1922,8 @@ class LoadTAGProposals:
             if self.file_client is not None:
                 buf = self.file_client.get(feature_path)
                 buf = io.BytesIO(buf)
-                bsp_feature = np.load(buf, allow_pickle=True).astype(np.float32)
+                bsp_feature = np.load(
+                    buf, allow_pickle=True).astype(np.float32)
             else:
                 bsp_feature = np.load(feature_path).astype(np.float32)
 
@@ -1937,10 +1939,9 @@ class LoadTAGProposals:
 
 @PIPELINES.register_module()
 class LoadTAGProposalsOffset:
-    """Loading proposals with given proposal results.
-    return tmins, tmaxs, reference_temporal_iou, offset
-    Required keys are "video_name", added or modified keys are 'bsp_feature',
-    'score' and 'reference_temporal_iou'.
+    """Loading proposals with given proposal results. return tmins, tmaxs,
+    reference_temporal_iou, offset Required keys are "video_name", added or
+    modified keys are 'bsp_feature', 'score' and 'reference_temporal_iou'.
 
     Args:
         top_k (int): The top k proposals to be loaded.
@@ -1968,10 +1969,11 @@ class LoadTAGProposalsOffset:
         if feature_ext not in valid_feature_ext:
             raise NotImplementedError
         self.feature_ext = feature_ext
-        self.mc_cfg = dict(
-            server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
-            client_cfg='/mnt/lustre/share/memcached_client/client.conf',
-            sys_path='/mnt/lustre/share/pymc/py3')
+        self.mc_cfg = \
+            dict(
+                server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',  # noqa
+                client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+                sys_path='/mnt/lustre/share/pymc/py3')
         self.io_backend = 'memcached'
         self.file_client = None
         self.use_mc = use_mc
@@ -1993,13 +1995,12 @@ class LoadTAGProposalsOffset:
                 buf = self.file_client.get(proposal_path)
                 data = io.BytesIO(buf)
                 pgm_proposals = np.loadtxt(
-                    data, dtype=np.float32, delimiter=',', skiprows=1
-                )
+                    data, dtype=np.float32, delimiter=',', skiprows=1)
             else:
                 pgm_proposals = np.loadtxt(
                     proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
 
-        # tmin, tmax, action_score, match_iou, match_ioa, tmin_offset, tmax_offset
+        # tmin, tmax, action_score, match_iou, match_ioa, tmin_offset, tmax_offset  # noqa
         if self.top_k != -1:
             pgm_proposals = np.array(pgm_proposals[:self.top_k])
         tmin = pgm_proposals[:, 0]
@@ -2014,7 +2015,8 @@ class LoadTAGProposalsOffset:
             if self.file_client is not None:
                 buf = self.file_client.get(feature_path)
                 buf = io.BytesIO(buf)
-                bsp_feature = np.load(buf, allow_pickle=True).astype(np.float32)
+                bsp_feature = np.load(
+                    buf, allow_pickle=True).astype(np.float32)
             else:
                 bsp_feature = np.load(feature_path).astype(np.float32)
 
