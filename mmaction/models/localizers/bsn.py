@@ -1408,15 +1408,14 @@ class ClassifyBNPEMReg(BaseLocalizer):
         classify_loss = self.classify_loss_ratio * self.loss_cls(
             anchors_temporal_iou, reference_temporal_iou)
 
-        import pdb
-        pdb.set_trace()
         positive_idx = reference_temporal_iou >= \
             self.pem_high_temporal_iou_threshold
         regression_pos = regression[positive_idx]
         offset_pos = offset[positive_idx]
         regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
             regression_pos, offset_pos)
-        loss_dict = dict(temporal_iou_loss=classify_loss + regression_loss)
+        loss_dict = dict(
+            classify_loss=classify_loss, regression_loss=regression_loss)
 
         return loss_dict
 
