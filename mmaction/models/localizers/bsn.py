@@ -1423,8 +1423,8 @@ class ClassifyBNPEMReg(BaseLocalizer):
 
         proposal score is computed by pem_output entirely.
         """
-        import pdb
-        pdb.set_trace()
+        # import pdb
+        # pdb.set_trace()
         classify, regression = self._forward(bsp_feature)
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
         tmin = np.minimum(
