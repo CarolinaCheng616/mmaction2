@@ -1293,6 +1293,170 @@ class ClassifyBNPEM(BaseLocalizer):
 
 
 @LOCALIZERS.register_module()
+class ClassifyBNPEMReg(BaseLocalizer):
+    """Classify proposal into binary category: background or foreground two
+    batch norm layers.
+    loss includes classification loss and regression loss
+    Args:
+        pem_feat_dim (int): Feature dimension.
+        pem_hidden_dim (int): Hidden layer dimension.
+        pem_u_ratio_m (float): Ratio for medium score proposals to balance
+            data.
+        pem_u_ratio_l (float): Ratio for low score proposals to balance data.
+        pem_high_temporal_iou_threshold (float): High IoU threshold.
+        pem_low_temporal_iou_threshold (float): Low IoU threshold.
+        soft_nms_alpha (float): Soft NMS alpha.
+        soft_nms_low_threshold (float): Soft NMS low threshold.
+        soft_nms_high_threshold (float): Soft NMS high threshold.
+        post_process_top_k (int): Top k proposals in post process.
+        feature_extraction_interval (int):
+            Interval used in feature extraction. Default: 16.
+        fc_ratio (float): Ratio for fc layer output. Default: 1.
+        classify_ratio (float): Ratio for classify layer output. Default: 1.
+        regression_ratio (float): Ratio for regression layer output. Default: 1.
+        output_dim (int): Output dimension. Default: 1.
+        loss_cls (dict): loss class
+        classify_loss_ratio (float): Ratio for classify loss. Default: 1.
+        regression_loss_ratio (float): Ratio for regression loss. Default: 1.
+    """
+
+    def __init__(self,
+                 pem_feat_dim,
+                 pem_hidden_dim,
+                 pem_u_ratio_m,
+                 pem_u_ratio_l,
+                 pem_high_temporal_iou_threshold,
+                 pem_low_temporal_iou_threshold,
+                 soft_nms_alpha,
+                 soft_nms_low_threshold,
+                 soft_nms_high_threshold,
+                 post_process_top_k,
+                 feature_extraction_interval=16,
+                 fc_ratio=1,
+                 classify_ratio=1,
+                 regression_ratio=1,
+                 output_dim=1,
+                 loss_cls=dict(type='BinaryThresholdClassificationLoss'),
+                 classify_loss_ratio=1,
+                 regression_loss_ratio=1):
+        super(BaseLocalizer, self).__init__()
+
+        self.feat_dim = pem_feat_dim
+        self.hidden_dim = pem_hidden_dim
+        self.u_ratio_m = pem_u_ratio_m
+        self.u_ratio_l = pem_u_ratio_l
+        self.pem_high_temporal_iou_threshold = pem_high_temporal_iou_threshold
+        self.pem_low_temporal_iou_threshold = pem_low_temporal_iou_threshold
+        self.soft_nms_alpha = soft_nms_alpha
+        self.soft_nms_low_threshold = soft_nms_low_threshold
+        self.soft_nms_high_threshold = soft_nms_high_threshold
+        self.post_process_top_k = post_process_top_k
+        self.feature_extraction_interval = feature_extraction_interval
+        self.fc_ratio = fc_ratio
+        self.classify_ratio = classify_ratio
+        self.regression_ratio = regression_ratio
+        self.output_dim = output_dim
+        self.loss_type = loss_cls['type']
+        self.loss_cls = build_loss(loss_cls)
+        self.classify_loss_ratio = classify_loss_ratio
+        self.regression_loss_ratio = regression_loss_ratio
+
+        self.bn1 = nn.BatchNorm1d(self.feat_dim)
+        self.fc = nn.Linear(
+            in_features=self.feat_dim, out_features=self.hidden_dim, bias=True)
+        self.bn2 = nn.BatchNorm1d(self.hidden_dim)
+        self.classify = nn.Linear(
+            in_features=self.hidden_dim,
+            out_features=self.output_dim,
+            bias=True
+        )
+        self.regression = nn.Linear(
+            in_features=self.hidden_dim,
+            out_features=2,
+            bias=True
+        )
+
+    def _forward(self, x):
+        """Define the computation performed at every call.
+
+        Args:
+            x (torch.Tensor): The input data.
+
+        Returns:
+            torch.Tensor: The output of the module.
+        """
+        x = torch.cat(list(x))
+        x = self.bn1(x)
+        x = F.relu(self.fc_ratio * self.fc(x))
+        x = self.bn2(x)
+        classify = torch.sigmoid(self.classify_ratio * self.classify(x))
+        regression = self.regression_ratio * self.regression(x)
+        return classify, regression
+
+    def forward_train(self, bsp_feature, reference_temporal_iou, offset):
+        """Define the computation performed at every call when training."""
+        # bsp_feature: list of features, size: videos_per_gpu, feature size
+        # reference_temporal_iou: list of ious(num:feature num of a video)
+        # pem_output: torch.tensor, shape=[videos_per_gpu*feature_size, 1]
+        # anchors_temporal_iou.shape=reference_temporal_iou.shape=
+        # [videos_per_gpu*feature_size]
+        import pdb
+        pdb.set_trace()
+        classify, regression = self._forward(bsp_feature)
+        reference_temporal_iou = torch.cat(list(reference_temporal_iou))
+        device = classify.device
+        reference_temporal_iou = reference_temporal_iou.to(device)
+        anchors_temporal_iou = classify.view(-1)
+        classify_loss = self.classify_loss_ratio * self.loss_cls(anchors_temporal_iou, reference_temporal_iou)
+
+        positive_idx = (reference_temporal_iou >= self.pem_high_temporal_iou_threshold).float()
+        regression_pos = regression[positive_idx]
+        offset_pos = offset[positive_idx]
+        regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(regression_pos, offset_pos)
+        loss_dict = dict(temporal_iou_loss=classify_loss + regression_loss)
+
+        return loss_dict
+
+    def forward_test(self, bsp_feature, tmin, tmax, video_meta):
+        """Define the computation performed at every call when testing.
+
+        proposal score is computed by pem_output entirely.
+        """
+        classify, regression = self._forward(bsp_feature)
+        score = classify.view(-1).cpu().numpy().reshape(-1, 1)
+        tmin = np.minimum(np.maximum(tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0], 0), 1)
+        tmax = np.minimum(np.maximum(tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1], 0), 1)
+        result = np.concatenate((tmin, tmax, score), axis=1)
+        result = result.reshape(-1, 3)
+        video_info = dict(video_meta[0])
+        proposal_list = post_processing(result, video_info,
+                                        self.soft_nms_alpha,
+                                        self.soft_nms_low_threshold,
+                                        self.soft_nms_high_threshold,
+                                        self.post_process_top_k,
+                                        self.feature_extraction_interval)
+        output = [
+            dict(
+                video_name=video_info['video_name'],
+                proposal_list=proposal_list)
+        ]
+        return output
+
+    def forward(self,
+                bsp_feature,
+                reference_temporal_iou=None,
+                tmin=None,
+                tmax=None,
+                offset=None,
+                video_meta=None,
+                return_loss=True):
+        """Define the computation performed at every call."""
+        if return_loss:
+            return self.forward_train(bsp_feature, reference_temporal_iou, offset)
+        return self.forward_test(bsp_feature, tmin, tmax, video_meta)
+
+
+@LOCALIZERS.register_module()
 class OriFeatPEM(BaseLocalizer):
     """Classify proposal into binary category: background or foreground using
     original features.
@@ -1512,10 +1676,13 @@ class OriFeatPEMReg(BaseLocalizer):
         post_process_top_k (int): Top k proposals in post process.
         feature_extraction_interval (int):
             Interval used in feature extraction. Default: 16.
-        fc1_ratio (float): Ratio for fc1 layer output. Default: 0.1.
-        fc2_ratio (float): Ratio for fc2 layer output. Default: 0.1.
+        fc_ratio (float): Ratio for fc layer output. Default: 1.
+        classify_ratio (float): Ratio for classify layer output. Default: 1.
+        regression_ratio (float): Ratio for regression layer output. Default: 1.
         output_dim (int): Output dimension. Default: 1.
         loss_cls (dict): loss class
+        classify_loss_ratio (float): Ratio for classify layer output. Default: 1.
+        regression_loss_ratio (float): Ratio for regression layer output. Default: 1.
     """
 
     def __init__(self,
@@ -1536,8 +1703,8 @@ class OriFeatPEMReg(BaseLocalizer):
                  regression_ratio=1,
                  output_dim=1,
                  loss_cls=dict(type='BinaryThresholdClassificationLoss'),
-                 regression_loss_ratio=1,
-                 classify_loss_ratio=1):
+                 classify_loss_ratio=1,
+                 regression_loss_ratio=1):
         super(BaseLocalizer, self).__init__()
 
         self.feat_dim = pem_feat_dim
@@ -1632,9 +1799,6 @@ class OriFeatPEMReg(BaseLocalizer):
         anchors_temporal_iou = classify.view(-1)
         classify_loss = self.classify_loss_ratio * \
                         self.loss_cls(anchors_temporal_iou, reference_temporal_iou)
-
-        import pdb
-        pdb.set_trace()
         positive_idx = (reference_temporal_iou >= self.pem_high_temporal_iou_threshold).float()
         regression_pos = regression[positive_idx]
         offset_pos = offset[positive_idx]
@@ -1686,8 +1850,8 @@ class OriFeatPEMReg(BaseLocalizer):
         import pdb
         pdb.set_trace()
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
-        tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0]
-        tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1]
+        tmin = np.minimum(np.maximum(tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0], 0), 1)
+        tmax = np.minimum(np.maximum(tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1], 0), 1)
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])

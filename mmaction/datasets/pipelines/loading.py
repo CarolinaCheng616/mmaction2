@@ -1955,7 +1955,8 @@ class LoadTAGProposalsOffset:
                  pgm_proposals_dir,
                  pgm_features_dir,
                  proposal_ext='.csv',
-                 feature_ext='.npy'):
+                 feature_ext='.npy',
+                 use_mc=False):
         self.top_k = top_k
         self.pgm_proposals_dir = pgm_proposals_dir
         self.pgm_features_dir = pgm_features_dir
@@ -1973,6 +1974,7 @@ class LoadTAGProposalsOffset:
             sys_path='/mnt/lustre/share/pymc/py3')
         self.io_backend = 'memcached'
         self.file_client = None
+        self.use_mc = use_mc
 
     def __call__(self, results):
         """Perform the LoadTAGProposals loading.
@@ -1981,7 +1983,7 @@ class LoadTAGProposalsOffset:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        if self.file_client is None:
+        if self.use_mc and self.file_client is None:
             self.file_client = FileClient(self.io_backend, **self.mc_cfg)
         video_name = results['video_name']
         proposal_path = osp.join(self.pgm_proposals_dir,
@@ -1998,14 +2000,13 @@ class LoadTAGProposalsOffset:
                     proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
 
         # tmin, tmax, action_score, match_iou, match_ioa, tmin_offset, tmax_offset
-        pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        if self.top_k != -1:
+            pgm_proposals = np.array(pgm_proposals[:self.top_k])
         tmin = pgm_proposals[:, 0]
         tmax = pgm_proposals[:, 1]
         # action_score = pgm_proposals[:, 2]
         reference_temporal_iou = pgm_proposals[:, 3]
-        tmin_offset = pgm_proposals[:, 4]
-        tmax_offset = pgm_proposals[:, 5]
-        offset = np.concatenate((tmin_offset, tmax_offset), axis=1)
+        offset = pgm_proposals[:, 5:]
 
         feature_path = osp.join(self.pgm_features_dir,
                                 video_name + self.feature_ext)
