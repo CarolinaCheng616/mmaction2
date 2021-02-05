@@ -267,16 +267,6 @@ def generate_tag_proposals_offset(
             gt_min, gt_max = gt_tmins[idx], gt_tmaxs[idx]
             tmin_off_list.append(gt_min - new_prop[0])
             tmax_off_list.append(gt_max - new_prop[1])
-            print(new_prop[0])
-            print(new_prop[1])
-            print(gt_tmins)
-            print(gt_tmaxs)
-            print(ious)
-            print(idx)
-            print(new_iou)
-            print(gt_min - new_prop[0])
-            print(gt_max - new_prop[1])
-            exit(0)
             new_ioa = max(
                 temporal_iop(new_prop[0], new_prop[1], gt_tmins, gt_tmaxs))
             new_iou_list.append(new_iou)
