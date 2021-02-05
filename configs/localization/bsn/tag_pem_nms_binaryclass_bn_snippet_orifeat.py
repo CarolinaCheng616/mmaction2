@@ -61,7 +61,7 @@ work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_10000/'
 
-output_config = dict(out=f'{work_dir}/20_results.json', output_format='json')
+output_config = dict(out=f'{work_dir}/30_results.json', output_format='json')
 
 # mc_cfg = dict(
 #     server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
