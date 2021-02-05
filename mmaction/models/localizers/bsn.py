@@ -1436,6 +1436,11 @@ class ClassifyBNPEMReg(BaseLocalizer):
             np.maximum(
                 tmax.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 1],
                 0), 1)
+        tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
+        tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
+
+        # keep_origin = tmin >= tmax
+
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
@@ -1474,7 +1479,8 @@ class OriFeatPEM(BaseLocalizer):
 
     Args:
         pem_feat_dim (int): Feature dimension.
-        pem_hidden_dim (int): Hidden layer dimension.
+        pem_hidden_dim1 (int): Hidden layer1 dimension.
+        pem_hidden_dim2 (int): Hidden layer2 dimension.
         pem_u_ratio_m (float): Ratio for medium score proposals to balance
             data.
         pem_u_ratio_l (float): Ratio for low score proposals to balance data.
@@ -1635,6 +1641,8 @@ class OriFeatPEM(BaseLocalizer):
 
         proposal score is computed by pem_output entirely.
         """
+        import pdb
+        pdb.set_trace()
         score = self._forward(bsp_feature)
         score = score.view(-1).cpu().numpy().reshape(-1, 1)
         tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
