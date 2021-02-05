@@ -1933,3 +1933,96 @@ class LoadTAGProposals:
         results['reference_temporal_iou'] = reference_temporal_iou
 
         return results
+
+
+@PIPELINES.register_module()
+class LoadTAGProposalsOffset:
+    """Loading proposals with given proposal results.
+    return tmins, tmaxs, reference_temporal_iou, offset
+    Required keys are "video_name", added or modified keys are 'bsp_feature',
+    'score' and 'reference_temporal_iou'.
+
+    Args:
+        top_k (int): The top k proposals to be loaded.
+        pgm_proposals_dir (str): Directory to load proposals.
+        pgm_features_dir (str): Directory to load proposal features.
+        proposal_ext (str): Proposal file extension. Default: '.csv'.
+        feature_ext (str): Feature file extension. Default: '.npy'.
+    """
+
+    def __init__(self,
+                 top_k,
+                 pgm_proposals_dir,
+                 pgm_features_dir,
+                 proposal_ext='.csv',
+                 feature_ext='.npy'):
+        self.top_k = top_k
+        self.pgm_proposals_dir = pgm_proposals_dir
+        self.pgm_features_dir = pgm_features_dir
+        valid_proposal_ext = ('.csv', )
+        if proposal_ext not in valid_proposal_ext:
+            raise NotImplementedError
+        self.proposal_ext = proposal_ext
+        valid_feature_ext = ('.npy', )
+        if feature_ext not in valid_feature_ext:
+            raise NotImplementedError
+        self.feature_ext = feature_ext
+        self.mc_cfg = dict(
+            server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
+            client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+            sys_path='/mnt/lustre/share/pymc/py3')
+        self.io_backend = 'memcached'
+        self.file_client = None
+
+    def __call__(self, results):
+        """Perform the LoadTAGProposals loading.
+
+        Args:
+            results (dict): The resulting dict to be modified and passed
+                to the next transform in pipeline.
+        """
+        if self.file_client is None:
+            self.file_client = FileClient(self.io_backend, **self.mc_cfg)
+        video_name = results['video_name']
+        proposal_path = osp.join(self.pgm_proposals_dir,
+                                 video_name + self.proposal_ext)
+        if self.proposal_ext == '.csv':
+            if self.file_client is not None:
+                buf = self.file_client.get(proposal_path)
+                data = io.BytesIO(buf)
+                pgm_proposals = np.loadtxt(
+                    data, dtype=np.float32, delimiter=',', skiprows=1
+                )
+            else:
+                pgm_proposals = np.loadtxt(
+                    proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
+
+        # tmin, tmax, action_score, match_iou, match_ioa, tmin_offset, tmax_offset
+        pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        tmin = pgm_proposals[:, 0]
+        tmax = pgm_proposals[:, 1]
+        # action_score = pgm_proposals[:, 2]
+        reference_temporal_iou = pgm_proposals[:, 3]
+        tmin_offset = pgm_proposals[:, 4]
+        tmax_offset = pgm_proposals[:, 5]
+        offset = np.concatenate((tmin_offset, tmax_offset), axis=1)
+
+        feature_path = osp.join(self.pgm_features_dir,
+                                video_name + self.feature_ext)
+        if self.feature_ext == '.npy':
+            if self.file_client is not None:
+                buf = self.file_client.get(feature_path)
+                buf = io.BytesIO(buf)
+                bsp_feature = np.load(buf, allow_pickle=True).astype(np.float32)
+            else:
+                bsp_feature = np.load(feature_path).astype(np.float32)
+
+        bsp_feature = bsp_feature[:self.top_k]
+
+        results['bsp_feature'] = bsp_feature
+        results['tmin'] = tmin
+        results['tmax'] = tmax
+        results['reference_temporal_iou'] = reference_temporal_iou
+        results['offset'] = offset
+
+        return results

@@ -6,7 +6,7 @@ import mmcv
 import numpy as np
 import torch.multiprocessing as mp
 
-from mmaction.localization import generate_tag_feature, generate_tag_proposals
+from mmaction.localization import generate_tag_feature, generate_tag_proposals, generate_tag_proposals_offset
 
 
 def load_video_infos(ann_file):
@@ -93,6 +93,72 @@ def generate_proposals(ann_file, tem_results_dir, pgm_proposals_dir,
         prog_bar.update()
 
 
+def generate_proposals_offset(ann_file, tem_results_dir, pgm_proposals_dir,
+                              pgm_proposals_thread, **kwargs):
+    """Generate proposals using multi-process.
+
+    Args:
+        ann_file (str): A json file path of the annotation file for
+            all videos to be processed.
+        tem_results_dir (str): Directory to read tem results
+        pgm_proposals_dir (str): Directory to save generated proposals.
+        pgm_proposals_thread (int): Total number of threads.
+        kwargs (dict): Keyword arguments for "generate_candidate_proposals".
+    """
+    video_infos = load_video_infos(ann_file)
+    num_videos = len(video_infos)
+    num_videos_per_thread = num_videos // pgm_proposals_thread
+    processes = []
+    manager = mp.Manager()
+    result_dict = manager.dict()
+    kwargs['result_dict'] = result_dict
+    for tid in range(pgm_proposals_thread - 1):
+        tmp_video_list = range(tid * num_videos_per_thread,
+                               (tid + 1) * num_videos_per_thread)
+        p = mp.Process(
+            target=generate_tag_proposals_offset,
+            args=(
+                tmp_video_list,
+                video_infos,
+                tem_results_dir,
+            ),
+            kwargs=kwargs)
+        p.start()
+        processes.append(p)
+
+    tmp_video_list = range((pgm_proposals_thread - 1) * num_videos_per_thread,
+                           num_videos)
+    p = mp.Process(
+        target=generate_tag_proposals_offset,
+        args=(
+            tmp_video_list,
+            video_infos,
+            tem_results_dir,
+        ),
+        kwargs=kwargs)
+    p.start()
+    processes.append(p)
+
+    for p in processes:
+        p.join()
+
+    # save results
+    os.makedirs(pgm_proposals_dir, exist_ok=True)
+    prog_bar = mmcv.ProgressBar(num_videos)
+    # tmin, tmax, action_score, match_iou, match_ioa, offset_tmin, offset_tmax
+    header = 'tmin,tmax,action_score,match_iou,match_ioa,offset_tmin,offset_tmax'
+    for video_name in result_dict:
+        proposals = result_dict[video_name]
+        proposal_path = osp.join(pgm_proposals_dir, video_name + '.csv')
+        np.savetxt(
+            proposal_path,
+            proposals,
+            header=header,
+            delimiter=',',
+            comments='')
+        prog_bar.update()
+
+
 def generate_features(ann_file, tem_results_dir, pgm_proposals_dir,
                       pgm_features_dir, pgm_features_thread, **kwargs):
     """Generate proposals features using multi-process.
@@ -161,37 +227,41 @@ def parse_args():
     parser.add_argument(
         '--mode',
         choices=['train', 'test'],
-        default='test',
         help='train or test')
+    parser.add_argument(
+        '--proposal',
+        choices=['no_offset', 'offset'],
+        help='whether to generate ground truth offset'
+    )
     args = parser.parse_args()
+    if args.mode == 'test' and args.proposal == 'offset':
+        raise ValueError(
+            '--mode and --proposal cannot be test and offset at the same.'
+        )
     return args
 
 
 def main():
-    print('Begin Proposal Generation Module')
     args = parse_args()
     cfg = mmcv.Config.fromfile(args.config)
     tem_results_dir = cfg.tem_results_dir
     pgm_proposals_dir = cfg.pgm_proposals_dir
     pgm_features_dir = cfg.pgm_features_dir
     if args.mode == 'test':
-        generate_proposals(cfg.ann_file_val, tem_results_dir,
-                           pgm_proposals_dir, **cfg.pgm_proposals_cfg)
-        print('\nFinish proposal generation')
-        generate_features(cfg.ann_file_val, tem_results_dir, pgm_proposals_dir,
-                          pgm_features_dir, **cfg.pgm_features_test_cfg)
-        print('\nFinish feature generation')
-
-    elif args.mode == 'train':
-        generate_proposals(cfg.ann_file_train, tem_results_dir,
-                           pgm_proposals_dir, **cfg.pgm_proposals_cfg)
-        print('\nFinish proposal generation')
-        generate_features(cfg.ann_file_train, tem_results_dir,
-                          pgm_proposals_dir, pgm_features_dir,
-                          **cfg.pgm_features_train_cfg)
-        print('\nFinish feature generation')
-
-    print('Finish Proposal Generation Module')
+        ann_file = cfg.ann_file_val
+        pgm_features_config = cfg.pgm_features_test_cfg
+    else:
+        ann_file = cfg.ann_file_train
+        pgm_features_config = cfg.pgm_features_train_cfg
+    print('\nBegin Proposal Generation')
+    if args.proposal == 'offset':
+        generate_proposals_offset(ann_file, tem_results_dir, pgm_proposals_dir, **cfg.pgm_proposals_cfg)
+    else:
+        generate_proposals(ann_file, tem_results_dir, pgm_proposals_dir, **cfg.pgm_proposals_cfg)
+    print('\nFinish Proposal Generation')
+    print('\nBegin Feature Generation')
+    generate_features(ann_file, tem_results_dir, pgm_proposals_dir, pgm_features_dir, **pgm_features_config)
+    print('\nFinish Feature Generation')
 
 
 if __name__ == '__main__':
