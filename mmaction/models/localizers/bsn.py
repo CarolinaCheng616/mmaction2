@@ -1427,6 +1427,7 @@ class ClassifyBNPEMReg(BaseLocalizer):
         # pdb.set_trace()
         classify, regression = self._forward(bsp_feature)
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
+        regression = regression.view(-1).cpu().numpy().reshape(-1, 2)
         tmin = np.minimum(
             np.maximum(
                 tmin.view(-1).cpu().numpy().reshape(-1, 1) + regression[:, 0],
