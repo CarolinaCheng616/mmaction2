@@ -47,7 +47,7 @@ else:
 # for iou nms
 nms_type = 'iou'
 
-for train
+# for train
 # pgm_work_dir = f'work_dirs/' \
 #                f'tag_pgm_{nms_type}_nms_snippet_orifeat_{proposal_topk}/'
 # work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
