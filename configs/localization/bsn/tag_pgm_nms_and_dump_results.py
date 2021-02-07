@@ -1,6 +1,6 @@
 topk = 1000
 threads = 16
-origin = True
+origin = False
 offset = False
 
 # dataset settings
