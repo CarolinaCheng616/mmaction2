@@ -1,7 +1,7 @@
-topk = 1000
+topk = 500
 threads = 16
-origin = True
-offset = False
+origin = False
+offset = True
 
 # dataset settings
 dataset_type = 'SnippetDataset'
