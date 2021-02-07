@@ -142,7 +142,7 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
-gpu_per_node = 4
+gpu_per_node = 2
 machines = 1
 optimizer = dict(
     type='SGD',
@@ -164,7 +164,7 @@ lr_config = dict(
 total_epochs = 200
 checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
 
-# evaluation = dict(interval=1, metrics=['AR@AN'])
+evaluation = dict(interval=10, metrics=['AR@AN', 'mAP'])
 
 log_config = dict(
     interval=2,
