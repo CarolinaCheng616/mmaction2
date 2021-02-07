@@ -56,13 +56,13 @@ nms_type = 'iou'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 # for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_snippet_orifeat_1000/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_orifeat_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_origin_features_1000/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
-output_config = dict(out=f'{work_dir}/non_nms_120_results.json', output_format='json')
+output_config = dict(out=f'{work_dir}/once_nms_120_results.json', output_format='json')
 
 # mc_cfg = dict(
 #     server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
