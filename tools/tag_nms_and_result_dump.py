@@ -38,12 +38,14 @@ def main():
     pgm_proposals_dir = cfg.pgm_proposals_dir
     origin = cfg.origin
     nms = args.nms
+    iou_nms = False
     header = 'tmin,tmax,action_score,match_iou,match_ioa'
     if args.proposal == 'offset' and cfg.offset is False or args.proposal == 'no_offset' and cfg.offset is True:
         raise ValueError('non matching config.offset and args proposal')
     if args.proposal == 'offset':
         header += ',tmin_offset,tmax_offset'
     if nms == 'iou':
+        iou_nms = True
         nms_proposals_dir = cfg.tag_iou_nms_config.pop('proposals_dir')
         nms_features_dir = cfg.tag_iou_nms_config.pop('features_dir')
         out = cfg.tag_iou_nms_config.pop('output_config')['out']
@@ -63,7 +65,7 @@ def main():
     ann_file = cfg.ann_file_train if mode == 'train' else cfg.ann_file_val
     features_dir = cfg.train_features_dir if mode == 'train' else cfg.test_features_dir
     nms_and_dump_results(pgm_proposals_dir, features_dir, nms_proposals_dir,
-                         nms_features_dir, ann_file, out, nms, proposal_kwargs,
+                         nms_features_dir, ann_file, out, iou_nms, proposal_kwargs,
                          feature_kwargs, header, origin)
     print('Finish generate post process proposals.')
 
