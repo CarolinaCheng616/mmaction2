@@ -296,8 +296,8 @@ class TruNetDetection:
                 video_info, key=lambda x: x['score'], reverse=True)
             # for result in video_info[:self.proposal_num]:
             for result in video_info:
-                if result['score'] < self.threshold:
-                    break
+                # if result['score'] < self.threshold:
+                #     break
                 prediction_item = dict()
                 prediction_item['video-id'] = video_id
                 prediction_item['label'] = 0
@@ -372,8 +372,8 @@ class TruNetDetection:
                 video_info, key=lambda x: x['score'], reverse=True)
             vinfo = []
             for anno in video_info:
-                if anno['score'] < self.threshold:
-                    break
+                # if anno['score'] < self.threshold:
+                #     break
                 total_num_proposals += 1
                 vinfo.append(
                     [anno['segment'][0], anno['segment'][1], anno['score']])
