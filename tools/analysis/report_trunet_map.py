@@ -51,18 +51,6 @@ def parse_args():
         default='data/TruNet/'
         'val_meta.json',
         help='groundtruth file')
-    # parser.add_argument(
-    #     '--cls',
-    #     type=str,
-    #     default='cuhk17_top1',
-    #     choices=['cuhk17_top1'],
-    #     help='the way to assign label for each '
-    #     'proposal')
-    # parser.add_argument(
-    #     '--det-output',
-    #     type=str,
-    #     default='det_result.json',
-    #     help='the path to store detection results')
     parser.add_argument('--proposal-num', type=int, default=13)
     parser.add_argument('--threshold', type=float, default=0.5)
     args = parser.parse_args()
