@@ -38,6 +38,8 @@ def main():
     origin = cfg.origin
     nms = args.nms
     header = 'tmin,tmax,action_score,match_iou,match_ioa'
+    if args.proposal == 'offset' and cfg.offset is False or args.proposal == 'no_offset' and cfg.offset is True:
+        raise ValueError('non matching config.offset and args proposal')
     if args.proposal == 'offset':
         header += ',tmin_offset,tmax_offset'
     if nms == 'iou':
