@@ -27,7 +27,6 @@ else:
     features_dir = 'work_dirs/tem_snippet/tem_results/'
     tag_pgm_score_nms_dir = f'work_dirs/tag_pgm_score_nms_snippet_{topk}'
     tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_{topk}'
-
 if offset:
     tag_pgm_iou_nms_dir += '_offset'
     tag_pgm_score_nms_dir += '_offset'
