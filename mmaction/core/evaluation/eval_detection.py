@@ -296,8 +296,8 @@ class TruNetDetection:
                 video_info, key=lambda x: x['score'], reverse=True)
             # for result in video_info[:self.proposal_num]:
             for result in video_info:
-                # if result['score'] < self.threshold:
-                #     break
+                if result['score'] < self.threshold:
+                    break
                 prediction_item = dict()
                 prediction_item['video-id'] = video_id
                 prediction_item['label'] = 0
@@ -325,8 +325,6 @@ class TruNetDetection:
             prediction_by_label[pred['label']].append(pred)
 
         for i in range(len(self.activity_index)):
-            # import pdb
-            # pdb.set_trace()
             ap_result = compute_average_precision_detection(
                 ground_truth_by_label[i],
                 prediction_by_label[i],
