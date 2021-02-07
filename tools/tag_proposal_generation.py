@@ -246,6 +246,10 @@ def main():
     tem_results_dir = cfg.tem_results_dir
     pgm_proposals_dir = cfg.pgm_proposals_dir
     pgm_features_dir = cfg.pgm_features_dir  # noqa
+    if args.proposal == 'offset' and cfg.offset is False or args.proposal == 'no_offset' and cfg.offset:
+        raise ValueError(
+            'non matching config offset and args proposal.'
+        )
     if args.mode == 'test':
         ann_file = cfg.ann_file_val
         pgm_features_config = cfg.pgm_features_test_cfg  # noqa
