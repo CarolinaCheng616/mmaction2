@@ -1,7 +1,7 @@
 topk = 500
 threads = 16
-origin = False
-offset = True
+origin = True
+offset = False
 
 # dataset settings
 dataset_type = 'SnippetDataset'
@@ -19,12 +19,14 @@ if offset:
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 
 if origin:
-    features_dir = 'data/TruNet/train_feature/'
+    train_features_dir = 'data/TruNet/train_feature/'
+    test_features_dir = 'data/TruNet/val_feature/'
     tag_pgm_score_nms_dir = f'work_dirs/' \
                             f'tag_pgm_score_nms_snippet_orifeat_{topk}'
     tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_orifeat_{topk}'
 else:
-    features_dir = 'work_dirs/tem_snippet/tem_results/'
+    train_features_dir = 'work_dirs/tem_snippet/tem_results/'
+    test_features_dir = train_features_dir
     tag_pgm_score_nms_dir = f'work_dirs/tag_pgm_score_nms_snippet_{topk}'
     tag_pgm_iou_nms_dir = f'work_dirs/tag_pgm_iou_nms_snippet_{topk}'
 if offset:
