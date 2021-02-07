@@ -1865,7 +1865,8 @@ class LoadTAGProposals:
                  pgm_proposals_dir,
                  pgm_features_dir,
                  proposal_ext='.csv',
-                 feature_ext='.npy'):
+                 feature_ext='.npy',
+                 use_mc=False):
         self.top_k = top_k
         self.pgm_proposals_dir = pgm_proposals_dir
         self.pgm_features_dir = pgm_features_dir
@@ -1884,6 +1885,7 @@ class LoadTAGProposals:
                 sys_path='/mnt/lustre/share/pymc/py3')
         self.io_backend = 'memcached'
         self.file_client = None
+        self.use_mc = use_mc
 
     def __call__(self, results):
         """Perform the LoadTAGProposals loading.
@@ -1892,7 +1894,7 @@ class LoadTAGProposals:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        if self.file_client is None:
+        if self.use_mc and self.file_client is None:
             self.file_client = FileClient(self.io_backend, **self.mc_cfg)
         video_name = results['video_name']
         proposal_path = osp.join(self.pgm_proposals_dir,
