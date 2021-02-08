@@ -24,7 +24,7 @@ model = dict(
         low_threshold=0.3,
         high_threshold=0.7),
     classify_loss_ratio=1,
-    regression_loss_ratio=0.5,
+    regression_loss_ratio=0.1,
     offset_scale=1000)
 # model training and testing settings
 train_cfg = None
@@ -53,19 +53,19 @@ else:
 nms_type = 'iou'
 
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_' \
-#                f'snippet_{proposal_topk}_offset/'
-# work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
-#            f'{proposal_topk}_{loss_cls}_snippet_offset_lr{lr}/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+pgm_work_dir = f'work_dirs/tag_pgm_{nms_type}_nms_' \
+               f'snippet_{proposal_topk}_offset/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_offset_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
+#            f'{proposal_topk}_{loss_cls}_snippet_offset_lr{lr}/'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/non_nms_100epoch_nms_top100_results.json', output_format='json')
 
@@ -163,7 +163,7 @@ lr_config = dict(
     warmup_by_epoch=True)
 
 total_epochs = 200
-checkpoint_config = dict(interval=5, filename_tmpl='pem_epoch_{}.pth')
+checkpoint_config = dict(interval=5, filename_tmpl='offscale0.1_pem_epoch_{}.pth')
 
 # evaluation = dict(interval=10, metrics=['AR@AN', 'mAP'])
 
