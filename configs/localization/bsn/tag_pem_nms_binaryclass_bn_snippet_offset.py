@@ -24,7 +24,7 @@ model = dict(
         low_threshold=0.3,
         high_threshold=0.7),
     classify_loss_ratio=1,
-    regression_loss_ratio=0.1,
+    regression_loss_ratio=0.5,
     offset_scale=1000)
 # model training and testing settings
 train_cfg = None
@@ -163,7 +163,7 @@ lr_config = dict(
     warmup_by_epoch=True)
 
 total_epochs = 200
-checkpoint_config = dict(interval=5, filename_tmpl='offscale0.1_pem_epoch_{}.pth')
+checkpoint_config = dict(interval=5, filename_tmpl='offscale0.5_high08_pem_epoch_{}.pth')
 
 # evaluation = dict(interval=10, metrics=['AR@AN', 'mAP'])
 
