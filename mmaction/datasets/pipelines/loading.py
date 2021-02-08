@@ -1929,7 +1929,8 @@ class LoadTAGProposals:
             else:
                 bsp_feature = np.load(feature_path).astype(np.float32)
 
-        bsp_feature = bsp_feature[:self.top_k]
+        if self.top_k != -1:
+            bsp_feature = bsp_feature[:self.top_k]
 
         results['bsp_feature'] = bsp_feature
         results['tmin'] = tmin
