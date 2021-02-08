@@ -53,7 +53,8 @@ nms_type = 'iou'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 # for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet/'
+pgm_work_dir = 'work_dirs/tag_pgm_score_nms_snippet_1000/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
