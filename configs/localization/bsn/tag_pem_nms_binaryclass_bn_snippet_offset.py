@@ -164,7 +164,7 @@ lr_config = dict(
 total_epochs = 200
 checkpoint_config = dict(interval=5, filename_tmpl='pem_epoch_{}.pth')
 
-evaluation = dict(interval=10, metrics=['AR@AN', 'mAP'])
+# evaluation = dict(interval=10, metrics=['AR@AN', 'mAP'])
 
 log_config = dict(
     interval=2,
