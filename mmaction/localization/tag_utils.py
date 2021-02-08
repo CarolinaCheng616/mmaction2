@@ -858,17 +858,17 @@ def nms_and_dump_results(pgm_proposals_dir,
     mmcv.dump(result_dict.copy(), out)
     print('End Proposal Generation.')
 
-    # if origin:
-    #     print('Begin Original Features Generation.')
-    #     generate_nms_original_features(video_infos, features_dir,
-    #                                    nms_proposals_dir, nms_features_dir,
-    #                                    thread_num, feature_kwargs)
-    #     print('End Original Features Generation.')
-    # else:
-    #     print('Begin action score Features Generation.')
-    #     generate_nms_features(video_infos, features_dir, nms_proposals_dir,
-    #                           nms_features_dir, thread_num, feature_kwargs)
-    #     print('End action score Features Generation.')
+    if origin:
+        print('Begin Original Features Generation.')
+        generate_nms_original_features(video_infos, features_dir,
+                                       nms_proposals_dir, nms_features_dir,
+                                       thread_num, feature_kwargs)
+        print('End Original Features Generation.')
+    else:
+        print('Begin action score Features Generation.')
+        generate_nms_features(video_infos, features_dir, nms_proposals_dir,
+                              nms_features_dir, thread_num, feature_kwargs)
+        print('End action score Features Generation.')
 
 
 if __name__ == '__main__':
