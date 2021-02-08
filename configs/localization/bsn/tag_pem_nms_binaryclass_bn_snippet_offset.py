@@ -24,7 +24,7 @@ model = dict(
         low_threshold=0.3,
         high_threshold=0.7),
     classify_loss_ratio=1,
-    regression_loss_ratio=1,
+    regression_loss_ratio=0.5,
     offset_scale=1000)
 # model training and testing settings
 train_cfg = None
@@ -119,7 +119,7 @@ val_pipeline = [
     dict(type='ToTensor', keys=['bsp_feature'])
 ]
 data = dict(
-    videos_per_gpu=64,
+    videos_per_gpu=128,
     workers_per_gpu=8,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
