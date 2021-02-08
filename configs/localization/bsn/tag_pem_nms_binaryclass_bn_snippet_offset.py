@@ -162,7 +162,7 @@ lr_config = dict(
     warmup_by_epoch=True)
 
 total_epochs = 200
-checkpoint_config = dict(interval=10, filename_tmpl='pem_epoch_{}.pth')
+checkpoint_config = dict(interval=5, filename_tmpl='pem_epoch_{}.pth')
 
 evaluation = dict(interval=10, metrics=['AR@AN', 'mAP'])
 
