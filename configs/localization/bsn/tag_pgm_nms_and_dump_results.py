@@ -1,4 +1,4 @@
-topk = 500
+topk = 100
 threads = 16
 origin = False
 offset = False

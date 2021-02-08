@@ -24,8 +24,8 @@ def parse_args():
     args = parser.parse_args()
     if args.mode == 'test' and args.proposal == 'offset':
         raise ValueError('cannot generate test proposals with offset')
-    if args.mode == 'test' and args.nms == 'iou':
-        raise ValueError('cannot use iou when testing')
+    # if args.mode == 'test' and args.nms == 'iou':
+    #     raise ValueError('cannot use iou when testing')
     return args
 
 
