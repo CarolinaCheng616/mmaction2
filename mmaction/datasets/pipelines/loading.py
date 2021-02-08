@@ -1812,7 +1812,8 @@ class LoadProposals:
             pgm_proposals = np.loadtxt(
                 proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
 
-        pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        if self.top_k != -1:
+            pgm_proposals = np.array(pgm_proposals[:self.top_k])
         tmin = pgm_proposals[:, 0]
         tmax = pgm_proposals[:, 1]
         tmin_score = pgm_proposals[:, 2]
@@ -1824,7 +1825,8 @@ class LoadProposals:
         if self.feature_ext == '.npy':
             bsp_feature = np.load(feature_path).astype(np.float32)
 
-        bsp_feature = bsp_feature[:self.top_k, :]
+        if self.top_k != -1:
+            bsp_feature = bsp_feature[:self.top_k, :]
 
         results['bsp_feature'] = bsp_feature
         results['tmin'] = tmin
