@@ -1860,12 +1860,16 @@ class OriFeatPEMReg(BaseLocalizer):
         proposal score is computed by pem_output entirely.
         """
         classify, regression = self._forward(bsp_feature)
+
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
+        regression = regression.view(-1).cpu().numpy().reshape(-1, 2)
 
         tmp_tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
         tmp_tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
-        tmin = np.minimum(np.maximum(tmp_tmin + regression[:, 0], 0), 1)
-        tmax = np.minimum(np.maximum(tmp_tmax + regression[:, 1], 0), 1)
+
+        tmin = np.minimum(np.maximum(tmp_tmin + regression[:, 0].reshape(-1, 1), 0), 1)
+        tmax = np.minimum(np.maximum(tmp_tmax + regression[:, 1].reshape(-1, 1), 0), 1)
+
         keep_origin = tmin >= tmax
         tmin[keep_origin] = tmp_tmin[keep_origin]
         tmax[keep_origin] = tmp_tmax[keep_origin]
