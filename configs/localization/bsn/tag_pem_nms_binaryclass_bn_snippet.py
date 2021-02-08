@@ -65,7 +65,7 @@ output_config = dict(out=f'{work_dir}/score_nms_top1000_epoch_non_nms_results.js
 test_pipeline = [
     dict(
         type='LoadTAGProposals',
-        # top_k=500,
+        top_k=-1,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(
@@ -78,7 +78,7 @@ test_pipeline = [
 train_pipeline = [
     dict(
         type='LoadTAGProposals',
-        # top_k=500,
+        top_k=500,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(
@@ -95,7 +95,7 @@ train_pipeline = [
 val_pipeline = [
     dict(
         type='LoadTAGProposals',
-        # top_k=500,
+        top_k=-1,
         pgm_proposals_dir=pgm_proposals_dir,
         pgm_features_dir=pgm_features_dir),
     dict(
