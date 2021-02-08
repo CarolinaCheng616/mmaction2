@@ -1432,8 +1432,8 @@ class ClassifyBNPEMReg(BaseLocalizer):
         tmp_tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
         tmp_tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
 
-        tmin = np.minimum(np.maximum(tmp_tmin + regression[:, 0], 0), 1)
-        tmax = np.minimum(np.maximum(tmp_tmax + regression[:, 1], 0), 1)
+        tmin = np.minimum(np.maximum(tmp_tmin + regression[:, 0].reshape(-1, 1), 0), 1)
+        tmax = np.minimum(np.maximum(tmp_tmax + regression[:, 1].reshape(-1, 1), 0), 1)
 
         keep_origin = tmin >= tmax
         tmin[keep_origin] = tmp_tmin[keep_origin]
