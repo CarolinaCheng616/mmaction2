@@ -1340,7 +1340,8 @@ class ClassifyBNPEMReg(BaseLocalizer):
                  output_dim=1,
                  loss_cls=dict(type='BinaryThresholdClassificationLoss'),
                  classify_loss_ratio=1,
-                 regression_loss_ratio=1):
+                 regression_loss_ratio=1,
+                 offset_scale=1000):
         super(BaseLocalizer, self).__init__()
 
         self.feat_dim = pem_feat_dim
@@ -1362,6 +1363,7 @@ class ClassifyBNPEMReg(BaseLocalizer):
         self.loss_cls = build_loss(loss_cls)
         self.classify_loss_ratio = classify_loss_ratio
         self.regression_loss_ratio = regression_loss_ratio
+        self.offset_scale = offset_scale
 
         self.bn1 = nn.BatchNorm1d(self.feat_dim)
         self.fc = nn.Linear(
@@ -1413,7 +1415,7 @@ class ClassifyBNPEMReg(BaseLocalizer):
         positive_idx = reference_temporal_iou >= \
             self.pem_high_temporal_iou_threshold
         regression_pos = regression[positive_idx]
-        offset_pos = offset[positive_idx]
+        offset_pos = self.offset_scale * offset[positive_idx]
         regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
             regression_pos, offset_pos)
         loss_dict = dict(
@@ -1429,6 +1431,7 @@ class ClassifyBNPEMReg(BaseLocalizer):
         classify, regression = self._forward(bsp_feature)
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
         regression = regression.view(-1).cpu().numpy().reshape(-1, 2)
+        regression = regression / self.offset_scale
         tmp_tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
         tmp_tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
 

@@ -24,7 +24,8 @@ model = dict(
         low_threshold=0.3,
         high_threshold=0.7),
     classify_loss_ratio=1,
-    regression_loss_ratio=1)
+    regression_loss_ratio=1,
+    offset_scale=1000)
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
