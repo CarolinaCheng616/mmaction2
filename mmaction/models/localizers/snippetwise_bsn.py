@@ -147,34 +147,9 @@ class SnippetTEMSR(TEM):
         pdb.set_trace()
         tem_output = self._forward(raw_feature)
         score = tem_output
-        # score = score.to(device=score.device, dtype=)
-
-        # label_action = torch.tensor(label_action)  # [tensor(), tensor(),]
-        # label_start = torch.tensor(label_start)
-        # label_end = torch.tensor(label_end)
-        # label_bg = torch.tensor(label_bg)
-        # label_action = label_action.reshape(label_action.shape[0], 1)
-        # label_start = label_start.reshape(label_start.shape[0], 1)
-        # label_end = label_end.reshape(label_end.shape[0], 1)
-        # label_bg = label_bg.reshape(label_bg.shape[0], 1)
-        # label = torch.cat((label_action, label_start, label_end, label_bg), dim=1)
         label = torch.tensor(cate)
-        # label = label.to(device=score.device, dtype=torch.long)
-
-        # loss_action = self.loss_cls(score_action, label_action,
-        #                             self.match_threshold)
-        # loss_start_small = self.loss_cls(score_start, label_start,
-        #                                  self.match_threshold)
-        # loss_end_small = self.loss_cls(score_end, label_end,
-        #                                self.match_threshold)
-
+        label = label.to(device=score.device, dtype=torch.long)
         loss = self.loss_cls(score, label)
-
-        # loss_dict = {
-        #     'loss_action': loss_action * self.loss_weight,
-        #     'loss_start': loss_start_small,
-        #     'loss_end': loss_end_small
-        # }
         loss_dict = {
             'loss': loss
         }
