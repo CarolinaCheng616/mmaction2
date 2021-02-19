@@ -1,4 +1,4 @@
-offset = True
+offset = False
 
 # dataset settings
 dataset_type = 'SnippetDataset'
