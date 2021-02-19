@@ -146,12 +146,13 @@ class SnippetTEMSR(TEM):
         import pdb
         pdb.set_trace()
         tem_output = self._forward(raw_feature)
-        batch = tem_output.shape[0]
+        # batch = tem_output.shape[0]
         # score_action = tem_output[:, 0].reshape(batch, 1)
         # score_start = tem_output[:, 1].reshape(batch, 1)
         # score_end = tem_output[:, 2].reshape(batch, 1)
         # score_bg = tem_output[:, 3].reshape(batch, 1)
-        score = tem_output.reshape(batch, 4)
+        # score = tem_output.reshape(batch, 4)
+        score = tem_output
 
         label_action = torch.tensor(label_action)  # [tensor(), tensor(),]
         label_start = torch.tensor(label_start)

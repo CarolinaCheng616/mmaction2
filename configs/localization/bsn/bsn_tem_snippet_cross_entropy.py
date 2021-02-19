@@ -4,7 +4,7 @@ use_mc = False
 array_length = 10
 machines = 1
 gpus_per_machine = 8
-batch_size = 256
+batch_size = 4096
 
 if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
     data_root = 'data/TruNet/sup_train_feature/'
