@@ -1,7 +1,7 @@
 dataset_type = 'SnippetSRDataset'
 load_type = 'LoadSnippetRectifiedFeature'
 use_mc = False
-array_length = 50
+array_length = 10
 
 if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
     data_root = 'data/TruNet/sup_train_feature/'
@@ -17,7 +17,7 @@ model = dict(
     tem_feat_dim=4096,
     tem_hidden_dim=512,
     tem_match_threshold=0.5,
-    loss_weight=2)
+    loss_weight=1)
 # model training and testing settings
 train_cfg = None
 test_cfg = dict(average_clips='score')
@@ -85,17 +85,17 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=4096,
-    workers_per_gpu=0,
+    videos_per_gpu=4096 * 8,
+    workers_per_gpu=8,
     train_dataloader=dict(drop_last=False, shuffle=False),
     val_dataloader=dict(
         videos_per_gpu=4096 * 8,
-        workers_per_gpu=0,
+        workers_per_gpu=8,
         drop_last=False,
         shuffle=False),
     test_dataloader=dict(
         videos_per_gpu=4096 * 8,
-        workers_per_gpu=0,
+        workers_per_gpu=8,
         drop_last=False,
         shuffle=False),
     test=dict(
@@ -125,10 +125,17 @@ optimizer = dict(
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(policy='step', step=6)
+# lr_config = dict(policy='step', step=6)
+lr_config = dict(
+    policy='CosineAnnealing',
+    warmup='linear',
+    warmup_iters=5,
+    warmup_ratio=1.0 / 10,
+    min_lr_ratio=1e-5,
+    warmup_by_epoch=True)
 
-total_epochs = 20
-checkpoint_config = dict(interval=1, filename_tmpl='tem_epoch_{}.pth')
+total_epochs = 70
+checkpoint_config = dict(interval=5, filename_tmpl='tem_epoch_{}.pth')
 
 log_config = dict(
     interval=2,
