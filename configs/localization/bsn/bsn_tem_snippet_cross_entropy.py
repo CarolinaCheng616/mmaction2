@@ -120,7 +120,7 @@ reload = True
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.02 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005)  # batch_size
+    type='SGD', lr=0.01 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005)  # batch_size
 
 optimizer_config = dict(grad_clip=None)
 # # learning policy
@@ -134,7 +134,7 @@ optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=80)
 
 total_epochs = 70
-checkpoint_config = dict(interval=5, filename_tmpl='tem_epoch_{}_lr0.02.pth')
+checkpoint_config = dict(interval=5, filename_tmpl='tem_epoch_{}_lr0.01.pth')
 
 log_config = dict(
     interval=2,
