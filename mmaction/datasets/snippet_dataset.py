@@ -181,7 +181,7 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
     ACTION = 1
     BOUNDARY = 2
 
-    def __init__(self, snippet_length=7, bg_boundary_ratio=1., action_boundary_ratio=1., duplicate_number=10, *args, **kwargs):
+    def __init__(self, snippet_length=7, bg_boundary_ratio=3., action_boundary_ratio=3., duplicate_number=10, *args, **kwargs):
         self.snippet_length = snippet_length
         self.bg_boundary_ratio = bg_boundary_ratio
         self.action_boundary_ratio = action_boundary_ratio
