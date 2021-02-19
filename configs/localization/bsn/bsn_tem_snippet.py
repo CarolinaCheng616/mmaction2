@@ -1,5 +1,7 @@
 dataset_type = 'SnippetSRDataset'
 load_type = 'LoadSnippetRectifiedFeature'
+use_mc = False
+array_length = 50
 
 if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
     data_root = 'data/TruNet/sup_train_feature/'
@@ -31,8 +33,8 @@ tem_results_dir = f'{work_dir}/tem_results/'
 
 test_pipeline = [
     dict(type=load_type,
-         use_mc=True,
-         array_length=0),
+         use_mc=use_mc,
+         array_length=array_length),
     dict(
         type='Collect',
         keys=['raw_feature'],
@@ -43,8 +45,8 @@ test_pipeline = [
 train_pipeline = [
     dict(
         type=load_type,
-        use_mc=True,
-        array_length=0),
+        use_mc=use_mc,
+        array_length=array_length),
     dict(
         type='Collect',
         keys=['raw_feature', 'label_action', 'label_start', 'label_end'],
@@ -63,8 +65,8 @@ train_pipeline = [
 ]
 val_pipeline = [
     dict(type=load_type,
-         use_mc=True,
-         array_length=0),
+         use_mc=use_mc,
+         array_length=array_length),
     dict(
         type='Collect',
         keys=['raw_feature', 'label_action', 'label_start', 'label_end'],
