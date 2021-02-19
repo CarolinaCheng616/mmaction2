@@ -177,17 +177,18 @@ class SnippetDataset(TruNetDataset):
 
 @DATASETS.register_module()
 class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
-    BG = 0
-    ACTION = 1
-    BOUNDARY = 2
+    ACTION = 0
+    START = 1
+    END = 2
+    BG = 3
 
-    def __init__(self, snippet_length=7, bg_boundary_ratio=3., action_boundary_ratio=3., duplicate_number=10, *args, **kwargs):
+    def __init__(self, snippet_length=7, bg_boundary_ratio=6., action_boundary_ratio=6., duplicate_number=10, *args, **kwargs):
         self.snippet_length = snippet_length
         self.bg_boundary_ratio = bg_boundary_ratio
         self.action_boundary_ratio = action_boundary_ratio
         self.duplicate_number = duplicate_number
         super().__init__(*args, **kwargs)
-        self.snippet_infos, self.boundary_snippets, self.action_snippets, self.bg_snippets = \
+        self.snippet_infos, self.start_snippets, self.end_snippets, self.action_snippets, self.bg_snippets = \
             self.load_snippet_annotations()
         if not self.test_mode:
             self.sample_ratio()
@@ -211,38 +212,43 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
                     label_action=0.0,
                     label_start=0.0,
                     label_end=0.0,
+                    label_bg=1.0,
                     cate=self.BG,
                     video_name=f'{v_id}_{i}',
                     duration_second=v_info['duration_second'])
                 video_snippets.append(snippet)
             self._assign_label(video_snippets, v_info)
             snippet_infos += video_snippets
-        boundary_snippets = []
+        start_snippets = []
+        end_snippets = []
         action_snippets = []
         bg_snippets = []
         for snippet in snippet_infos:
-            if snippet['cate'] == self.BG:
-                bg_snippets.append(snippet)
-            elif snippet['cate'] == self.BOUNDARY:
-                boundary_snippets.append(snippet)
+            if snippet['cate'] == self.START:
+                start_snippets.append(snippet)
+            elif snippet['cate'] == self.END:
+                end_snippets.append(snippet)
             elif snippet['cate'] == self.ACTION:
                 action_snippets.append(snippet)
+            elif snippet['cate'] == self.BG:
+                bg_snippets.append(snippet)
             else:
                 raise ValueError('something wrong duration assign label in SnippetSRDataset')
 
-        return snippet_infos, boundary_snippets, action_snippets, bg_snippets
+        return snippet_infos, start_snippets, end_snippets, action_snippets, bg_snippets
 
     def sample_ratio(self):
         """Control sampling ratio."""
-        # add additional boundary samples
-        self.boundary_snippets = self.boundary_snippets * self.duplicate_number
-        boundary_number = len(self.boundary_snippets)
+        # boundary_snippets = self.boundary_snippets * self.duplicate_number
+        start_snippets = self.start_snippets * self.duplicate_number
+        end_snippets = self.end_snippets * self.duplicate_number
+        start_number = len(start_snippets)
         # control action_snippets number and bg_snippets number
         shuf(self.action_snippets)
-        self.action_snippets = self.action_snippets[:int(boundary_number * self.action_boundary_ratio)]
+        action_snippets = self.action_snippets[:int(start_number * self.action_boundary_ratio)]
         shuf(self.bg_snippets)
-        self.bg_snippets = self.bg_snippets[:int(boundary_number * self.bg_boundary_ratio)]
-        self.filtered_snippet_infos = self.boundary_snippets + self.action_snippets + self.bg_snippets
+        bg_snippets = self.bg_snippets[:int(start_number * self.bg_boundary_ratio)]
+        self.filtered_snippet_infos = start_snippets + end_snippets + action_snippets + bg_snippets
         shuf(self.filtered_snippet_infos)
         # sort by whole file name
         self.filtered_snippet_infos = sorted(
@@ -250,25 +256,16 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
             key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
-        """Dump data to json/csv files."""
         if output_format == 'json':
             result_dict = self.proposals2json(results)
             mmcv.dump(result_dict, out)
         elif output_format == 'csv':
-            # TODO: add csv handler to mmcv and use mmcv.dump
             os.makedirs(out, exist_ok=True)
-            header = 'action,start,end,tmin,tmax'
+            # header = 'action,start,end,tmin,tmax'
+            header = 'action,start,end,bg,tmin,tmax'
             from collections import defaultdict
             all_videos = defaultdict(dict)
             for result in results:
-                # video_name, outputs = result
-                # output_path = osp.join(out, video_name + '.csv')
-                # np.savetxt(
-                #     output_path,
-                #     outputs,
-                #     header=header,
-                #     delimiter=',',
-                #     comments='')
                 video_name, outputs = result
                 name_tokens = video_name.split('_')
                 name, idx = '_'.join(name_tokens[:-1]), int(name_tokens[-1])
@@ -299,10 +296,13 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
             start, end = min(max(start, 0), duration - 1), min(max(end, 0), duration - 1)
             video_snippets[start]['label_start'] = 1.0
             video_snippets[end]['label_end'] = 1.0
-            video_snippets[start]['cate'] = self.BOUNDARY
-            video_snippets[end]['cate'] = self.BOUNDARY
+            video_snippets[start]['label_bg'] = 0.0
+            video_snippets[end]['label_bg'] = 0.0
+            video_snippets[start]['cate'] = self.START
+            video_snippets[end]['cate'] = self.END
             for i in range(start + 1, end):
                 video_snippets[i]['label_action'] = 1.0
+                video_snippets[i]['label_bg'] = 0.0
                 video_snippets[i]['cate'] = self.ACTION
 
     def prepare_test_frames(self, idx):

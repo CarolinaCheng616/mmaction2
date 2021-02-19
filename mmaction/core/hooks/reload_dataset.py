@@ -8,4 +8,4 @@ class ReloadDatasetHook(Hook):
         pass
 
     def after_train_epoch(self, runner):
-        runner.data_loader.dataset.filter_neg()
+        runner.data_loader.dataset.sample_ratio()
