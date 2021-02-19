@@ -134,7 +134,7 @@ optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=80)
 
 total_epochs = 70
-checkpoint_config = dict(interval=5, filename_tmpl='tem_epoch_{}_lr0.04.pth')
+checkpoint_config = dict(interval=5, filename_tmpl='tem_epoch_{}_lr0.02.pth')
 
 log_config = dict(
     interval=2,
