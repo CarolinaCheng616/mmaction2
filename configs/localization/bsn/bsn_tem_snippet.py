@@ -7,6 +7,8 @@ if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+tempora
 elif load_type == 'LoadSnippetFeature':  # feature.shape: temporal, 4096
     data_root = 'data/TruNet/train_feature/'
     data_root_val = 'data/TruNet/val_feature/'
+else:
+    raise ValueError(f'wrong load_feature name {load_type} in bsn_tem_snippet')
 
 model = dict(
     type='SnippetTEM',
