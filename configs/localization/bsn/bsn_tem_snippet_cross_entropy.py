@@ -120,7 +120,7 @@ reload = True
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.001 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005)  # batch_size
+    type='SGD', lr=0.0001 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005)  # batch_size
 
 optimizer_config = dict(grad_clip=None)
 # learning policy
