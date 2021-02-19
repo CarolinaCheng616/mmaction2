@@ -28,7 +28,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # ann_file_val = ann_file_train
 # ann_file_test = ann_file_train
 
-work_dir = 'work_dirs/tem_snippet_test_mc/'
+work_dir = 'work_dirs/tem_snippet_sample_ratio/'
 tem_results_dir = f'{work_dir}/tem_results/'
 
 test_pipeline = [
