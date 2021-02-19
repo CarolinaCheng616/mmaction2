@@ -8,7 +8,7 @@ model = dict(
 train_cfg = None
 test_cfg = dict(average_clips='score')
 # dataset settings
-dataset_type = 'SnippetDataset'
+dataset_type = 'SnippetSRDataset'
 data_root = 'data/TruNet/train_feature/'
 data_root_val = 'data/TruNet/val_feature/'
 # data_root_val = data_root

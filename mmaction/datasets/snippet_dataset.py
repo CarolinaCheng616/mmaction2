@@ -25,19 +25,6 @@ class SnippetDataset(TruNetDataset):
             self.filter_neg()
         else:
             self.filtered_snippet_infos = self.snippet_infos
-        # start, end, action, bg = 0, 0, 0, 0
-        # for snippet in self.filtered_snippet_infos:
-        #     if snippet['label_action'] > 0.1:
-        #         action += 1
-        #     elif snippet['label_start'] > 0.1:
-        #         start += 1
-        #     elif snippet['label_end'] > 0.1:
-        #         end += 1
-        #     else:
-        #         bg += 1
-        # print(f'start: {start}, end: {end}, action: {action}, bg: {bg}\n')
-        # import pdb
-        # pdb.set_trace()
 
     def __len__(self):
         """Get the size of the dataset."""

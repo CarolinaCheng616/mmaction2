@@ -10,7 +10,7 @@ from .hvu_dataset import HVUDataset
 from .image_dataset import ImageDataset
 from .rawframe_dataset import RawframeDataset
 from .rawvideo_dataset import RawVideoDataset
-from .snippet_dataset import SnippetDataset
+from .snippet_dataset import SnippetDataset, SnippetSRDataset
 from .ssn_dataset import SSNDataset
 from .trunet_dataset import TruNetDataset
 from .video_dataset import VideoDataset
@@ -20,5 +20,5 @@ __all__ = [
     'RawframeDataset', 'BaseDataset', 'ActivityNetDataset', 'SSNDataset',
     'HVUDataset', 'AudioDataset', 'AudioFeatureDataset', 'ImageDataset',
     'RawVideoDataset', 'AVADataset', 'AudioVisualDataset', 'TruNetDataset',
-    'SnippetDataset'
+    'SnippetDataset', 'SnippetSRDataset'
 ]
