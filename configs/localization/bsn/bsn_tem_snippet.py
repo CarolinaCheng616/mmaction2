@@ -1,3 +1,13 @@
+dataset_type = 'SnippetSRDataset'
+load_type = 'LoadSnippetRectifiedFeature'
+
+if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
+    data_root = 'data/TruNet/sup_train_feature/'
+    data_root_val = 'data/TruNet/sup_val_feature/'
+elif load_type == 'LoadSnippetFeature':  # feature.shape: temporal, 4096
+    data_root = 'data/TruNet/train_feature/'
+    data_root_val = 'data/TruNet/val_feature/'
+
 model = dict(
     type='SnippetTEM',
     tem_feat_dim=4096,
@@ -8,10 +18,6 @@ model = dict(
 train_cfg = None
 test_cfg = dict(average_clips='score')
 # dataset settings
-dataset_type = 'SnippetSRDataset'
-data_root = 'data/TruNet/train_feature/'
-data_root_val = 'data/TruNet/val_feature/'
-# data_root_val = data_root
 ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
@@ -22,7 +28,7 @@ work_dir = 'work_dirs/tem_snippet_test_mc/'
 tem_results_dir = f'{work_dir}/tem_results/'
 
 test_pipeline = [
-    dict(type='LoadSnippetRectifiedFeature',
+    dict(type=load_type,
          use_mc=True,
          array_length=0),
     dict(
@@ -34,7 +40,7 @@ test_pipeline = [
 ]
 train_pipeline = [
     dict(
-        type='LoadSnippetRectifiedFeature',
+        type=load_type,
         use_mc=True,
         array_length=0),
     dict(
@@ -54,7 +60,7 @@ train_pipeline = [
         ])
 ]
 val_pipeline = [
-    dict(type='LoadSnippetRectifiedFeature',
+    dict(type=load_type,
          use_mc=True,
          array_length=0),
     dict(
