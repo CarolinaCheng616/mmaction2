@@ -143,8 +143,6 @@ class SnippetTEMSR(TEM):
 
     def forward_train(self, raw_feature, cate):
         """Define the computation performed at every call when training."""
-        import pdb
-        pdb.set_trace()
         tem_output = self._forward(raw_feature)
         score = tem_output
         label = torch.tensor(cate)
@@ -158,8 +156,6 @@ class SnippetTEMSR(TEM):
 
     def forward_test(self, raw_feature, video_meta):
         """Define the computation performed at every call when testing."""
-        # import pdb
-        # pdb.set_trace()
         tem_output = self._forward(raw_feature).cpu().numpy()
         # batch_action = tem_output[:, 0, :]
         # batch_start = tem_output[:, 1, :]
@@ -175,7 +171,6 @@ class SnippetTEMSR(TEM):
 
         video_results = []
 
-        # for batch_idx, _ in enumerate(batch_action):
         for batch_idx in range(batch):
             video_name = video_meta_list[batch_idx]['video_name']
             video_action = batch_action[batch_idx]
