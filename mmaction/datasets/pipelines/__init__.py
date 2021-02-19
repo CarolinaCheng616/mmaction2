@@ -13,8 +13,8 @@ from .loading import (AudioDecode, AudioDecodeInit, AudioFeatureSelector,
                       DenseSampleFrames, FrameSelector,
                       GenerateLocalizationLabels, ImageDecode,
                       LoadAudioFeature, LoadHVULabel, LoadLocalizationFeature,
-                      LoadProposals, LoadSnippetLocalizationFeature,
-                      LoadSnippetLocalizationFeatureMemcache, OpenCVDecode,
+                      LoadProposals, LoadSnippetFeature,
+                      LoadSnippetRectifiedFeature, OpenCVDecode,
                       OpenCVInit, PyAVDecode, PyAVDecodeMotionVector, PyAVInit,
                       RawFrameDecode, SampleAVAFrames, SampleFrames,
                       SampleProposalFrames, UntrimmedSampleFrames, LoadTAGProposals,
@@ -35,6 +35,6 @@ __all__ = [
     'AudioDecodeInit', 'EntityBoxPad', 'EntityBoxFlip', 'EntityBoxCrop',
     'EntityBoxRescale', 'EntityBoxClip', 'RandomScale', 'ImageDecode',
     'BuildPseudoClip', 'RandomRescale', 'PyAVDecodeMotionVector',
-    'LoadSnippetLocalizationFeature', 'LoadSnippetLocalizationFeatureMemcache',
+    'LoadSnippetFeature', 'LoadSnippetRectifiedFeature',
     'LoadTAGProposals', 'LoadTAGProposalsOffset'
 ]

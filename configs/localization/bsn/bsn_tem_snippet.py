@@ -1,11 +1,3 @@
-# model settings
-# model = dict(
-#     type='_TEM_',
-#     temporal_dim=2000,
-#     boundary_ratio=0.1,
-#     tem_feat_dim=4096,
-#     tem_hidden_dim=512,
-#     tem_match_threshold=0.5)
 model = dict(
     type='SnippetTEM',
     tem_feat_dim=4096,
@@ -26,15 +18,13 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # ann_file_val = ann_file_train
 # ann_file_test = ann_file_train
 
-work_dir = 'work_dirs/tem_snippet/'
+work_dir = 'work_dirs/tem_snippet_test_mc/'
 tem_results_dir = f'{work_dir}/tem_results/'
 
-mc_cfg = dict(
-    server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
-    client_cfg='/mnt/lustre/share/memcached_client/client.conf',
-    sys_path='/mnt/lustre/share/pymc/py3')
 test_pipeline = [
-    dict(type='LoadSnippetLocalizationFeature'),
+    dict(type='LoadSnippetRectifiedFeature',
+         use_mc=True,
+         array_length=0),
     dict(
         type='Collect',
         keys=['raw_feature'],
@@ -44,11 +34,9 @@ test_pipeline = [
 ]
 train_pipeline = [
     dict(
-        type='LoadSnippetLocalizationFeatureMemcache',
-        io_backend='memcached',
-        **mc_cfg),
-    # dict(type='LoadSnippetLocalizationFeature'),
-    # dict(type='GenerateSnippetLocalizationLabels'),
+        type='LoadSnippetRectifiedFeature',
+        use_mc=True,
+        array_length=0),
     dict(
         type='Collect',
         keys=['raw_feature', 'label_action', 'label_start', 'label_end'],
@@ -66,8 +54,9 @@ train_pipeline = [
         ])
 ]
 val_pipeline = [
-    dict(type='LoadSnippetLocalizationFeature'),
-    # dict(type='GenerateTruNetLocalizationLabels'),
+    dict(type='LoadSnippetRectifiedFeature',
+         use_mc=True,
+         array_length=0),
     dict(
         type='Collect',
         keys=['raw_feature', 'label_action', 'label_start', 'label_end'],
@@ -86,7 +75,7 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=4096 * 8,
+    videos_per_gpu=4096,
     workers_per_gpu=0,
     train_dataloader=dict(drop_last=False, shuffle=False),
     val_dataloader=dict(

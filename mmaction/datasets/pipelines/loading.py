@@ -1611,8 +1611,134 @@ class LoadTruNetLocalizationFeature:
         return repr_str
 
 
+# @PIPELINES.register_module()
+# class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
+#     """Load Video features for localizer with given video_name list.
+#
+#     Required keys are "video_name" and "data_prefix", added or modified keys
+#     are "raw_feature".
+#
+#     Args:
+#         raw_feature_ext (str): Raw feature file extension.  Default: '.pkl'.
+#     """
+#
+#     def __init__(self, raw_feature_ext='.pkl', array_length=50):
+#         super().__init__(raw_feature_ext)
+#         self.array_length = array_length
+#         self.paths = [0] * self.array_length
+#         self.features = dict()
+#         self.pointer = 0
+#
+#     def _get_raw_feature(self, data_path, duration, length):
+#         if data_path not in self.paths:
+#             self.paths[self.pointer] = data_path
+#             file = open(data_path, 'rb')
+#             raw_feature = pickle.load(file, encoding='bytes')  # temporal,4096
+#             file.close()
+#             temporal = raw_feature.shape[0]
+#             start_frame = np.array([raw_feature[0]] * (length // 2))
+#             if temporal < duration:
+#                 end_frame = np.array([raw_feature[-1]] *
+#                                      (duration - temporal + length // 2))
+#             else:
+#                 end_frame = np.array([raw_feature[-1]] * (length // 2))
+#             raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
+#                                          axis=0)
+#             raw_feature = np.transpose(raw_feature.astype(np.float32),
+#                                        (1, 0))  # 4096, temporal
+#             self.features[self.pointer] = raw_feature
+#             self.pointer = (self.pointer + 1) % self.array_length
+#         idx = self.paths.index(data_path)
+#         return self.features[idx]
+#
+#     def __call__(self, results):
+#         """Perform the LoadLocalizationFeature loading.
+#
+#         Args:
+#             results (dict): The resulting dict to be modified and passed
+#                 to the next transform in pipeline.
+#         """
+#         video_name_split = results['video_name'].split('_')
+#         video_name = '_'.join(video_name_split[:-1])
+#         duration, length, data_prefix = results['duration_second'], results[
+#             'snippet_length'], results['data_prefix']
+#         snippet_idx = int(video_name_split[-1]) + length // 2
+#
+#         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
+#         raw_feature = self._get_raw_feature(data_path, duration, length)
+#         results['raw_feature'] = raw_feature[:,
+#                                              snippet_idx:(snippet_idx +
+#                                                           length)]  # 4096, 7
+#         return results
+
+
+# @PIPELINES.register_module()
+# class LoadSnippetLocalizationFeatureMemcache(LoadTruNetLocalizationFeature):
+#     """Load Video features for localizer with given video_name list.
+#
+#     Required keys are "video_name" and "data_prefix", added or modified keys
+#     are "raw_feature".
+#
+#     Args:
+#         raw_feature_ext (str): Raw feature file extension.  Default: '.pkl'.
+#     """
+#
+#     def __init__(self, raw_feature_ext='.pkl', use_mc=False):
+#         super().__init__(raw_feature_ext)
+#         self.mc_cfg = dict(
+#             server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
+#             client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+#             sys_path='/mnt/lustre/share/pymc/py3')
+#         self.io_backend = 'memcached'
+#         self.file_client = None
+#         self.use_mc = use_mc
+#
+#     def _get_raw_feature(self, data_path, duration, length):
+#         if self.use_mc and self.file_client is None:
+#             self.file_client = FileClient(self.io_backend, **self.mc_cfg)
+#         if self.use_mc:
+#             buf = self.file_client.get(data_path)
+#             buf = io.BytesIO(buf)
+#             raw_feature = np.load(buf, allow_pickle=True)
+#         else:
+#             with open(data_path, 'rb') as f:
+#                 raw_feature = pickle.load(f, encoding='bytes')
+#         temporal, _ = raw_feature.shape
+#         start_frame = np.array([raw_feature[0]] * (length // 2))
+#         if temporal < duration:
+#             end_frame = np.array([raw_feature[-1]] *
+#                                  (duration - temporal + length // 2))
+#         else:
+#             end_frame = np.array([raw_feature[-1]] * (length // 2))
+#         raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
+#                                      axis=0)
+#         raw_feature = np.transpose(raw_feature.astype(np.float32),
+#                                    (1, 0))  # 4096, temporal
+#         return raw_feature
+#
+#     def __call__(self, results):
+#         """Perform the LoadLocalizationFeature loading.
+#
+#         Args:
+#             results (dict): The resulting dict to be modified and passed
+#                 to the next transform in pipeline.
+#         """
+#         video_name_split = results['video_name'].split('_')
+#         video_name = '_'.join(video_name_split[:-1])
+#         duration, length, data_prefix = results['duration_second'], results[
+#             'snippet_length'], results['data_prefix']
+#         snippet_idx = int(video_name_split[-1]) + length // 2
+#
+#         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
+#         raw_feature = self._get_raw_feature(data_path, duration, length)
+#         results['raw_feature'] = raw_feature[:,
+#                                              snippet_idx:(snippet_idx +
+#                                                           length)]  # 4096, 7
+#         return results
+
+
 @PIPELINES.register_module()
-class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
+class LoadSnippetFeature(LoadTruNetLocalizationFeature):
     """Load Video features for localizer with given video_name list.
 
     Required keys are "video_name" and "data_prefix", added or modified keys
@@ -1622,21 +1748,28 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
         raw_feature_ext (str): Raw feature file extension.  Default: '.pkl'.
     """
 
-    def __init__(self, raw_feature_ext='.pkl'):
+    def __init__(self, use_mc, array_length, raw_feature_ext='.pkl'):
         super().__init__(raw_feature_ext)
-        self.array_length = 50
+        self.array_length = array_length
         self.paths = [0] * self.array_length
         self.features = dict()
         self.pointer = 0
+        self.mc_cfg = dict(
+            server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
+            client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+            sys_path='/mnt/lustre/share/pymc/py3')
+        self.io_backend = 'memcached'
+        self.file_client = None
+        self.use_mc = use_mc
 
-    # @lru_cache(512)
     def _get_raw_feature(self, data_path, duration, length):
-        if data_path not in self.paths:
-            self.paths[self.pointer] = data_path
-            file = open(data_path, 'rb')
-            raw_feature = pickle.load(file, encoding='bytes')  # temporal,4096
-            file.close()
-            temporal = raw_feature.shape[0]
+        if self.use_mc and self.file_client is None:
+            self.file_client = FileClient(self.io_backend, **self.mc_cfg)
+        if self.use_mc:
+            buf = self.file_client.get(data_path)
+            buf = io.BytesIO(buf)
+            raw_feature = np.load(buf, allow_pickle=True)
+            temporal, _ = raw_feature.shape
             start_frame = np.array([raw_feature[0]] * (length // 2))
             if temporal < duration:
                 end_frame = np.array([raw_feature[-1]] *
@@ -1647,10 +1780,27 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
                                          axis=0)
             raw_feature = np.transpose(raw_feature.astype(np.float32),
                                        (1, 0))  # 4096, temporal
-            self.features[self.pointer] = raw_feature
-            self.pointer = (self.pointer + 1) % self.array_length
-        idx = self.paths.index(data_path)
-        return self.features[idx]
+        else:
+            if data_path not in self.paths:
+                self.paths[self.pointer] = data_path
+                file = open(data_path, 'rb')
+                raw_feature = pickle.load(file, encoding='bytes')  # temporal,4096
+                file.close()
+                temporal = raw_feature.shape[0]
+                start_frame = np.array([raw_feature[0]] * (length // 2))
+                if temporal < duration:
+                    end_frame = np.array([raw_feature[-1]] *
+                                         (duration - temporal + length // 2))
+                else:
+                    end_frame = np.array([raw_feature[-1]] * (length // 2))
+                raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
+                                             axis=0)
+                raw_feature = np.transpose(raw_feature.astype(np.float32),
+                                           (1, 0))  # 4096, temporal
+                self.features[self.pointer] = raw_feature
+                self.pointer = (self.pointer + 1) % self.array_length
+            raw_feature = self.features[self.paths.index(data_path)]
+        return raw_feature
 
     def __call__(self, results):
         """Perform the LoadLocalizationFeature loading.
@@ -1674,7 +1824,7 @@ class LoadSnippetLocalizationFeature(LoadTruNetLocalizationFeature):
 
 
 @PIPELINES.register_module()
-class LoadSnippetLocalizationFeatureMemcache(LoadTruNetLocalizationFeature):
+class LoadSnippetRectifiedFeature(LoadTruNetLocalizationFeature):
     """Load Video features for localizer with given video_name list.
 
     Required keys are "video_name" and "data_prefix", added or modified keys
@@ -1684,29 +1834,36 @@ class LoadSnippetLocalizationFeatureMemcache(LoadTruNetLocalizationFeature):
         raw_feature_ext (str): Raw feature file extension.  Default: '.pkl'.
     """
 
-    def __init__(self, io_backend, raw_feature_ext='.pkl', **kwargs):
+    def __init__(self, use_mc, array_length, raw_feature_ext='.pkl'):
         super().__init__(raw_feature_ext)
-        self.file_client = FileClient(io_backend, **kwargs)
+        self.array_length = array_length
+        self.paths = [0] * self.array_length
+        self.features = dict()
+        self.pointer = 0
+        self.mc_cfg = dict(
+            server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',
+            client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+            sys_path='/mnt/lustre/share/pymc/py3')
+        self.io_backend = 'memcached'
+        self.file_client = None
+        self.use_mc = use_mc
 
-    # @lru_cache(512)
-    def _get_raw_feature(self, data_path, duration, length):
-        buf = self.file_client.get(data_path)
-        buf = io.BytesIO(buf)
-        raw_feature = np.load(buf, allow_pickle=True)
-        # import pdb
-        # pdb.set_trace()
-        # raw_feature = np.frombuffer(buf, dtype='float32')
-        temporal, _ = raw_feature.shape
-        start_frame = np.array([raw_feature[0]] * (length // 2))
-        if temporal < duration:
-            end_frame = np.array([raw_feature[-1]] *
-                                 (duration - temporal + length // 2))
+    def _get_raw_feature(self, data_path):
+        if self.use_mc and self.file_client is None:
+            self.file_client = FileClient(self.io_backend, **self.mc_cfg)
+        if self.use_mc:
+            buf = self.file_client.get(data_path)
+            buf = io.BytesIO(buf)
+            raw_feature = np.load(buf, allow_pickle=True)  # 4096, temporal
         else:
-            end_frame = np.array([raw_feature[-1]] * (length // 2))
-        raw_feature = np.concatenate((start_frame, raw_feature, end_frame),
-                                     axis=0)
-        raw_feature = np.transpose(raw_feature.astype(np.float32),
-                                   (1, 0))  # 4096, temporal
+            if data_path not in self.paths:
+                self.paths[self.pointer] = data_path
+                file = open(data_path, 'rb')
+                raw_feature = pickle.load(file, encoding='bytes')  # 4096, temporal
+                file.close()
+                self.features[self.pointer] = raw_feature
+                self.pointer = (self.pointer + 1) % self.array_length
+            raw_feature = self.features[self.paths.index(data_path)]
         return raw_feature
 
     def __call__(self, results):
@@ -1723,7 +1880,7 @@ class LoadSnippetLocalizationFeatureMemcache(LoadTruNetLocalizationFeature):
         snippet_idx = int(video_name_split[-1]) + length // 2
 
         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
-        raw_feature = self._get_raw_feature(data_path, duration, length)
+        raw_feature = self._get_raw_feature(data_path)
         results['raw_feature'] = raw_feature[:,
                                              snippet_idx:(snippet_idx +
                                                           length)]  # 4096, 7
