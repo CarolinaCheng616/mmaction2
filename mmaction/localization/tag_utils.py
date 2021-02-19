@@ -33,8 +33,10 @@ def _load_video_infos(ann_file):
 def generate_tag_proposals(video_list,
                            video_infos,
                            tem_results_dir,
-                           alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
-                           beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+                           # alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
+                           # beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+                           alpha_list=[.6, .65, .7, .75, .8],
+                           beta_list=[.1, .2, .3],
                            tem_results_ext='.csv',
                            result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results.
@@ -157,8 +159,9 @@ def generate_tag_proposals_offset(
         video_infos,
         tem_results_dir,
         # alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
+        # beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
         alpha_list=[.6, .65, .7, .75, .8],
-        beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+        beta_list=[.1, .2, .3],
         tem_results_ext='.csv',
         result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results
@@ -221,7 +224,7 @@ def generate_tag_proposals_offset(
                     s = signal[up[x]]  # 在每个segment开始位置的信号
                     for y in range(x + 1, len(up)):  # x segment后面的segment
                         if y < len(down) and signal[up[
-                                y]] > s:  # y segment 开始位置的信号大于x segment开始位置的信号
+                                y]] > s:  # 从x segment到y segment之间的这一段，0所占的比例如果超过t(11110011,前面4个1是x segment,后面2个1是y segment，那么0所占的比例是2/6=0.33)
                             new_props.append(
                                 (up[x] * tgap, down[y - 1] * tgap,
                                  np.mean(action_scores[up[x]:down[y - 1]])))
