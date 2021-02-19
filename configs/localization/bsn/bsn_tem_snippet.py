@@ -2,6 +2,9 @@ dataset_type = 'SnippetSRDataset'
 load_type = 'LoadSnippetRectifiedFeature'
 use_mc = False
 array_length = 10
+machines = 1
+gpus_per_machine = 8
+batch_size = 4096
 
 if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
     data_root = 'data/TruNet/sup_train_feature/'
@@ -85,17 +88,17 @@ val_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=4096 * 8,
-    workers_per_gpu=8,
+    videos_per_gpu=batch_size,
+    workers_per_gpu=0,
     train_dataloader=dict(drop_last=False, shuffle=False),
     val_dataloader=dict(
-        videos_per_gpu=4096 * 8,
-        workers_per_gpu=8,
+        videos_per_gpu=batch_size,
+        workers_per_gpu=0,
         drop_last=False,
         shuffle=False),
     test_dataloader=dict(
-        videos_per_gpu=4096 * 8,
-        workers_per_gpu=8,
+        videos_per_gpu=batch_size,
+        workers_per_gpu=0,
         drop_last=False,
         shuffle=False),
     test=dict(
@@ -121,11 +124,10 @@ reload = True
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.001, momentum=0.9, weight_decay=0.0005)  # batch_size
-
+    type='SGD', lr=0.004 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005)  # batch_size
+# 0.001 is for batch 256*4=1024
 optimizer_config = dict(grad_clip=None)
 # learning policy
-# lr_config = dict(policy='step', step=6)
 lr_config = dict(
     policy='CosineAnnealing',
     warmup='linear',
