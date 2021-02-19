@@ -120,17 +120,18 @@ reload = True
 
 # optimizer
 optimizer = dict(
-    type='SGD', lr=0.04 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005)  # batch_size
+    type='SGD', lr=0.02 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005)  # batch_size
 
 optimizer_config = dict(grad_clip=None)
-# learning policy
-lr_config = dict(
-    policy='CosineAnnealing',
-    warmup='linear',
-    warmup_iters=5,
-    warmup_ratio=1.0 / 10,
-    min_lr_ratio=1e-5,
-    warmup_by_epoch=True)
+# # learning policy
+# lr_config = dict(
+#     policy='CosineAnnealing',
+#     warmup='linear',
+#     warmup_iters=5,
+#     warmup_ratio=1.0 / 10,
+#     min_lr_ratio=1e-5,
+#     warmup_by_epoch=True)
+lr_config = dict(policy='step', step=80)
 
 total_epochs = 70
 checkpoint_config = dict(interval=5, filename_tmpl='tem_epoch_{}_lr0.04.pth')
