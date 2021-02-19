@@ -141,7 +141,7 @@ class SnippetTEMSR(TEM):
         x = torch.sigmoid(self.linear(x))  # batch, 4
         return x
 
-    def forward_train(self, raw_feature, label_action, label_start, label_end, label_bg):
+    def forward_train(self, raw_feature, cate):
         """Define the computation performed at every call when training."""
         import pdb
         pdb.set_trace()
@@ -149,16 +149,17 @@ class SnippetTEMSR(TEM):
         score = tem_output
         # score = score.to(device=score.device, dtype=)
 
-        label_action = torch.tensor(label_action)  # [tensor(), tensor(),]
-        label_start = torch.tensor(label_start)
-        label_end = torch.tensor(label_end)
-        label_bg = torch.tensor(label_bg)
-        label_action = label_action.reshape(label_action.shape[0], 1)
-        label_start = label_start.reshape(label_start.shape[0], 1)
-        label_end = label_end.reshape(label_end.shape[0], 1)
-        label_bg = label_bg.reshape(label_bg.shape[0], 1)
-        label = torch.cat((label_action, label_start, label_end, label_bg), dim=1)
-        label = label.to(device=score.device, dtype=torch.long)
+        # label_action = torch.tensor(label_action)  # [tensor(), tensor(),]
+        # label_start = torch.tensor(label_start)
+        # label_end = torch.tensor(label_end)
+        # label_bg = torch.tensor(label_bg)
+        # label_action = label_action.reshape(label_action.shape[0], 1)
+        # label_start = label_start.reshape(label_start.shape[0], 1)
+        # label_end = label_end.reshape(label_end.shape[0], 1)
+        # label_bg = label_bg.reshape(label_bg.shape[0], 1)
+        # label = torch.cat((label_action, label_start, label_end, label_bg), dim=1)
+        label = torch.tensor(cate)
+        # label = label.to(device=score.device, dtype=torch.long)
 
         # loss_action = self.loss_cls(score_action, label_action,
         #                             self.match_threshold)
@@ -218,15 +219,11 @@ class SnippetTEMSR(TEM):
 
     def forward(self,
                 raw_feature,
-                label_action=None,
-                label_start=None,
-                label_end=None,
-                label_bg=None,
+                cate=None,
                 video_meta=None,
                 return_loss=True):
         """Define the computation performed at every call."""
         if return_loss:
-            return self.forward_train(raw_feature, label_action, label_start,
-                                      label_end, label_bg)
+            return self.forward_train(raw_feature, cate)
 
         return self.forward_test(raw_feature, video_meta)

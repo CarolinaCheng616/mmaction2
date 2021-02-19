@@ -52,19 +52,16 @@ train_pipeline = [
         array_length=array_length),
     dict(
         type='Collect',
-        keys=['raw_feature', 'label_action', 'label_start', 'label_end', 'label_bg'],
+        keys=['raw_feature', 'cate'],
         meta_name='video_meta',
         meta_keys=['video_name', 'duration_second', 'snippet_length']),
     dict(
         type='ToTensor',
-        keys=['raw_feature', 'label_action', 'label_start', 'label_end', 'label_bg']),
+        keys=['raw_feature', 'cate']),
     dict(
         type='ToDataContainer',
         fields=[
-            dict(key='label_action', stack=False),
-            dict(key='label_start', stack=False),
-            dict(key='label_end', stack=False),
-            dict(key='label_bg', stack=False)
+            dict(key='cate', stack=False)
         ])
 ]
 val_pipeline = [
@@ -73,19 +70,16 @@ val_pipeline = [
          array_length=array_length),
     dict(
         type='Collect',
-        keys=['raw_feature', 'label_action', 'label_start', 'label_end', 'label_bg'],
+        keys=['raw_feature', 'cate'],
         meta_name='video_meta',
         meta_keys=['video_name', 'duration_second', 'snippet_length']),
     dict(
         type='ToTensor',
-        keys=['raw_feature', 'label_action', 'label_start', 'label_end', 'label_bg']),
+        keys=['raw_feature', 'cate']),
     dict(
         type='ToDataContainer',
         fields=[
-            dict(key='label_action', stack=False),
-            dict(key='label_start', stack=False),
-            dict(key='label_end', stack=False),
-            dict(key='label_bg', stack=False)
+            dict(key='cate', stack=False)
         ])
 ]
 

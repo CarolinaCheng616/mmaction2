@@ -209,10 +209,10 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
                     -(self.snippet_length // 2),
                     v_info['duration_second'] - self.snippet_length // 2):
                 snippet = dict(
-                    label_action=0.0,
-                    label_start=0.0,
-                    label_end=0.0,
-                    label_bg=1.0,
+                    # label_action=0.0,
+                    # label_start=0.0,
+                    # label_end=0.0,
+                    # label_bg=1.0,
                     cate=self.BG,
                     video_name=f'{v_id}_{i}',
                     duration_second=v_info['duration_second'])
@@ -293,15 +293,15 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
             segment = anno['segment']
             start, end = int(round(segment[0])), int(round(segment[1]))
             start, end = min(max(start, 0), duration - 1), min(max(end, 0), duration - 1)
-            video_snippets[start]['label_start'] = 1.0
-            video_snippets[end]['label_end'] = 1.0
-            video_snippets[start]['label_bg'] = 0.0
-            video_snippets[end]['label_bg'] = 0.0
+            # video_snippets[start]['label_start'] = 1.0
+            # video_snippets[end]['label_end'] = 1.0
+            # video_snippets[start]['label_bg'] = 0.0
+            # video_snippets[end]['label_bg'] = 0.0
             video_snippets[start]['cate'] = self.START
             video_snippets[end]['cate'] = self.END
             for i in range(start + 1, end):
-                video_snippets[i]['label_action'] = 1.0
-                video_snippets[i]['label_bg'] = 0.0
+                # video_snippets[i]['label_action'] = 1.0
+                # video_snippets[i]['label_bg'] = 0.0
                 video_snippets[i]['cate'] = self.ACTION
 
     def prepare_test_frames(self, idx):
