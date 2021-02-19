@@ -244,9 +244,10 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
         self.bg_snippets = self.bg_snippets[:int(boundary_number * self.bg_boundary_ratio)]
         self.filtered_snippet_infos = self.boundary_snippets + self.action_snippets + self.bg_snippets
         shuf(self.filtered_snippet_infos)
-        # self.filtered_snippet_infos = sorted(
-        #     self.filtered_snippet_infos,
-        #     key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
+        # sort by whole file name
+        self.filtered_snippet_infos = sorted(
+            self.filtered_snippet_infos,
+            key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""
