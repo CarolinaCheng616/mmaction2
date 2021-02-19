@@ -146,13 +146,9 @@ class SnippetTEMSR(TEM):
         import pdb
         pdb.set_trace()
         tem_output = self._forward(raw_feature)
-        # batch = tem_output.shape[0]
-        # score_action = tem_output[:, 0].reshape(batch, 1)
-        # score_start = tem_output[:, 1].reshape(batch, 1)
-        # score_end = tem_output[:, 2].reshape(batch, 1)
-        # score_bg = tem_output[:, 3].reshape(batch, 1)
-        # score = tem_output.reshape(batch, 4)
         score = tem_output
+
+        device = score.device
 
         label_action = torch.tensor(label_action)  # [tensor(), tensor(),]
         label_start = torch.tensor(label_start)
@@ -163,6 +159,7 @@ class SnippetTEMSR(TEM):
         label_end = label_end.reshape(label_end.shape[0], 1)
         label_bg = label_bg.reshape(label_bg.shape[0], 1)
         label = torch.cat((label_action, label_start, label_end, label_bg), dim=1)
+        label = label.to(device)
 
         # loss_action = self.loss_cls(score_action, label_action,
         #                             self.match_threshold)

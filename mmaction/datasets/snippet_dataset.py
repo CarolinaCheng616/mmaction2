@@ -253,8 +253,6 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
         self.filtered_snippet_infos = sorted(
             self.filtered_snippet_infos,
             key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
-        import pdb
-        pdb.set_trace()
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         if output_format == 'json':
