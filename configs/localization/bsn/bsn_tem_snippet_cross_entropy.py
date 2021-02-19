@@ -4,7 +4,7 @@ use_mc = False
 array_length = 10
 machines = 1
 gpus_per_machine = 8
-batch_size = 4096
+batch_size = 4096 * 4
 
 if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
     data_root = 'data/TruNet/sup_train_feature/'
@@ -134,7 +134,7 @@ optimizer_config = dict(grad_clip=None)
 lr_config = dict(policy='step', step=80)
 
 total_epochs = 70
-checkpoint_config = dict(interval=5, filename_tmpl='tem_epoch_{}_lr0.01.pth')
+checkpoint_config = dict(interval=1, filename_tmpl='tem_epoch_{}_lr0.01.pth')
 
 log_config = dict(
     interval=2,
