@@ -12,9 +12,9 @@ model = dict(
     pem_u_ratio_l=2,
     pem_high_temporal_iou_threshold=0.8,
     pem_low_temporal_iou_threshold=0.3,
-    soft_nms_alpha=0.75,
-    soft_nms_low_threshold=0.5,
-    soft_nms_high_threshold=0.8,
+    soft_nms_alpha=0.5,
+    soft_nms_low_threshold=0.6,
+    soft_nms_high_threshold=0.9,
     post_process_top_k=100,
     fc_ratio=1,
     classify_ratio=1,
@@ -67,7 +67,7 @@ work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
-output_config = dict(out=f'{work_dir}/offscale0.5_high0.8_non_nms_190epoch_soft_nms_top100_results.json', output_format='json')
+output_config = dict(out=f'{work_dir}/offscale0.5_high0.8_non_nms_190epoch_soft_nms_2_top100_results.json', output_format='json')
 
 test_pipeline = [
     dict(
