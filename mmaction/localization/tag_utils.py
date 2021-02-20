@@ -886,7 +886,7 @@ if __name__ == '__main__':
     proposal_kwargs = dict(
         thread_num=4,
         soft_nms_alpha=0.75,
-        soft_nms_low_threshold=0.65,
+        soft_nms_low_threshold=0.8,
         soft_nms_high_threshold=0.9,
         top_k=100)
     feature_kwargs = dict(
