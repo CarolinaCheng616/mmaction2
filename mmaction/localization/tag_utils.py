@@ -982,7 +982,7 @@ if __name__ == '__main__':
     iou_nms = True
     proposal_kwargs = dict(
         thread_num=8,
-        threshold=0.95, top_k=100)
+        threshold=0.85, top_k=100)
     feature_kwargs = dict(
         top_k=100,
         bsp_boundary_ratio=0.2,
