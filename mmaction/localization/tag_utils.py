@@ -973,16 +973,16 @@ def nms_and_dump_results(pgm_proposals_dir,
 
 
 if __name__ == '__main__':
-    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_threshold/pgm_proposals/'
+    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet/pgm_proposals/'
     features_dir = 'data/TruNet/val_feature/'
-    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_threshold/pgm_iou_hard_nms_proposals/'
+    nms_proposal_dir = 'work_dirs/tag_pgm_snippet/pgm_iou_hard_nms_proposals/'
     nms_features_dir = 'work_dirs/tag_pgm_snippet/pgm_origin_features/'
     ann_file = 'data/TruNet/val_meta.json'
-    out = 'work_dirs/tag_pgm_snippet_threshold/test_iou_hard_nms_results.json'
+    out = 'work_dirs/tag_pgm_snippet/test_iou_hard_nms_results.json'
     iou_nms = True
     proposal_kwargs = dict(
         thread_num=8,
-        threshold=0.85, top_k=100)
+        threshold=0.9, top_k=100)
     feature_kwargs = dict(
         top_k=100,
         bsp_boundary_ratio=0.2,
