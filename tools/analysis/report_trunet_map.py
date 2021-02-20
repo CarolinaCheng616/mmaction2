@@ -52,7 +52,7 @@ def parse_args():
         'val_meta.json',
         help='groundtruth file')
     parser.add_argument('--proposal-num', type=int, default=13)
-    parser.add_argument('--threshold', type=float, default=0.5)
+    parser.add_argument('--threshold', type=float, default=0)
     args = parser.parse_args()
     return args
 

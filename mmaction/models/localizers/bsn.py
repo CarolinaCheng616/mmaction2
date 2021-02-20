@@ -7,7 +7,7 @@ from ...localization import temporal_iop
 from ..builder import build_loss
 from ..registry import LOCALIZERS
 from .base import BaseLocalizer
-from .utils import post_processing, post_processing_no_nms
+from .utils import post_processing_soft_nms, post_processing_no_nms, post_processing_hard_nms
 
 
 @LOCALIZERS.register_module()
@@ -820,12 +820,12 @@ class PEM(BaseLocalizer):
             (tmin, tmax, tmin_score, tmax_score, pem_output, score), axis=1)
         result = result.reshape(-1, 6)
         video_info = dict(video_meta[0])
-        proposal_list = post_processing(result, video_info,
-                                        self.soft_nms_alpha,
-                                        self.soft_nms_low_threshold,
-                                        self.soft_nms_high_threshold,
-                                        self.post_process_top_k,
-                                        self.feature_extraction_interval)
+        proposal_list = post_processing_soft_nms(result, video_info,
+                                                 self.soft_nms_alpha,
+                                                 self.soft_nms_low_threshold,
+                                                 self.soft_nms_high_threshold,
+                                                 self.post_process_top_k,
+                                                 self.feature_extraction_interval)
         output = [
             dict(
                 video_name=video_info['video_name'],
@@ -987,12 +987,12 @@ class TAG_PEM(BaseLocalizer):
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
-        proposal_list = post_processing(result, video_info,
-                                        self.soft_nms_alpha,
-                                        self.soft_nms_low_threshold,
-                                        self.soft_nms_high_threshold,
-                                        self.post_process_top_k,
-                                        self.feature_extraction_interval)
+        proposal_list = post_processing_soft_nms(result, video_info,
+                                                 self.soft_nms_alpha,
+                                                 self.soft_nms_low_threshold,
+                                                 self.soft_nms_high_threshold,
+                                                 self.post_process_top_k,
+                                                 self.feature_extraction_interval)
         output = [
             dict(
                 video_name=video_info['video_name'],
@@ -1124,12 +1124,12 @@ class ClassifyPEM(BaseLocalizer):
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
-        proposal_list = post_processing(result, video_info,
-                                        self.soft_nms_alpha,
-                                        self.soft_nms_low_threshold,
-                                        self.soft_nms_high_threshold,
-                                        self.post_process_top_k,
-                                        self.feature_extraction_interval)
+        proposal_list = post_processing_soft_nms(result, video_info,
+                                                 self.soft_nms_alpha,
+                                                 self.soft_nms_low_threshold,
+                                                 self.soft_nms_high_threshold,
+                                                 self.post_process_top_k,
+                                                 self.feature_extraction_interval)
         output = [
             dict(
                 video_name=video_info['video_name'],
@@ -1266,12 +1266,12 @@ class ClassifyBNPEM(BaseLocalizer):
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
-        proposal_list = post_processing(result, video_info,
-                                        self.soft_nms_alpha,
-                                        self.soft_nms_low_threshold,
-                                        self.soft_nms_high_threshold,
-                                        self.post_process_top_k,
-                                        self.feature_extraction_interval)
+        proposal_list = post_processing_soft_nms(result, video_info,
+                                                 self.soft_nms_alpha,
+                                                 self.soft_nms_low_threshold,
+                                                 self.soft_nms_high_threshold,
+                                                 self.post_process_top_k,
+                                                 self.feature_extraction_interval)
         # proposal_list = post_processing_no_nms(result, video_info, self.feature_extraction_interval)
         output = [
             dict(
@@ -1445,12 +1445,16 @@ class ClassifyBNPEMReg(BaseLocalizer):
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
-        proposal_list = post_processing(result, video_info,
-                                        self.soft_nms_alpha,
-                                        self.soft_nms_low_threshold,
-                                        self.soft_nms_high_threshold,
-                                        self.post_process_top_k,
-                                        self.feature_extraction_interval)
+        # proposal_list = post_processing_soft_nms(result, video_info,
+        #                                          self.soft_nms_alpha,
+        #                                          self.soft_nms_low_threshold,
+        #                                          self.soft_nms_high_threshold,
+        #                                          self.post_process_top_k,
+        #                                          self.feature_extraction_interval)
+        proposal_list = post_processing_hard_nms(result, video_info,
+                                                 self.soft_nms_high_threshold,
+                                                 self.post_process_top_k,
+                                                 self.feature_extraction_interval)
         output = [
             dict(
                 video_name=video_info['video_name'],
@@ -1649,12 +1653,12 @@ class OriFeatPEM(BaseLocalizer):
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
-        # proposal_list = post_processing(result, video_info,
-        #                                 self.soft_nms_alpha,
-        #                                 self.soft_nms_low_threshold,
-        #                                 self.soft_nms_high_threshold,
-        #                                 self.post_process_top_k,
-        #                                 self.feature_extraction_interval)
+        # proposal_list = post_processing_soft_nms(result, video_info,
+        #                                          self.soft_nms_alpha,
+        #                                          self.soft_nms_low_threshold,
+        #                                          self.soft_nms_high_threshold,
+        #                                          self.post_process_top_k,
+        #                                          self.feature_extraction_interval)
         proposal_list = post_processing_no_nms(result, video_info, self.feature_extraction_interval)
         output = [
             dict(
@@ -1882,12 +1886,12 @@ class OriFeatPEMReg(BaseLocalizer):
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
-        proposal_list = post_processing(result, video_info,
-                                        self.soft_nms_alpha,
-                                        self.soft_nms_low_threshold,
-                                        self.soft_nms_high_threshold,
-                                        self.post_process_top_k,
-                                        self.feature_extraction_interval)
+        proposal_list = post_processing_soft_nms(result, video_info,
+                                                 self.soft_nms_alpha,
+                                                 self.soft_nms_low_threshold,
+                                                 self.soft_nms_high_threshold,
+                                                 self.post_process_top_k,
+                                                 self.feature_extraction_interval)
         output = [
             dict(
                 video_name=video_info['video_name'],

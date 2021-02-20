@@ -92,3 +92,27 @@ def soft_nms(proposals, alpha, low_threshold, high_threshold, top_k):
     rscore = np.array(rscore).reshape(-1, 1)
     new_proposals = np.concatenate((rstart, rend, rscore), axis=1)
     return new_proposals
+
+
+def hard_nms(proposals, threshold, top_k):
+    """
+    Hard nms for post processing.
+    Args:
+        proposals:
+        threshold:
+        top_k:
+
+    Returns:
+
+    """
+    proposals = proposals[proposals[:, -1].argsort()[::-1]]
+    i = 0
+    while len(proposals) > max(top_k, i + 1):
+        tmin, tmax = proposals[i, 0], proposals[i, 1]
+        tmin_list, tmax_list = proposals[:, 0], proposals[:, 1]
+        iou_list = temporal_iou(tmin, tmax, tmin_list, tmax_list)
+        mask_list = iou_list <= threshold
+        mask_list[i] = True
+        proposals = proposals[mask_list]
+        i += 1
+    return proposals[:top_k]
