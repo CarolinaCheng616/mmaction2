@@ -862,28 +862,28 @@ def nms_and_dump_results(pgm_proposals_dir,
     mmcv.dump(result_dict.copy(), out)
     print('End Proposal Generation.')
 
-    if origin:
-        print('Begin Original Features Generation.')
-        generate_nms_original_features(video_infos, features_dir,
-                                       nms_proposals_dir, nms_features_dir,
-                                       thread_num, feature_kwargs)
-        print('End Original Features Generation.')
-    else:
-        print('Begin action score Features Generation.')
-        generate_nms_features(video_infos, features_dir, nms_proposals_dir,
-                              nms_features_dir, thread_num, feature_kwargs)
-        print('End action score Features Generation.')
+    # if origin:
+    #     print('Begin Original Features Generation.')
+    #     generate_nms_original_features(video_infos, features_dir,
+    #                                    nms_proposals_dir, nms_features_dir,
+    #                                    thread_num, feature_kwargs)
+    #     print('End Original Features Generation.')
+    # else:
+    #     print('Begin action score Features Generation.')
+    #     generate_nms_features(video_infos, features_dir, nms_proposals_dir,
+    #                           nms_features_dir, thread_num, feature_kwargs)
+    #     print('End action score Features Generation.')
 
 
 if __name__ == '__main__':
-    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet/pgm_proposals/'
+    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_threshold/pgm_proposals/'
     features_dir = 'data/TruNet/val_feature/'
-    nms_proposal_dir = pgm_propopsals_dir
+    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_threshold/pgm_iou_nms_proposals/'
     nms_features_dir = 'work_dirs/tag_pgm_snippet/pgm_origin_features/'
     ann_file = 'data/TruNet/val_meta.json'
-    out = 'a'
+    out = 'work_dirs/tag_pgm_snippet_threshold/test_iou_nms_results.json'
     iou_nms = True
-    proposal_kwargs = dict(thread_num=16)
+    proposal_kwargs = dict(thread_num=4)
     feature_kwargs = dict(
         top_k=10000,
         bsp_boundary_ratio=0.2,
@@ -891,7 +891,8 @@ if __name__ == '__main__':
         num_sample_end=8,
         num_sample_action=16,
         num_sample_interp=3)
+    header = 'tmin,tmax,action_score,match_iou,match_ioa'
     origin = True
     nms_and_dump_results(pgm_propopsals_dir, features_dir, nms_proposal_dir,
                          nms_features_dir, ann_file, out, iou_nms,
-                         proposal_kwargs, feature_kwargs, origin)
+                         proposal_kwargs, feature_kwargs, header, origin)
