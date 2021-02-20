@@ -265,7 +265,7 @@ def main():
                            **cfg.pgm_proposals_cfg)
     print('\nFinish Proposal Generation')
     print('\nBegin Feature Generation')
-    # generate_features(ann_file, tem_results_dir, pgm_proposals_dir, pgm_features_dir, **pgm_features_config)  # noqa
+    generate_features(ann_file, tem_results_dir, pgm_proposals_dir, pgm_features_dir, **pgm_features_config)  # noqa
     print('\nFinish Feature Generation')
 
 
