@@ -147,8 +147,6 @@ class SnippetTEMSR(TEM):
         score = tem_output
         label = torch.tensor(cate)
         label = label.to(device=score.device, dtype=torch.long)
-        import pdb
-        pdb.set_trace()
         num_0, num_1 = int(torch.sum(label == 0)), int(torch.sum(label == 1))
         num_2, num_3 = int(torch.sum(label == 2)), int(torch.sum(label == 3))
         num = num_0 + num_1 + num_2 + num_3
