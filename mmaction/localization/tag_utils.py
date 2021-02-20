@@ -883,9 +883,14 @@ if __name__ == '__main__':
     ann_file = 'data/TruNet/val_meta.json'
     out = 'work_dirs/tag_pgm_snippet_threshold/test_iou_nms_results.json'
     iou_nms = True
-    proposal_kwargs = dict(thread_num=4)
+    proposal_kwargs = dict(
+        thread_num=4,
+        soft_nms_alpha=0.75,
+        soft_nms_low_threshold=0.65,
+        soft_nms_high_threshold=0.9,
+        top_k=100)
     feature_kwargs = dict(
-        top_k=10000,
+        top_k=100,
         bsp_boundary_ratio=0.2,
         num_sample_start=8,
         num_sample_end=8,
