@@ -147,7 +147,14 @@ class SnippetTEMSR(TEM):
         score = tem_output
         label = torch.tensor(cate)
         label = label.to(device=score.device, dtype=torch.long)
-        loss = self.loss_cls(score, label)
+        import pdb
+        pdb.set_trace()
+        num_0, num_1 = int(torch.sum(cate == 0)), int(torch.sum(cate == 1))
+        num_2, num_3 = int(torch.sum(cate == 2)), int(torch.sum(cate == 3))
+        num = num_0 + num_1 + num_2 + num_3
+        w0, w1, w2, w3 = 0.25*num/num_0, 0.25*num/num_1, 0.25*num/num_2, 0.25*num/num_3
+        weight = torch.tensor([w0, w1, w2, w3]).to(device=score.device)
+        loss = self.loss_cls(score, label, weight)
         loss_dict = {
             'loss': loss
         }
