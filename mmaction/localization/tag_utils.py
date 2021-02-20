@@ -36,7 +36,7 @@ def generate_tag_proposals(video_list,
                            # alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
                            # beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
                            alpha_list=[.6, .65, .7, .75, .8],
-                           beta_list=[.1, .2, .3],
+                           beta_list=[.1, .2, .3, .4],
                            tem_results_ext='.csv',
                            result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results.
