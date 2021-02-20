@@ -4,7 +4,7 @@ use_mc = False
 array_length = 10
 machines = 1
 gpus_per_machine = 8
-batch_size = 4096 * 4
+batch_size = 4096
 
 if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
     data_root = 'data/TruNet/sup_train_feature/'
@@ -31,7 +31,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 # ann_file_val = ann_file_train
 # ann_file_test = ann_file_train
 
-work_dir = 'work_dirs/tem_snippet_sample_ratio/'
+work_dir = 'work_dirs/tem_snippet_sample_ratio_1_6/'
 tem_results_dir = f'{work_dir}/tem_results/'
 
 test_pipeline = [
