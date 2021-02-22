@@ -11,7 +11,7 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-pgm_work_dir = 'work_dirs/tag_pgm_snippet'
+pgm_work_dir = 'work_dirs/tag_pgm_snippet_filtered'
 
 if offset:
     pgm_work_dir += '_offset'
