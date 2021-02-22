@@ -356,7 +356,8 @@ def generate_tag_feature(video_list,
                                  video_name + pgm_proposal_ext)
         pgm_proposals = np.loadtxt(
             proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
-        pgm_proposals = pgm_proposals[:top_k]
+        if top_k != -1:
+            pgm_proposals = pgm_proposals[:top_k]
 
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend])
@@ -975,13 +976,12 @@ def nms_and_dump_results(pgm_proposals_dir,
 
 
 if __name__ == '__main__':
-    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_filtered/pgm_proposals/'
-    # features_dir = 'data/TruNet/val_feature/'
-    features_dir = 'work_dirs/tem_snippet/'
-    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_filtered/pgm_iou_nms_proposals/'
-    nms_features_dir = 'work_dirs/tag_pgm_snippet_filtered/pgm_iou_nms_features/'
+    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_clipped/pgm_proposals/'
+    features_dir = 'work_dirs/tem_snippet/tem_results/'
+    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_clipped/pgm_proposals/'
+    nms_features_dir = 'work_dirs/tag_pgm_snippet_clipped/pgm_features/'
     ann_file = 'data/TruNet/val_meta.json'
-    out = 'work_dirs/tag_pgm_snippet_filtered/test_iou_hard_nms_results.json'
+    out = 'work_dirs/tag_pgm_snippet_clipped/test_iou_hard_nms_results.json'
     iou_nms = True
     proposal_kwargs = dict(
         thread_num=8,

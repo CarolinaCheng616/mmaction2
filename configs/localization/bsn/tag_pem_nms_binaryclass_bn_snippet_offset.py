@@ -64,7 +64,7 @@ nms_type = 'iou'
 pgm_work_dir = 'work_dirs/tag_pgm_snippet_filtered/'
 work_dir = f'work_dirs/tag_pem_bn_{nms_type}_nms_' \
            f'{proposal_topk}_{loss_cls}_snippet_offset_lr{lr}/'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals_filte/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/offscale0.5_high0.8_cliped_proposals_190epoch_hard_nms_top100_results.json', output_format='json')
