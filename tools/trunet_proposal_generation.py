@@ -3,6 +3,7 @@ import argparse
 import json
 import os.path as osp
 import os
+from matplotlib import pyplot as plt
 
 
 def trunet_proposal_gen():
@@ -39,7 +40,60 @@ def trunet_proposal_gen():
 
 
 def trunet_proposal_visualize():
-    pass
+    # trunet_results 文件所在上级目录  xxx.csv
+    # draw('work_dirs/bsn_2000x4096_8x5_trunet_feature',
+    #      'data/TruNet/train_meta.json')
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--dir')
+    parser.add_argument('--anno')
+    args = parser.parse_args()
+    direct, train_meta = args.dir, args.anno
+
+    tem_results = osp.join(direct, 'tem_results')
+    figure_dir = osp.join(direct, 'tem_figure')
+    if not osp.exists(figure_dir):
+        os.makedirs(figure_dir)
+    with open(train_meta, 'r') as f:
+        dic = json.load(f)
+    csv_files = os.listdir(tem_results)
+    files = [file for file in dic.keys() if file + '.csv' in csv_files][:100]
+    for file in files:
+        info = dic[file]
+        file = osp.join(tem_results, file + '.csv')
+        result = np.loadtxt(file, dtype=np.float32, delimiter=',', skiprows=1)
+        action, start, end = result[:, 0], result[:, 1], result[:, 2]
+        length = len(action)
+        duration = float(info['duration_second'])
+        annos = np.array([anno['segment'] for anno in info['annotations']])
+        annos = (annos / duration * length).astype(int)
+        ann_start, ann_end, ann_action = np.zeros(length), np.zeros(
+            length), np.zeros(length)
+        ann_start[np.clip(annos[:, 0], 0, length - 1)] = 1
+        ann_end[np.clip(annos[:, 1], 0, length - 1)] = 1
+        for a in annos:
+            ann_action[a[0]:a[1]] = 1
+        action_file = osp.join(
+            figure_dir,
+            osp.splitext(osp.basename(file))[0] + '_action.png')
+        plt.figure()
+        plt.plot(np.array(range(length)), action)
+        plt.plot(np.array(range(length)), ann_action)
+        plt.savefig(action_file)
+
+        # start_file = osp.join(
+        #     figure_dir,
+        #     osp.splitext(osp.basename(file))[0] + '_start.png')
+        # plt.figure()
+        # plt.plot(np.array(range(length)), start)
+        # plt.plot(np.array(range(length)), ann_start)
+        # plt.savefig(start_file)
+
+        # end_file = osp.join(figure_dir,
+        #                     osp.splitext(osp.basename(file))[0] + '_end.png')
+        # plt.figure()
+        # plt.plot(np.array(range(length)), end)
+        # plt.plot(np.array(range(length)), ann_end)
+        # plt.savefig(end_file)
 
 
 if __name__ == '__main__':

@@ -60,27 +60,6 @@ def draw(direct, train_meta):
         plt.plot(np.array(range(length)), end)
         plt.plot(np.array(range(length)), ann_end)
         plt.savefig(end_file)
-        # else:
-        #     action_file = osp.join(
-        #         figure_dir,
-        #         osp.splitext(osp.basename(file))[0] + '_action_100.png')
-        #     plt.figure()
-        #     plt.plot(np.array(range(len(action[:100]))), action[:100])
-        #     plt.savefig(action_file)
-        #
-        #     start_file = osp.join(
-        #         figure_dir,
-        #         osp.splitext(osp.basename(file))[0] + '_start_100.png')
-        #     plt.figure()
-        #     plt.plot(np.array(range(len(start[:100]))), start[:100])
-        #     plt.savefig(start_file)
-        #
-        #     end_file = osp.join(
-        #         figure_dir,
-        #         osp.splitext(osp.basename(file))[0] + '_end_100.png')
-        #     plt.figure()
-        #     plt.plot(np.array(range(len(end[:100]))), end[:100])
-        #     plt.savefig(end_file)
 
 
 if __name__ == '__main__':
