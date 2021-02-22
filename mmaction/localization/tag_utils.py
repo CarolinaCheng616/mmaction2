@@ -994,7 +994,7 @@ if __name__ == '__main__':
         num_sample_action=16,
         num_sample_interp=3)
     header = 'tmin,tmax,action_score,match_iou,match_ioa'
-    origin = True
+    origin = False
     nms_and_dump_results(pgm_propopsals_dir, features_dir, nms_proposal_dir,
                          nms_features_dir, ann_file, out, iou_nms,
                          proposal_kwargs, feature_kwargs, header, origin)
