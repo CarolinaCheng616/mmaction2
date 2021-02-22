@@ -97,4 +97,4 @@ def trunet_proposal_visualize():
 
 
 if __name__ == '__main__':
-    trunet_proposal_gen()
+    trunet_proposal_visualize()
