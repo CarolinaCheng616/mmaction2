@@ -49,8 +49,8 @@ def trunet_proposal_visualize():
     args = parser.parse_args()
     direct, train_meta = args.dir, args.anno
 
-    tem_results = osp.join(direct, 'tem_results')
-    figure_dir = osp.join(direct, 'tem_figure')
+    tem_results = osp.join(direct, 'trunet_results')
+    figure_dir = osp.join(direct, 'trunet_figure')
     if not osp.exists(figure_dir):
         os.makedirs(figure_dir)
     with open(train_meta, 'r') as f:
