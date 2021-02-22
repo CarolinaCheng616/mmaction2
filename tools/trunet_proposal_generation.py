@@ -13,6 +13,7 @@ def trunet_proposal_gen():
     args = parser.parse_args()
     tem_result_dir, trunet_result_dir = args.tem_result, args.trunet_result
     anno_file = args.anno_file
+    os.makedirs(trunet_result_dir, exist_ok=True)
     with open(anno_file, 'r') as f:
         dic = json.load(f)
     videos = list(dic.keys())
