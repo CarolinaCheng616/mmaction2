@@ -30,7 +30,10 @@ def restrict_proposal_length():
                 break
         proposals = np.loadtxt(video_path, dtype=np.float32, delimiter=',', skiprows=1)
         tgap = proposals[:, 1] - proposals[:, 0]
-        mask = length_range[0] <= tgap <= length_range[1]
+        # mask = length_range[0] <= tgap <= length_range[1]
+        mask1 = tgap >= length_range[0]
+        mask2 = tgap <= length_range[1]
+        mask = mask1 * mask2
         new_proposals = proposals[mask]
         np.savetxt(osp.join(result_dir, video + '.csv'), new_proposals, header=header, delimiter=',', comments='')
         if feature_dir is not None and new_feature_dir is not None:
