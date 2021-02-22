@@ -939,46 +939,47 @@ def nms_and_dump_results(pgm_proposals_dir,
                          feature_kwargs,
                          header,
                          origin=False):
-    print('Begin Proposal Generation.')
-    os.makedirs(nms_proposals_dir, exist_ok=True)
+    # print('Begin Proposal Generation.')
+    # os.makedirs(nms_proposals_dir, exist_ok=True)
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
-    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
-    jobs = []
-    result_dict = Manager().dict()
-    score_idx = 3 if iou_nms else 2
-    for i in range(thread_num):
-        proc = Process(
-            target=_multithread_nms_and_dump_results,
-            args=(video_infos[i * videos_per_thread:(i + 1) *
-                              videos_per_thread], pgm_proposals_dir,
-                  nms_proposals_dir, result_dict, score_idx, header,
-                  proposal_kwargs))
-        proc.start()
-        jobs.append(proc)
-    for job in jobs:
-        job.join()
-    mmcv.dump(result_dict.copy(), out)
-    print('End Proposal Generation.')
+    # videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    # jobs = []
+    # result_dict = Manager().dict()
+    # score_idx = 3 if iou_nms else 2
+    # for i in range(thread_num):
+    #     proc = Process(
+    #         target=_multithread_nms_and_dump_results,
+    #         args=(video_infos[i * videos_per_thread:(i + 1) *
+    #                           videos_per_thread], pgm_proposals_dir,
+    #               nms_proposals_dir, result_dict, score_idx, header,
+    #               proposal_kwargs))
+    #     proc.start()
+    #     jobs.append(proc)
+    # for job in jobs:
+    #     job.join()
+    # mmcv.dump(result_dict.copy(), out)
+    # print('End Proposal Generation.')
 
-    # if origin:
-    #     print('Begin Original Features Generation.')
-    #     generate_nms_original_features(video_infos, features_dir,
-    #                                    nms_proposals_dir, nms_features_dir,
-    #                                    thread_num, feature_kwargs)
-    #     print('End Original Features Generation.')
-    # else:
-    #     print('Begin action score Features Generation.')
-    #     generate_nms_features(video_infos, features_dir, nms_proposals_dir,
-    #                           nms_features_dir, thread_num, feature_kwargs)
-    #     print('End action score Features Generation.')
+    if origin:
+        print('Begin Original Features Generation.')
+        generate_nms_original_features(video_infos, features_dir,
+                                       nms_proposals_dir, nms_features_dir,
+                                       thread_num, feature_kwargs)
+        print('End Original Features Generation.')
+    else:
+        print('Begin action score Features Generation.')
+        generate_nms_features(video_infos, features_dir, nms_proposals_dir,
+                              nms_features_dir, thread_num, feature_kwargs)
+        print('End action score Features Generation.')
 
 
 if __name__ == '__main__':
     pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_filtered/pgm_proposals/'
-    features_dir = 'data/TruNet/val_feature/'
+    # features_dir = 'data/TruNet/val_feature/'
+    features_dir = 'work_dirs/tem_snippet/'
     nms_proposal_dir = 'work_dirs/tag_pgm_snippet_filtered/pgm_iou_nms_proposals/'
-    nms_features_dir = 'work_dirs/tag_pgm_snippet_threshold/pgm_origin_features/'
+    nms_features_dir = 'work_dirs/tag_pgm_snippet_filtered/pgm_iou_nms_features/'
     ann_file = 'data/TruNet/val_meta.json'
     out = 'work_dirs/tag_pgm_snippet_filtered/test_iou_hard_nms_results.json'
     iou_nms = True
