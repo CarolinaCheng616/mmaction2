@@ -940,7 +940,7 @@ def nms_and_dump_results(pgm_proposals_dir,
                          header,
                          origin=False):
     print('Begin Proposal Generation.')
-    # os.makedirs(nms_proposals_dir, exist_ok=True)
+    os.makedirs(nms_proposals_dir, exist_ok=True)
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
     videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
