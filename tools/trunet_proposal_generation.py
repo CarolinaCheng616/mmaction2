@@ -61,7 +61,7 @@ def trunet_proposal_visualize():
         info = dic[file]
         file = osp.join(tem_results, file + '.csv')
         result = np.loadtxt(file, dtype=np.float32, delimiter=',', skiprows=1)
-        action, start, end = result[:, 0], result[:, 1], result[:, 2]
+        action = result[:, 0]
         length = len(action)
         duration = float(info['duration_second'])
         annos = np.array([anno['segment'] for anno in info['annotations']])

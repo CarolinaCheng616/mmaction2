@@ -1,5 +1,5 @@
 dataset_type = 'SnippetSRDataset'
-load_type = 'LoadSnippetFeature'
+load_type = 'LoadSnippetRectifiedFeature'
 use_mc = False
 array_length = 10
 machines = 1
