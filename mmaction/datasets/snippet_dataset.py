@@ -10,6 +10,7 @@ import math
 
 from .registry import DATASETS
 from .trunet_dataset import TruNetDataset
+from collections import defaultdict
 
 
 @DATASETS.register_module()
@@ -190,6 +191,7 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
         super().__init__(*args, **kwargs)
         self.snippet_infos, self.start_snippets, self.end_snippets, self.action_snippets, self.bg_snippets = \
             self.load_snippet_annotations()
+        self.video_names = list()
         if not self.test_mode:
             self.sample_ratio()
         else:
@@ -204,6 +206,7 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
         snippet_infos = list()
         for v_info in self.video_infos:
             v_id = v_info['video_name']
+            self.video_names.append(v_id)
             video_snippets = list()
             for i in range(
                     -(self.snippet_length // 2),
@@ -247,12 +250,21 @@ class SnippetSRDataset(TruNetDataset):   # snippet sample ratio dataset
         action_snippets = self.action_snippets[:int(start_number * self.action_boundary_ratio)]
         shuf(self.bg_snippets)
         bg_snippets = self.bg_snippets[:int(start_number * self.bg_boundary_ratio)]
-        self.filtered_snippet_infos = start_snippets + end_snippets + action_snippets + bg_snippets
-        shuf(self.filtered_snippet_infos)
+        filtered_snippet_infos = start_snippets + end_snippets + action_snippets + bg_snippets
+        # shuf(self.filtered_snippet_infos)
         # sort by whole file name
-        self.filtered_snippet_infos = sorted(
-            self.filtered_snippet_infos,
-            key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
+        # self.filtered_snippet_infos = sorted(
+        #     self.filtered_snippet_infos,
+        #     key=lambda x: '_'.join(x['video_name'].split('_')[:-1]))
+        all_snippet_dict = defaultdict(list)
+        for snippet in filtered_snippet_infos:
+            snippet_name = '_'.join(snippet['video_name'].split('_')[:-1])
+            all_snippet_dict[snippet_name].append(snippet)
+        self.filtered_snippet_infos = list()
+        shuf(self.video_names)
+        for video_name in self.video_names:
+            shuf(all_snippet_dict[video_name])
+            self.filtered_snippet_infos += all_snippet_dict[video_name]
 
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         if output_format == 'json':
