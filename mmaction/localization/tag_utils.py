@@ -970,25 +970,25 @@ def nms_and_dump_results(pgm_proposals_dir,
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
 
-    # print('Begin Proposal Generation.')
-    # os.makedirs(nms_proposals_dir, exist_ok=True)
-    # videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
-    # jobs = []
-    # result_dict = Manager().dict()
-    # score_idx = 3 if iou_nms else 2
-    # for i in range(thread_num):
-    #     proc = Process(
-    #         target=_multithread_nms_and_dump_results,
-    #         args=(video_infos[i * videos_per_thread:(i + 1) *
-    #                           videos_per_thread], pgm_proposals_dir,
-    #               nms_proposals_dir, result_dict, score_idx, header,
-    #               proposal_kwargs))
-    #     proc.start()
-    #     jobs.append(proc)
-    # for job in jobs:
-    #     job.join()
-    # mmcv.dump(result_dict.copy(), out)
-    # print('End Proposal Generation.')
+    print('Begin Proposal Generation.')
+    os.makedirs(nms_proposals_dir, exist_ok=True)
+    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    jobs = []
+    result_dict = Manager().dict()
+    score_idx = 3 if iou_nms else 2
+    for i in range(thread_num):
+        proc = Process(
+            target=_multithread_nms_and_dump_results,
+            args=(video_infos[i * videos_per_thread:(i + 1) *
+                              videos_per_thread], pgm_proposals_dir,
+                  nms_proposals_dir, result_dict, score_idx, header,
+                  proposal_kwargs))
+        proc.start()
+        jobs.append(proc)
+    for job in jobs:
+        job.join()
+    mmcv.dump(result_dict.copy(), out)
+    print('End Proposal Generation.')
 
     if origin:
         print('Begin Original Features Generation.')
@@ -1004,13 +1004,13 @@ def nms_and_dump_results(pgm_proposals_dir,
 
 
 if __name__ == '__main__':
-    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_offset_clipped/pgm_proposals/'
+    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_clipped/pgm_proposals/'
     features_dir = 'work_dirs/tem_snippet/tem_results/'
     nms_proposal_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/pgm_proposals/'
     nms_features_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/pgm_features/'
-    ann_file = 'data/TruNet/train_meta.json'
+    ann_file = 'data/TruNet/val_meta.json'
     # out = 'work_dirs/tag_pgm_snippet_clipped/test_iou_hard_nms_results.json'
-    out = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/train_clipped_iou_nms_results.json'
+    out = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/test_clipped_iou_nms_results.json'
     iou_nms = True
     proposal_kwargs = dict(
         thread_num=8,
@@ -1022,7 +1022,7 @@ if __name__ == '__main__':
         num_sample_end=8,
         num_sample_action=16,
         num_sample_interp=3)
-    header = 'tmin,tmax,action_score,match_iou,match_ioa,tmin_offset,tmax_offset'
+    header = 'tmin,tmax,action_score,match_iou,match_ioa'
     origin = False
     nms_and_dump_results(pgm_propopsals_dir, features_dir, nms_proposal_dir,
                          nms_features_dir, ann_file, out, iou_nms,
