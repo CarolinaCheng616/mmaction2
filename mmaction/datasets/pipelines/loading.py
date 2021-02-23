@@ -2165,6 +2165,8 @@ class LoadTAGProposalsOffset:
         # tmin, tmax, action_score, match_iou, match_ioa, tmin_offset, tmax_offset  # noqa
         if self.top_k != -1:
             pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        if len(pgm_proposals.shape) == 1:
+            pgm_proposals = pgm_proposals[np.newaxis, :]
         tmin = pgm_proposals[:, 0]
         tmax = pgm_proposals[:, 1]
         # action_score = pgm_proposals[:, 2]
