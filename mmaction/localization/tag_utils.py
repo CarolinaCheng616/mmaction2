@@ -293,7 +293,7 @@ def generate_tag_feature(video_list,
                          video_infos,
                          tem_results_dir,
                          pgm_proposals_dir,
-                         top_k=1000,
+                         top_k=-1,
                          bsp_boundary_ratio=0.2,
                          num_sample_start=8,
                          num_sample_end=8,
@@ -965,39 +965,40 @@ def nms_and_dump_results(pgm_proposals_dir,
                          feature_kwargs,
                          header,
                          origin=False):
-    print('Begin Proposal Generation.')
-    os.makedirs(nms_proposals_dir, exist_ok=True)
     video_infos = _load_video_infos(ann_file)
     thread_num = proposal_kwargs.pop('thread_num', 1)
-    videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
-    jobs = []
-    result_dict = Manager().dict()
-    score_idx = 3 if iou_nms else 2
-    for i in range(thread_num):
-        proc = Process(
-            target=_multithread_nms_and_dump_results,
-            args=(video_infos[i * videos_per_thread:(i + 1) *
-                              videos_per_thread], pgm_proposals_dir,
-                  nms_proposals_dir, result_dict, score_idx, header,
-                  proposal_kwargs))
-        proc.start()
-        jobs.append(proc)
-    for job in jobs:
-        job.join()
-    mmcv.dump(result_dict.copy(), out)
-    print('End Proposal Generation.')
 
-    # if origin:
-    #     print('Begin Original Features Generation.')
-    #     generate_nms_original_features(video_infos, features_dir,
-    #                                    nms_proposals_dir, nms_features_dir,
-    #                                    thread_num, feature_kwargs)
-    #     print('End Original Features Generation.')
-    # else:
-    #     print('Begin action score Features Generation.')
-    #     generate_nms_features(video_infos, features_dir, nms_proposals_dir,
-    #                           nms_features_dir, thread_num, feature_kwargs)
-    #     print('End action score Features Generation.')
+    # print('Begin Proposal Generation.')
+    # os.makedirs(nms_proposals_dir, exist_ok=True)
+    # videos_per_thread = (len(video_infos) + thread_num - 1) // thread_num
+    # jobs = []
+    # result_dict = Manager().dict()
+    # score_idx = 3 if iou_nms else 2
+    # for i in range(thread_num):
+    #     proc = Process(
+    #         target=_multithread_nms_and_dump_results,
+    #         args=(video_infos[i * videos_per_thread:(i + 1) *
+    #                           videos_per_thread], pgm_proposals_dir,
+    #               nms_proposals_dir, result_dict, score_idx, header,
+    #               proposal_kwargs))
+    #     proc.start()
+    #     jobs.append(proc)
+    # for job in jobs:
+    #     job.join()
+    # mmcv.dump(result_dict.copy(), out)
+    # print('End Proposal Generation.')
+
+    if origin:
+        print('Begin Original Features Generation.')
+        generate_nms_original_features(video_infos, features_dir,
+                                       nms_proposals_dir, nms_features_dir,
+                                       thread_num, feature_kwargs)
+        print('End Original Features Generation.')
+    else:
+        print('Begin action score Features Generation.')
+        generate_nms_features(video_infos, features_dir, nms_proposals_dir,
+                              nms_features_dir, thread_num, feature_kwargs)
+        print('End action score Features Generation.')
 
 
 if __name__ == '__main__':
