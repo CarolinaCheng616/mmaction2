@@ -37,32 +37,13 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-# proposal_topk = 500
 lr = 0.1
-
-# if model['loss_cls']['type'] == 'BinaryLogisticRegressionLoss':
-#     loss_cls = 'blr'
-# elif model['loss_cls']['type'] == 'BinaryThresholdClassificationLoss':
-#     loss_cls = 'btc'
-# else:
-#     loss_cls = ''
-
-# for score nms
-# nms_type = 'score'
-# for iou nms
-# nms_type = 'iou'
 
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms'
 work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-# pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms'
-# work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/offscale0.5_high0.8_clipped_proposals_190epoch_hard_nms_top100_results.json', output_format='json')
 
