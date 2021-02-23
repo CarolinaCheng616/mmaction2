@@ -660,7 +660,7 @@ def _proposals_post_processing_hard_nms_de_duplicate(result, video_info, score_i
     """
     if len(result) > 1:
         result = _proposals_hard_nms_de_duplicate(result, threshold, top_k, score_idx)
-    result = result[result[:, score_idx].argsort()[::-1]][:top_k]
+    result = result[result[:, score_idx].argsort()[::-1]]
     # tmin, tmax, score, iou, iop(, tmin_offset, tmax_offset)
     video_duration = float(video_info['duration_second'])
     proposal_list = []
