@@ -33,10 +33,10 @@ def _load_video_infos(ann_file):
 def generate_tag_proposals(video_list,
                            video_infos,
                            tem_results_dir,
-                           # alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
-                           # beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
-                           alpha_list=[.6, .65, .7, .75, .8],
-                           beta_list=[.1, .2, .3, .4],
+                           alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
+                           beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+                           # alpha_list=[.6, .65, .7, .75, .8],
+                           # beta_list=[.1, .2, .3, .4],
                            tem_results_ext='.csv',
                            result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results.
@@ -158,10 +158,10 @@ def generate_tag_proposals_offset(
         video_list,
         video_infos,
         tem_results_dir,
-        # alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
-        # beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
-        alpha_list=[.6, .65, .7, .75, .8],
-        beta_list=[.1, .2, .3],
+        alpha_list=[.5, .55, .6, .65, .7, .75, .8, .85, .9],
+        beta_list=[0.05, .1, .2, .3, .4, .5, .6, 0.8, 1.0],
+        # alpha_list=[.6, .65, .7, .75, .8],
+        # beta_list=[.1, .2, .3],
         tem_results_ext='.csv',
         result_dict=None):
     """Generate Candidate Proposals with given temporal evalutation results
@@ -1001,7 +1001,7 @@ def nms_and_dump_results(pgm_proposals_dir,
 
 
 if __name__ == '__main__':
-    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_offset/pgm_proposals/'
+    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet/pgm_proposals/'
     features_dir = 'work_dirs/tem_snippet/tem_results/'
     nms_proposal_dir = 'work_dirs/tag_pgm_snippet_offset_de_duplicate/pgm_proposals/'
     nms_features_dir = 'work_dirs/tag_pgm_snippet_offset_de_duplicate/pgm_features/'

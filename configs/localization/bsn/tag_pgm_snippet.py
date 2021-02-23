@@ -1,4 +1,4 @@
-offset = False
+offset = True
 
 # dataset settings
 dataset_type = 'SnippetDataset'
@@ -11,7 +11,7 @@ ann_file_test = 'data/TruNet/val_meta.json'
 tem_work_dir = 'work_dirs/tem_snippet'
 tem_results_dir = f'{tem_work_dir}/tem_results/'
 
-pgm_work_dir = 'work_dirs/tag_pgm_snippet_threshold'
+pgm_work_dir = 'work_dirs/tag_pgm_snippet'
 if offset:
     pgm_work_dir += '_offset'
 
