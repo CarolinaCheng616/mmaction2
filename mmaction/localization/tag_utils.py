@@ -1006,15 +1006,15 @@ def nms_and_dump_results(pgm_proposals_dir,
 if __name__ == '__main__':
     pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_clipped/pgm_proposals/'
     features_dir = 'work_dirs/tem_snippet/tem_results/'
-    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/pgm_proposals/'
-    nms_features_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/pgm_features/'
+    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/pgm_proposals/'
+    nms_features_dir = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/pgm_features/'
     ann_file = 'data/TruNet/val_meta.json'
     # out = 'work_dirs/tag_pgm_snippet_clipped/test_iou_hard_nms_results.json'
-    out = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/test_clipped_iou_nms_results.json'
+    out = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/test_clipped_de_duplicate_results.json'
     iou_nms = True
     proposal_kwargs = dict(
         thread_num=8,
-        threshold=0.6, top_k=100)
+        threshold=0.99, top_k=100)
     feature_kwargs = dict(
         top_k=-1,
         bsp_boundary_ratio=0.2,
