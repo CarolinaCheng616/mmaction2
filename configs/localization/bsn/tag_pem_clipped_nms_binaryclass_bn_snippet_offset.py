@@ -46,7 +46,7 @@ lr = 0.1
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 # for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet_clipped'
+pgm_work_dir = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
 work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
