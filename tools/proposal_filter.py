@@ -3,6 +3,7 @@ import os.path as osp
 import argparse
 import json
 import numpy as np
+import mmcv
 
 
 def restrict_proposal_length():
@@ -23,6 +24,8 @@ def restrict_proposal_length():
     with open(anno_file, 'r') as f:
         dic = json.load(f)
     videos = list(dic.keys())
+    prog_bar = mmcv.ProgressBar(len(videos))
+    prog_bar.start()
     for video in videos:
         video_path = osp.join(proposal_dir, video + '.csv')
         with open(video_path, 'r') as f:
@@ -41,6 +44,7 @@ def restrict_proposal_length():
             feature = np.load(osp.join(feature_dir, video + '.csv'))
             new_feature = feature[mask]
             np.save(osp.join(new_feature, video + '.csv'))
+        prog_bar.update()
 
 
 if __name__ == '__main__':
