@@ -24,7 +24,7 @@ model = dict(
         low_threshold=0.3,
         high_threshold=0.7),
     classify_loss_ratio=1,
-    regression_loss_ratio=1,
+    regression_loss_ratio=5,
     offset_scale=1000)
 # model training and testing settings
 train_cfg = None
@@ -40,18 +40,18 @@ ann_file_test = 'data/TruNet/val_meta.json'
 lr = 0.1
 
 # for train
-# pgm_work_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms'
-# work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
+pgm_work_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms'
 work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
-output_config = dict(out=f'{work_dir}/offscale1_high0.8_clipped_proposals_20epoch_hard_nms_top100_results.json', output_format='json')
+# for test
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
+# work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+output_config = dict(out=f'{work_dir}/offscale5_high0.8_clipped_proposals_20epoch_hard_nms_top100_results.json', output_format='json')
 
 test_pipeline = [
     dict(
@@ -147,7 +147,7 @@ lr_config = dict(
     warmup_by_epoch=True)
 
 total_epochs = 200
-checkpoint_config = dict(interval=5, filename_tmpl='offscale1_high0.8_pem_epoch_{}.pth')
+checkpoint_config = dict(interval=5, filename_tmpl='offscale5_high0.8_pem_epoch_{}.pth')
 
 # evaluation = dict(interval=10, metrics=['AR@AN', 'mAP'])
 
