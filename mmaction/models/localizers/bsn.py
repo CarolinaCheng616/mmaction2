@@ -1400,8 +1400,8 @@ class ClassifyBNPEMReg(BaseLocalizer):
         # pem_output: torch.tensor, shape=[videos_per_gpu*feature_size, 1]
         # anchors_temporal_iou.shape=reference_temporal_iou.shape=
         # [videos_per_gpu*feature_size]
-        # import pdb
-        # pdb.set_trace()
+        import pdb
+        pdb.set_trace()
         classify, regression = self._forward(bsp_feature)
         reference_temporal_iou = torch.cat(list(reference_temporal_iou))
         offset = torch.cat(list(offset))
