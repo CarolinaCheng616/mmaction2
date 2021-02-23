@@ -1606,39 +1606,6 @@ class OriFeatPEM(BaseLocalizer):
         loss = self.loss_cls(anchors_temporal_iou, reference_temporal_iou)
         loss_dict = dict(temporal_iou_loss=loss)
 
-        # u_hmask = (reference_temporal_iou >
-        #            self.pem_high_temporal_iou_threshold).float()
-        # u_mmask = (
-        #     (reference_temporal_iou <= self.pem_high_temporal_iou_threshold)
-        #     & (reference_temporal_iou > self.pem_low_temporal_iou_threshold)
-        # ).float()
-        # u_lmask = (reference_temporal_iou <=
-        #            self.pem_low_temporal_iou_threshold).float()
-        #
-        # num_h = torch.sum(u_hmask)
-        # num_m = torch.sum(u_mmask)
-        # num_l = torch.sum(u_lmask)
-        #
-        # r_m = self.u_ratio_m * num_h / (num_m)
-        # r_m = torch.min(r_m, torch.Tensor([1.0]).to(device))[0]
-        # u_smmask = torch.rand(u_hmask.size()[0], device=device)
-        # u_smmask = u_smmask * u_mmask
-        # u_smmask = (u_smmask > (1. - r_m)).float()
-        #
-        # r_l = self.u_ratio_l * num_h / (num_l)
-        # r_l = torch.min(r_l, torch.Tensor([1.0]).to(device))[0]
-        # u_slmask = torch.rand(u_hmask.size()[0], device=device)
-        # u_slmask = u_slmask * u_lmask
-        # u_slmask = (u_slmask > (1. - r_l)).float()
-        #
-        # temporal_iou_weights = u_hmask + u_smmask + u_slmask
-        # temporal_iou_loss = F.smooth_l1_loss(anchors_temporal_iou,
-        #                                      reference_temporal_iou)
-        # temporal_iou_loss = torch.sum(
-        #     temporal_iou_loss *
-        #     temporal_iou_weights) / torch.sum(temporal_iou_weights)
-        # loss_dict = dict(temporal_iou_loss=temporal_iou_loss)
-
         return loss_dict
 
     def forward_test(self, bsp_feature, tmin, tmax, video_meta):
@@ -1727,7 +1694,8 @@ class OriFeatPEMReg(BaseLocalizer):
                  output_dim=1,
                  loss_cls=dict(type='BinaryThresholdClassificationLoss'),
                  classify_loss_ratio=1,
-                 regression_loss_ratio=1):
+                 regression_loss_ratio=1,
+                 offset_scale=1000):
         super(BaseLocalizer, self).__init__()
 
         self.feat_dim = pem_feat_dim
@@ -1750,6 +1718,7 @@ class OriFeatPEMReg(BaseLocalizer):
         self.loss_cls = build_loss(loss_cls)
         self.regression_loss_ratio = regression_loss_ratio
         self.classify_loss_ratio = classify_loss_ratio
+        self.offset_scale = offset_scale
 
         self.conv = nn.Sequential(
             nn.Conv1d(
@@ -1822,44 +1791,11 @@ class OriFeatPEMReg(BaseLocalizer):
                         self.loss_cls(anchors_temporal_iou, reference_temporal_iou)  # noqa
         positive_idx = reference_temporal_iou >= self.pem_high_temporal_iou_threshold  # noqa
         regression_pos = regression[positive_idx]
-        offset_pos = offset[positive_idx]
+        offset_pos = self.offset_scale * offset[positive_idx]
         regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
             regression_pos, offset_pos)
         loss_dict = dict(
             classify_loss=classify_loss, regression_loss=regression_loss)
-
-        # u_hmask = (reference_temporal_iou >
-        #            self.pem_high_temporal_iou_threshold).float()
-        # u_mmask = (
-        #     (reference_temporal_iou <= self.pem_high_temporal_iou_threshold)
-        #     & (reference_temporal_iou > self.pem_low_temporal_iou_threshold)
-        # ).float()
-        # u_lmask = (reference_temporal_iou <=
-        #            self.pem_low_temporal_iou_threshold).float()
-        #
-        # num_h = torch.sum(u_hmask)
-        # num_m = torch.sum(u_mmask)
-        # num_l = torch.sum(u_lmask)
-        #
-        # r_m = self.u_ratio_m * num_h / (num_m)
-        # r_m = torch.min(r_m, torch.Tensor([1.0]).to(device))[0]
-        # u_smmask = torch.rand(u_hmask.size()[0], device=device)
-        # u_smmask = u_smmask * u_mmask
-        # u_smmask = (u_smmask > (1. - r_m)).float()
-        #
-        # r_l = self.u_ratio_l * num_h / (num_l)
-        # r_l = torch.min(r_l, torch.Tensor([1.0]).to(device))[0]
-        # u_slmask = torch.rand(u_hmask.size()[0], device=device)
-        # u_slmask = u_slmask * u_lmask
-        # u_slmask = (u_slmask > (1. - r_l)).float()
-        #
-        # temporal_iou_weights = u_hmask + u_smmask + u_slmask
-        # temporal_iou_loss = F.smooth_l1_loss(anchors_temporal_iou,
-        #                                      reference_temporal_iou)
-        # temporal_iou_loss = torch.sum(
-        #     temporal_iou_loss *
-        #     temporal_iou_weights) / torch.sum(temporal_iou_weights)
-        # loss_dict = dict(temporal_iou_loss=temporal_iou_loss)
 
         return loss_dict
 
@@ -1872,6 +1808,7 @@ class OriFeatPEMReg(BaseLocalizer):
 
         score = classify.view(-1).cpu().numpy().reshape(-1, 1)
         regression = regression.view(-1).cpu().numpy().reshape(-1, 2)
+        regression = regression / self.offset_scale
 
         tmp_tmin = tmin.view(-1).cpu().numpy().reshape(-1, 1)
         tmp_tmax = tmax.view(-1).cpu().numpy().reshape(-1, 1)
@@ -1886,9 +1823,13 @@ class OriFeatPEMReg(BaseLocalizer):
         result = np.concatenate((tmin, tmax, score), axis=1)
         result = result.reshape(-1, 3)
         video_info = dict(video_meta[0])
-        proposal_list = post_processing_soft_nms(result, video_info,
-                                                 self.soft_nms_alpha,
-                                                 self.soft_nms_low_threshold,
+        # proposal_list = post_processing_soft_nms(result, video_info,
+        #                                          self.soft_nms_alpha,
+        #                                          self.soft_nms_low_threshold,
+        #                                          self.soft_nms_high_threshold,
+        #                                          self.post_process_top_k,
+        #                                          self.feature_extraction_interval)
+        proposal_list = post_processing_hard_nms(result, video_info,
                                                  self.soft_nms_high_threshold,
                                                  self.post_process_top_k,
                                                  self.feature_extraction_interval)
@@ -1897,6 +1838,7 @@ class OriFeatPEMReg(BaseLocalizer):
                 video_name=video_info['video_name'],
                 proposal_list=proposal_list)
         ]
+
         return output
 
     def forward(self,
