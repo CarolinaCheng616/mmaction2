@@ -797,9 +797,6 @@ def _generate_tag_original_feature(video_list,
     for video_index in video_list:
         video_name = video_infos[video_index]['video_name']
         feature_path = osp.join(pgm_features_dir, video_name + '.npy')
-        # if osp.exists(feature_path):
-        #     prog_bar.update()
-        #     continue
         duration = video_infos[video_index]['duration_second']
 
         pkl_path = osp.join(origin_feature_dir,
@@ -829,6 +826,8 @@ def _generate_tag_original_feature(video_list,
         # pgm_proposals = pgm_proposals[:top_k]
         if top_k != -1:
             pgm_proposals = pgm_proposals[:top_k]
+        if len(pgm_proposals.shape) == 1:
+            pgm_proposals = pgm_proposals[np.newaxis, :]
 
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend, dim])
@@ -1004,17 +1003,18 @@ def nms_and_dump_results(pgm_proposals_dir,
 
 
 if __name__ == '__main__':
-    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_clipped/pgm_proposals/'
-    features_dir = 'work_dirs/tem_snippet/tem_results/'
-    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/pgm_proposals/'
-    nms_features_dir = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/pgm_features/'
-    ann_file = 'data/TruNet/val_meta.json'
+    pgm_propopsals_dir = 'work_dirs/tag_pgm_snippet_offset_clipped/pgm_proposals/'
+    # features_dir = 'work_dirs/tem_snippet/tem_results/'
+    features_dir = 'data/TruNet/train_feature/'
+    nms_proposal_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/pgm_proposals/'
+    nms_features_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/pgm_features/'
+    ann_file = 'data/TruNet/train_meta.json'
     # out = 'work_dirs/tag_pgm_snippet_clipped/test_iou_hard_nms_results.json'
-    out = 'work_dirs/tag_pgm_snippet_clipped_de_duplicate/test_clipped_de_duplicate_results.json'
+    out = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/train_offset_clipped_iou_nms_results.json'
     iou_nms = True
     proposal_kwargs = dict(
         thread_num=8,
-        threshold=0.99, top_k=100)
+        threshold=0.6, top_k=100)
     feature_kwargs = dict(
         top_k=-1,
         bsp_boundary_ratio=0.2,
@@ -1023,7 +1023,7 @@ if __name__ == '__main__':
         num_sample_action=16,
         num_sample_interp=3)
     header = 'tmin,tmax,action_score,match_iou,match_ioa'
-    origin = False
+    origin = True
     nms_and_dump_results(pgm_propopsals_dir, features_dir, nms_proposal_dir,
                          nms_features_dir, ann_file, out, iou_nms,
                          proposal_kwargs, feature_kwargs, header, origin)
