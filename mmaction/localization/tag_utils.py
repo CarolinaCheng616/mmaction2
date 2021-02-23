@@ -358,8 +358,8 @@ def generate_tag_feature(video_list,
             proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
         if top_k != -1:
             pgm_proposals = pgm_proposals[:top_k]
-        # print(pgm_proposals.shape)
-        # exit(0)
+        if len(pgm_proposals.shape) == 1:
+            pgm_proposals = pgm_proposals[np.newaxis, :]
 
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend])
@@ -379,13 +379,8 @@ def generate_tag_feature(video_list,
         bsp_feature = []
         for pgm_proposal in pgm_proposals:
             # tmin, tmax, action_score, iou, iop
-            try:
-                tmin = pgm_proposal[0]
-                tmax = pgm_proposal[1]
-            except IndexError:
-                print(pgm_proposals.shape)
-                print(proposal_path)
-                exit(0)
+            tmin = pgm_proposal[0]
+            tmax = pgm_proposal[1]
 
             tlen = tmax - tmin
             # Temporal range for start
