@@ -27,6 +27,7 @@ def restrict_proposal_length():
         video_path = osp.join(proposal_dir, video + '.csv')
         with open(video_path, 'r') as f:
             for header in f:
+                header = header.strip()
                 break
         proposals = np.loadtxt(video_path, dtype=np.float32, delimiter=',', skiprows=1)
         tgap = proposals[:, 1] - proposals[:, 0]
