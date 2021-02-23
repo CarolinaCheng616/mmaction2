@@ -39,7 +39,14 @@ ann_file_test = 'data/TruNet/val_meta.json'
 
 lr = 0.1
 
-pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms'
+# for train
+# pgm_work_dir = 'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms'
+# work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+pgm_work_dir = 'work_dirs/tag_pgm_snippet_clipped'
 work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_clipped_lr{lr}/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
