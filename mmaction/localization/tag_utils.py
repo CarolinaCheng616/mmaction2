@@ -358,8 +358,8 @@ def generate_tag_feature(video_list,
             proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
         if top_k != -1:
             pgm_proposals = pgm_proposals[:top_k]
-        import pdb
-        pdb.set_trace()
+        print(pgm_proposals.shape)
+        exit(0)
 
         # Generate temporal sample points
         boundary_zeros = np.zeros([video_extend])
