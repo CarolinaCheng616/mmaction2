@@ -21,7 +21,7 @@ class FFLSTM(nn.Module):
     def forward(self, x):
         # x.shape: [seq_len, batch, feature_size]
         _, batch, _ = x.shape
-        device = x.device
+        # device = x.device
         if self.with_init_hc:
             ht = torch.randn(self.num_layers, batch, self.hidden_size)
             ct = torch.randn(self.num_layers, batch, self.hidden_size)

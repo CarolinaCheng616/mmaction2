@@ -136,7 +136,8 @@ def pem_training_pos_neg_ratio():
         new_proposal_path = osp.join(new_proposal_dir, video + '.csv')
         np.savetxt(new_proposal_path, new_proposals, header=header, delimiter=',', comments='')
         if feature_dir is not None and new_feature_dir is not None:
-            features = np.load(feature_dir)
+            feature_path = osp.join(feature_dir, video + '.npy')
+            features = np.load(feature_path)
             pos_features = features[pos_idx]
             neg_features = features[neg_idx]
             if len(pos_features) == 0 and len(neg_features) == 0:
