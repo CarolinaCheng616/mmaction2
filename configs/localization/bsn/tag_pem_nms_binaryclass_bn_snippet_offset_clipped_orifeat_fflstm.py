@@ -130,7 +130,7 @@ data = dict(
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
 gpu_per_node = 2
-machines = 3
+machines = 2
 optimizer = dict(
     type='SGD',
     lr=lr * data['videos_per_gpu'] * gpu_per_node * machines / 256,
