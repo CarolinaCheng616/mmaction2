@@ -130,7 +130,7 @@ def pem_training_pos_neg_ratio():
         elif len(neg_proposals) == 0:
             new_proposals = pos_proposals
         else:
-            new_proposals = pos_proposals + neg_proposals
+            new_proposals = np.concatenate((pos_proposals, neg_proposals), axis=0)
         new_proposal_path = osp.join(new_proposal_dir, video + '.csv')
         np.savetxt(new_proposal_path, new_proposals, header=header, delimiter=',', comments='')
         if feature_dir is not None and new_feature_dir is not None:
@@ -144,7 +144,7 @@ def pem_training_pos_neg_ratio():
             elif len(neg_features) == 0:
                 new_features = pos_features
             else:
-                new_features = pos_features + neg_features
+                new_features = np.concatenate((pos_features, neg_features), axis=0)
             new_feature_path = osp.join(new_feature_dir, video + '.npy')
             np.save(new_feature_path, new_features)
 
