@@ -112,6 +112,8 @@ def pem_training_pos_neg_ratio():
     with open(anno_file, 'r') as f:
         dic = json.load(f)
     videos = list(dic.keys())
+    prog_bar = mmcv.ProgressBar(len(videos))
+    prog_bar.start()
     for video in videos:
         proposal_path = osp.join(proposal_dir, video + '.csv')
         with open(proposal_path, 'r') as f:
@@ -150,6 +152,7 @@ def pem_training_pos_neg_ratio():
                 new_features = np.concatenate((pos_features, neg_features), axis=0)
             new_feature_path = osp.join(new_feature_dir, video + '.npy')
             np.save(new_feature_path, new_features)
+        prog_bar.update()
 
 
 if __name__ == '__main__':

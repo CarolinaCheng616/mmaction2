@@ -6,13 +6,15 @@
 # pgm features are original features
 # model settings
 model = dict(
-    type='OriFeatPEMReg',
+    type='OriFeatBNPEMRegLSTM',
+    num_layers=5,
+    seq_len=32,
     pem_feat_dim=4096,
     pem_hidden_dim1=256,
     pem_hidden_dim2=256,
     pem_u_ratio_m=1,
     pem_u_ratio_l=2,
-    pem_high_temporal_iou_threshold=0.8,
+    pem_high_temporal_iou_threshold=0.7,
     pem_low_temporal_iou_threshold=0.3,
     soft_nms_alpha=0.75,
     soft_nms_low_threshold=0.65,
@@ -42,16 +44,16 @@ ann_file_test = 'data/TruNet/val_meta.json'
 lr = 0.1
 
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms/'
+pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms_pos_neg/'
+work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_fflstm_lr0.1/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = f'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
 # work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_lr0.1/'
 # pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = f'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
-work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_lr0.1/'
-pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/nms_top100_results.json', output_format='json')
 
@@ -148,7 +150,7 @@ lr_config = dict(
     warmup_by_epoch=True)
 
 total_epochs = 200
-checkpoint_config = dict(interval=2, filename_tmpl='pem_epoch_{}.pth')
+checkpoint_config = dict(interval=5, filename_tmpl='pem_epoch_{}.pth')
 
 # evaluation = dict(interval=1, metrics=['AR@AN'])
 

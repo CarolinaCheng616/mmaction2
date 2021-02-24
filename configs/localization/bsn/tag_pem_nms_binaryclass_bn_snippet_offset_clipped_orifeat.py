@@ -6,7 +6,7 @@
 # pgm features are original features
 # model settings
 model = dict(
-    type='OriFeatPEMReg',
+    type='OriFeatBNPEMReg',
     pem_feat_dim=4096,
     pem_hidden_dim1=256,
     pem_hidden_dim2=256,
