@@ -39,5 +39,5 @@ class FFLSTM(nn.Module):
             for j in range(1, self.num_layers):
                 ht[j], ct[j] = self.cells[j](ft, (ht[j], ct[j]))
                 ft = self.output_layer(ht[j] + ft)
-            output.append(ft)
-        return torch.tensor(output)
+            output.append(ft.unsqueeze(0))
+        return torch.cat(output)
