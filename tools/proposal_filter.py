@@ -107,6 +107,8 @@ def pem_training_pos_neg_ratio():
     feature_dir = args.feature_dir
     new_feature_dir = args.new_feature_dir
     os.makedirs(new_proposal_dir, exist_ok=True)
+    if new_feature_dir is not None:
+        os.makedirs(new_feature_dir, exist_ok=True)
     with open(anno_file, 'r') as f:
         dic = json.load(f)
     videos = list(dic.keys())
