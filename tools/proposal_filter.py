@@ -94,7 +94,7 @@ def pem_training_pos_neg_ratio():
     parser.add_argument('--anno_file')
     parser.add_argument('--low_threshold', type=float, default=0.3)
     parser.add_argument('--high_threshold', type=float, default=0.7)
-    parser.add_argument('--score_idx')
+    parser.add_argument('--score_idx', type=int)
     parser.add_argument('--feature_dir', default=None)
     parser.add_argument('--new_feature_dir', default=None)
     args = parser.parse_args()
