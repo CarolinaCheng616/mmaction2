@@ -4,7 +4,7 @@ import torch.nn as nn
 
 
 class FFLSTM(nn.Module):
-    def __init__(self, num_layers, seq_len, feature_size, hidden_size, with_init_hc=False):
+    def __init__(self, num_layers, seq_len, feature_size, hidden_size, with_init_hc=False, bias=False):
         super(FFLSTM, self).__init__()
         self.num_layers = num_layers
         self.seq_len = seq_len
@@ -13,7 +13,7 @@ class FFLSTM(nn.Module):
         self.with_init_hc = with_init_hc
 
         self.cells = []
-        self.cells.append(nn.LSTMCell(feature_size, hidden_size))  # feature_size, hidden_size
+        self.cells.append(nn.LSTMCell(feature_size, hidden_size, bias=bias))  # feature_size, hidden_size
         for i in range(1, num_layers):
             self.cells.append(nn.LSTMCell(hidden_size, hidden_size))  # hidden_size, hidden_size
         self.output_layer = nn.Linear(hidden_size, hidden_size)
@@ -22,9 +22,8 @@ class FFLSTM(nn.Module):
         # x.shape: [seq_len, batch, feature_size]
         _, batch, _ = x.shape
         device = x.device
-        print(device)
-        import pdb
-        pdb.set_trace()
+        for i in range(self.num_layers):
+            self.cells[i] = self.cells[i].cuda()
         if self.with_init_hc:
             ht = torch.randn(self.num_layers, batch, self.hidden_size)
             ct = torch.randn(self.num_layers, batch, self.hidden_size)
