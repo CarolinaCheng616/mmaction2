@@ -28,8 +28,8 @@ class FFLSTM(nn.Module):
         else:
             ht = torch.zeros(self.num_layers, batch, self.hidden_size)
             ct = torch.zeros(self.num_layers, batch, self.hidden_size)
-        ht = ht.to(device, type=torch.float32)
-        ct = ct.to(device, type=torch.float32)
+        ht = ht.to(device, dtype=torch.float32)
+        ct = ct.to(device, dtype=torch.float32)
         output = []  # seq_len, batch, hidden_size
         for i in range(self.seq_len):
             ht[0], ct[0] = self.cells[0](x[i], (ht[0], ct[0]))
