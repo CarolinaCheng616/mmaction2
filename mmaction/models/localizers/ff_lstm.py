@@ -22,6 +22,9 @@ class FFLSTM(nn.Module):
         # x.shape: [seq_len, batch, feature_size]
         _, batch, _ = x.shape
         device = x.device
+        print(device)
+        import pdb
+        pdb.set_trace()
         if self.with_init_hc:
             ht = torch.randn(self.num_layers, batch, self.hidden_size)
             ct = torch.randn(self.num_layers, batch, self.hidden_size)
