@@ -150,4 +150,4 @@ def pem_training_pos_neg_ratio():
 
 
 if __name__ == '__main__':
-    restrict_proposal_length()
+    pem_training_pos_neg_ratio()
