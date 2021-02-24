@@ -40,4 +40,6 @@ class FFLSTM(nn.Module):
                 ht[j], ct[j] = self.cells[j](ft, (ht[j], ct[j]))
                 ft = self.output_layer(ht[j] + ft)
             output.append(ft.unsqueeze(0))
+        import pdb
+        pdb.set_trace()
         return torch.cat(output)
