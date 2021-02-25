@@ -25,23 +25,38 @@ class FFLSTM(nn.Module):
         device = x.device
         for i in range(self.num_layers):
             self.cells[i] = self.cells[i].cuda()
+        ht, ct, ft = [], [], []
         if self.with_init_hc:
-            ht = torch.randn(self.num_layers, batch, self.hidden_size)
-            ct = torch.randn(self.num_layers, batch, self.hidden_size)
+            h0 = torch.randn(self.num_layers, batch, self.hidden_size)
+            c0 = torch.randn(self.num_layers, batch, self.hidden_size)
         else:
-            ht = torch.zeros(self.num_layers, batch, self.hidden_size)
-            ct = torch.zeros(self.num_layers, batch, self.hidden_size)
-        ht = ht.to(device, dtype=torch.float32)
-        ct = ct.to(device, dtype=torch.float32)
+            h0 = torch.zeros(self.num_layers, batch, self.hidden_size)
+            c0 = torch.zeros(self.num_layers, batch, self.hidden_size)
+        h0 = h0.to(device, dtype=torch.float32)
+        c0 = c0.to(device, dtype=torch.float32)
+        ht.append(h0)
+        ct.append(c0)
         output = []  # seq_len, batch, hidden_size
+        import pdb
+        pdb.set_trace()
         for i in range(self.seq_len):
-            ht[0], ct[0] = self.cells[0](x[i], (ht[0], ct[0]))
-            ft = self.output_layer(ht[0])  # batch, hidden_size
+            # ht[0], ct[0] = self.cells[0](x[i], (ht[0], ct[0]))
+            hti, cti, fti = [], [], []
+            hti0, cti0 = self.cells[0](x[i], (ht[-1][0], ct[-1][0]))
+            fti0 = self.output_layer(hti0)  # batch, hidden_size
+            hti.append(hti0)
+            cti.append(cti0)
+            fti.append(fti0)
             for j in range(1, self.num_layers):
-                ht[j], ct[j] = self.cells[j](ft, (ht[j], ct[j]))
-                ft = self.output_layer(ht[j] + ft)
+                # ht[j], ct[j] = self.cells[j](ft, (ht[j], ct[j]))
+                htij, ctij = self.cells[j](fti[-1], (ht[-1][j], ct[-1][j]))
+                ftij = self.output_layer(htij + fti[-1])
+                hti.append(htij)
+                cti.append(ctij)
+                fti.append(ftij)
+            ht.append(hti)
+            ct.append(cti)
+            ft.append(fti)
+
             # output.append(ft.unsqueeze(0))
-            # ft = ft.unsqueeze(0)
-            ft_clone = ft.clone().unsqueeze(0)
-            output.append(ft_clone)
         return torch.cat(output)
