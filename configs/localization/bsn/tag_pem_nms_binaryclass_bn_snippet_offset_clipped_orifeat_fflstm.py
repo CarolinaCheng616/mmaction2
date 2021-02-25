@@ -6,7 +6,7 @@
 # pgm features are original features
 # model settings
 model = dict(
-    type='OriFeatBNPEMRegLSTM',
+    type='OriFeatBNPEMRegFFLSTM',
     num_layers=5,
     seq_len=32,
     pem_feat_dim=4096,
@@ -129,8 +129,8 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
-gpu_per_node = 2
-machines = 2
+gpu_per_node = 8
+machines = 1
 optimizer = dict(
     type='SGD',
     lr=lr * data['videos_per_gpu'] * gpu_per_node * machines / 256,

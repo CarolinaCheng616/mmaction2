@@ -2076,7 +2076,7 @@ class OriFeatBNPEMReg(BaseLocalizer):
 
 
 @LOCALIZERS.register_module()
-class OriFeatBNPEMRegLSTM(BaseLocalizer):
+class OriFeatBNPEMRegFFLSTM(BaseLocalizer):
     """Classify proposal into binary category: background or foreground using
     original features and FF-LSTM.
 
