@@ -56,5 +56,5 @@ class FFLSTM(nn.Module):
             ht.append(hti)
             ct.append(cti)
             ft.append(fti)  # [[] * 5] * 32
-            output.append(ft[-1].unsqueeze(0))  # batch, hidden_size
+            output.append(fti[-1].unsqueeze(0))  # batch, hidden_size
         return torch.cat(output)
