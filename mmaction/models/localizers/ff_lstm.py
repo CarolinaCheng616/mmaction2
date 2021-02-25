@@ -20,8 +20,6 @@ class FFLSTM(nn.Module):
 
     def forward(self, x):
         # x.shape: [seq_len, batch, feature_size]
-        import pdb
-        pdb.set_trace()
         _, batch, _ = x.shape
         device = x.device
         for i in range(self.num_layers):
@@ -41,7 +39,7 @@ class FFLSTM(nn.Module):
             for j in range(1, self.num_layers):
                 ht[j], ct[j] = self.cells[j](ft, (ht[j], ct[j]))
                 ft = self.output_layer(ht[j] + ft)
-            output.append(ft.unsqueeze(0))
-        # import pdb
-        # pdb.set_trace()
+            # output.append(ft.unsqueeze(0))
+            ft = ft.unsqueeze(0)
+            output.append(ft)
         return torch.cat(output)
