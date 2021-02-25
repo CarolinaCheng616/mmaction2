@@ -41,6 +41,6 @@ class FFLSTM(nn.Module):
                 ft = self.output_layer(ht[j] + ft)
             # output.append(ft.unsqueeze(0))
             # ft = ft.unsqueeze(0)
-            ft_clone = ft.unsqueeze(0)
+            ft_clone = ft.clone().unsqueeze(0)
             output.append(ft_clone)
         return torch.cat(output)
