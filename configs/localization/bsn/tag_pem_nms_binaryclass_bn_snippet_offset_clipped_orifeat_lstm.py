@@ -50,10 +50,10 @@ lr = 0.1
 # pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 # for test
-# pgm_work_dir = f'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
-# work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_lstm_lr0.1/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+pgm_work_dir = f'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
+work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_lstm_lr0.1/'
+pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/nms_top100_results.json', output_format='json')
 
