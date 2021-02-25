@@ -44,16 +44,16 @@ ann_file_test = 'data/TruNet/val_meta.json'
 lr = 0.1
 
 # for train
-# pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms_pos_neg/'
-# work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_fflstm_lr0.1/'
-# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
-# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
-
-# for test
-pgm_work_dir = f'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
+pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms_pos_neg/'
 work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_fflstm_lr0.1/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
+
+# for test
+# pgm_work_dir = f'work_dirs/tag_pgm_snippet_clipped_de_duplicate/'
+# work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_fflstm_lr0.1/'
+# pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
+# pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
 output_config = dict(out=f'{work_dir}/nms_top100_results.json', output_format='json')
 
@@ -129,7 +129,7 @@ data = dict(
 # optimizer
 # optimizer = dict(
 #     type='Adam', lr=0.01, weight_decay=0.00001)  # this lr is used for 1 gpus
-gpu_per_node = 8
+gpu_per_node = 1
 machines = 1
 optimizer = dict(
     type='SGD',
