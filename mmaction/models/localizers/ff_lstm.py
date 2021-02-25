@@ -17,6 +17,7 @@ class FFLSTM(nn.Module):
         for i in range(1, num_layers):
             self.cells.append(nn.LSTMCell(hidden_size, hidden_size))  # hidden_size, hidden_size
         self.output_layer = nn.Linear(hidden_size, hidden_size)
+        torch.autograd.set_detect_anomaly(True)
 
     def forward(self, x):
         # x.shape: [seq_len, batch, feature_size]
