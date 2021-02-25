@@ -37,8 +37,6 @@ class FFLSTM(nn.Module):
         ht.append(h0)
         ct.append(c0)
         output = []  # seq_len, batch, hidden_size
-        import pdb
-        pdb.set_trace()
         for i in range(self.seq_len):
             hti, cti, fti = [], [], []
             hti0, cti0 = self.cells[0](x[i], (ht[-1][0], ct[-1][0]))
