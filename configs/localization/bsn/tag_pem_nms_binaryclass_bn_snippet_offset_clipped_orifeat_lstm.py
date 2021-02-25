@@ -41,11 +41,11 @@ ann_file_train = 'data/TruNet/train_meta.json'
 ann_file_val = 'data/TruNet/val_meta.json'
 ann_file_test = 'data/TruNet/val_meta.json'
 
-lr = 0.1
+lr = 0.05
 
 # for train
 pgm_work_dir = f'work_dirs/tag_pgm_snippet_offset_clipped_iou_nms_pos_neg/'
-work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_lstm_lr0.1/'
+work_dir = f'work_dirs/tag_pem_bn_iou_nms_btc_snippet_offset_orifeat_clipped_lstm_lr0.05/'
 pgm_proposals_dir = f'{pgm_work_dir}/pgm_proposals/'
 pgm_features_dir = f'{pgm_work_dir}/pgm_features/'
 
