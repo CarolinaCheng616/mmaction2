@@ -40,7 +40,6 @@ class FFLSTM(nn.Module):
         import pdb
         pdb.set_trace()
         for i in range(self.seq_len):
-            # ht[0], ct[0] = self.cells[0](x[i], (ht[0], ct[0]))
             hti, cti, fti = [], [], []
             hti0, cti0 = self.cells[0](x[i], (ht[-1][0], ct[-1][0]))
             fti0 = self.output_layer(hti0)  # batch, hidden_size
@@ -56,7 +55,6 @@ class FFLSTM(nn.Module):
                 fti.append(ftij)
             ht.append(hti)
             ct.append(cti)
-            ft.append(fti)
-
-            # output.append(ft.unsqueeze(0))
+            ft.append(fti)  # [[] * 5] * 32
+            output.append(ft[-1].unsqueeze(0))  # batch, hidden_size
         return torch.cat(output)
