@@ -2402,7 +2402,7 @@ class OriFeatBNPEMRegLSTM(BaseLocalizer):
         x = torch.cat(list(x))
         # batch, seq_len, feature_dim(N, L, C)
         x = self.lstm(x)[0]
-        # batch, seq_len, C1(batch, 32, channel)
+        # N, L, C1(batch, 32, channel)
         x = torch.transpose(x, 1, 2)
         # N, C1, L
         x = self.pooling(x).squeeze(2)
