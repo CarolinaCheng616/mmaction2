@@ -14,11 +14,12 @@ from .snippet_dataset import SnippetDataset, SnippetSRDataset
 from .ssn_dataset import SSNDataset
 from .trunet_dataset import TruNetDataset
 from .video_dataset import VideoDataset
+from .sum_dataset import SumDataset
 
 __all__ = [
     'VideoDataset', 'build_dataloader', 'build_dataset', 'RepeatDataset',
     'RawframeDataset', 'BaseDataset', 'ActivityNetDataset', 'SSNDataset',
     'HVUDataset', 'AudioDataset', 'AudioFeatureDataset', 'ImageDataset',
     'RawVideoDataset', 'AVADataset', 'AudioVisualDataset', 'TruNetDataset',
-    'SnippetDataset', 'SnippetSRDataset'
+    'SnippetDataset', 'SnippetSRDataset', 'sum_dataset'
 ]
