@@ -40,10 +40,9 @@ class SumDataset(BaseDataset):
             obj = yaml.safe_load(f)
         return obj
 
-    def _get_datasets(self, keys):
-        dataset_paths = {
-            str(Path(osp.join(self.data_prefix, key)).parent) for key in keys
-        }
+    @staticmethod
+    def _get_datasets(keys):
+        dataset_paths = {str(Path(key).parent) for key in keys}
         datasets = {path: h5py.File(path, "r") for path in dataset_paths}
         return datasets
 
@@ -121,6 +120,7 @@ class SumDataset(BaseDataset):
             keys = split["test_keys"]
         else:
             keys = split["train_keys"]
+        keys = [osp.join(self.data_prefix, key) for key in keys]
         datasets = self._get_datasets(keys)
         # trunet like data
         video_infos = list()
