@@ -102,6 +102,7 @@ data = dict(
     ),
     test=dict(
         type=dataset_type,
+        split_idx=0,
         ann_file=ann_file_test,
         pipeline=test_pipeline,
         data_prefix=data_root_val,
@@ -109,6 +110,7 @@ data = dict(
     ),
     val=dict(
         type=dataset_type,
+        split_idx=0,
         ann_file=ann_file_val,
         pipeline=val_pipeline,
         data_prefix=data_root_val,
@@ -116,6 +118,7 @@ data = dict(
     ),
     train=dict(
         type=dataset_type,
+        split_idx=0,
         ann_file=ann_file_train,
         pipeline=train_pipeline,
         data_prefix=data_root,
