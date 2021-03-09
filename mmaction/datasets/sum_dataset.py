@@ -132,8 +132,8 @@ class SumDataset(BaseDataset):
                     summary = video_file['user_summary'][...].astype(np.float32)
                 # segments
 
-            video_info = dict(video_name=key, features=features, segments=segments)
-            video_infos.append(video_info)
+            # video_info = dict(video_name=key, features=features, segments=segments)
+            # video_infos.append(video_info)
         return video_infos
 
     def prepare_train_frames(self, idx):
