@@ -119,13 +119,14 @@ class SumDataset(BaseDataset):
         within_indicator[0] = summary[0]
         within_indicator[-1] = 0 - summary[-1]
         segments = []
+        segment = []
         for i, indicator in enumerate(within_indicator):
-            segment = []
             if indicator == 1:
                 segment.append(i)
             elif indicator == -1:
                 segment.append(i - 1)
                 segments.append(segment)
+                segment = []
         segments = np.array(segments)
         assert (
             segments.shape[1] == 2
