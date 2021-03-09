@@ -3,19 +3,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 
-from ...localization import temporal_iop
 from ..builder import build_loss
 from ..registry import LOCALIZERS
 from .base import BaseLocalizer
-from .utils import (
-    post_processing_soft_nms,
-    post_processing_no_nms,
-    post_processing_hard_nms,
-)
 
 
 @LOCALIZERS.register_module()
-class TEM(BaseLocalizer):
+class SumTEM(BaseLocalizer):
     """Temporal Evaluation Model for Boundary Sensetive Network.
 
     Please refer `BSN: Boundary Sensitive Network for Temporal Action
@@ -39,22 +33,18 @@ class TEM(BaseLocalizer):
 
     def __init__(
         self,
-        temporal_dim,
-        boundary_ratio,
         tem_feat_dim,
         tem_hidden_dim,
         tem_match_threshold,
         loss_cls=dict(type="BinaryLogisticRegressionLoss"),
-        loss_weight=2,
-        output_dim=3,
+        loss_weight=1,
+        output_dim=1,
         conv1_ratio=1,
         conv2_ratio=1,
         conv3_ratio=1,
     ):
         super(BaseLocalizer, self).__init__()
 
-        self.temporal_dim = temporal_dim
-        self.boundary_ratio = boundary_ratio
         self.feat_dim = tem_feat_dim
         self.c_hidden = tem_hidden_dim
         self.match_threshold = tem_match_threshold
@@ -88,29 +78,6 @@ class TEM(BaseLocalizer):
             stride=1,
             padding=0,
         )
-        # self.anchors_tmins, self.anchors_tmaxs = self._temporal_anchors()
-
-    # def _temporal_anchors(self, tmin_offset=0., tmax_offset=1.):
-    #     """Generate temporal anchors.
-    #
-    #     Args:
-    #         tmin_offset (int): Offset for the minimum value of temporal anchor.
-    #             Default: 0.
-    #         tmax_offset (int): Offset for the maximun value of temporal anchor.
-    #             Default: 1.
-    #
-    #     Returns:
-    #         tuple[Sequence[float]]: The minimum and maximum values of temporal
-    #             anchors.
-    #     """
-    #     temporal_gap = 1. / self.temporal_dim
-    #     anchors_tmins = []
-    #     anchors_tmaxs = []
-    #     for i in range(self.temporal_dim):
-    #         anchors_tmins.append(temporal_gap * (i + tmin_offset))
-    #         anchors_tmaxs.append(temporal_gap * (i + tmax_offset))
-    #
-    #     return anchors_tmins, anchors_tmaxs
 
     def _forward(self, x):
         """Define the computation performed at every call.
@@ -126,30 +93,23 @@ class TEM(BaseLocalizer):
         x = torch.sigmoid(self.conv3_ratio * self.conv3(x))
         return x
 
-    def forward_train(self, raw_feature, label_action, label_start, label_end):
+    def forward_train(self, features, label_action, video_meta):
         """Define the computation performed at every call when training."""
-        tem_output = self._forward(raw_feature)
-        score_action = tem_output[:, 0, :]
-        score_start = tem_output[:, 1, :]
-        score_end = tem_output[:, 2, :]
+        import pdb
+
+        pdb.set_trace()
+        tem_output = self._forward(features)
+        score_action = tem_output
 
         loss_action = self.loss_cls(score_action, label_action, self.match_threshold)
-        loss_start_small = self.loss_cls(score_start, label_start, self.match_threshold)
-        loss_end_small = self.loss_cls(score_end, label_end, self.match_threshold)
-        loss_dict = {
-            "loss_action": loss_action * self.loss_weight,
-            "loss_start": loss_start_small,
-            "loss_end": loss_end_small,
-        }
+        loss_dict = {"loss_action": loss_action * self.loss_weight}
 
         return loss_dict
 
-    def forward_test(self, raw_feature, video_meta):
+    def forward_test(self, features, video_meta):
         """Define the computation performed at every call when testing."""
-        tem_output = self._forward(raw_feature).cpu().numpy()
-        batch_action = tem_output[:, 0, :]
-        batch_start = tem_output[:, 1, :]
-        batch_end = tem_output[:, 2, :]
+        tem_output = self._forward(features).cpu().numpy()
+        batch_action = tem_output
 
         video_meta_list = [dict(x) for x in video_meta]
 
@@ -158,77 +118,13 @@ class TEM(BaseLocalizer):
         for batch_idx, _ in enumerate(batch_action):
             video_name = video_meta_list[batch_idx]["video_name"]
             video_action = batch_action[batch_idx]
-            video_start = batch_start[batch_idx]
-            video_end = batch_end[batch_idx]
-            video_result = np.stack(
-                (
-                    video_action,
-                    video_start,
-                    video_end,
-                    self.anchors_tmins,
-                    self.anchors_tmaxs,
-                ),
-                axis=1,
-            )
+            video_result = np.stack((video_action,), axis=1)
             video_results.append((video_name, video_result))
         return video_results
 
-    # def generate_labels(self, gt_bbox):
-    #     """Generate training labels."""
-    #     match_score_action_list = []
-    #     match_score_start_list = []
-    #     match_score_end_list = []
-    #     for every_gt_bbox in gt_bbox:
-    #         gt_tmins = every_gt_bbox[:, 0].cpu().numpy()
-    #         gt_tmaxs = every_gt_bbox[:, 1].cpu().numpy()
-    #
-    #         gt_lens = gt_tmaxs - gt_tmins
-    #         gt_len_pad = np.maximum(1. / self.temporal_dim,
-    #                                 self.boundary_ratio * gt_lens)
-    #         # gt_len_pad = 2. / self.temporal_dim
-    #         # gt_len_pad = 0
-    #
-    #         gt_start_bboxs = np.stack(
-    #             (gt_tmins - gt_len_pad / 2, gt_tmins + gt_len_pad / 2), axis=1)
-    #         gt_end_bboxs = np.stack(
-    #             (gt_tmaxs - gt_len_pad / 2, gt_tmaxs + gt_len_pad / 2), axis=1)
-    #
-    #         match_score_action = []
-    #         match_score_start = []
-    #         match_score_end = []
-    #
-    #         for anchor_tmin, anchor_tmax in zip(self.anchors_tmins,
-    #                                             self.anchors_tmaxs):
-    #             match_score_action.append(
-    #                 np.max(
-    #                     temporal_iop(anchor_tmin, anchor_tmax, gt_tmins,
-    #                                  gt_tmaxs)))
-    #             match_score_start.append(
-    #                 np.max(
-    #                     temporal_iop(anchor_tmin, anchor_tmax,
-    #                                  gt_start_bboxs[:, 0], gt_start_bboxs[:,
-    #                                                                       1])))
-    #             match_score_end.append(
-    #                 np.max(
-    #                     temporal_iop(anchor_tmin, anchor_tmax,
-    #                                  gt_end_bboxs[:, 0], gt_end_bboxs[:, 1])))
-    #         match_score_action_list.append(match_score_action)
-    #         match_score_start_list.append(match_score_start)
-    #         match_score_end_list.append(match_score_end)
-    #     match_score_action_list = torch.Tensor(match_score_action_list)
-    #     match_score_start_list = torch.Tensor(match_score_start_list)
-    #     match_score_end_list = torch.Tensor(match_score_end_list)
-    #     return (match_score_action_list, match_score_start_list,
-    #             match_score_end_list)
-
-    def forward(self, features, gt_bbox=None, video_meta=None, return_loss=True):
+    def forward(self, features, segments=None, video_meta=None, return_loss=True):
         """Define the computation performed at every call."""
         if return_loss:
-            label_action, label_start, label_end = self.generate_labels(gt_bbox)
-            device = raw_feature.device
-            label_action = label_action.to(device)
-            label_start = label_start.to(device)
-            label_end = label_end.to(device)
-            return self.forward_train(raw_feature, label_action, label_start, label_end)
+            return self.forward_train(features, segments, video_meta)
 
-        return self.forward_test(raw_feature, video_meta)
+        return self.forward_test(features, video_meta)

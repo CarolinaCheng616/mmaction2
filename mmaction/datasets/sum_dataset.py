@@ -105,32 +105,31 @@ class SumDataset(BaseDataset):
         packed = self._knapsack(seg_scores, n_frame_per_seg, limits)
 
         # Get key-shot based summary
-        # summary = []
+        # summary = np.zeros(n_frames)
         # for seg_idx in packed:
         #     first, last = change_points[seg_idx]
-        #     summary.append([float(first), float(last)])
-        # summary = np.array(summary)
-        summary = np.zeros(n_frames)
+        #     summary[first: last + 1] = 1
+        # within_indicator = np.zeros(n_frames + 1)
+        # within_indicator[1:n_frames] = summary[1:] - summary[:-1]
+        # within_indicator[0] = summary[0]
+        # within_indicator[-1] = 0 - summary[-1]
+        # segments = []
+        # segment = []
+        # for i, indicator in enumerate(within_indicator):
+        #     if indicator == 1:
+        #         segment.append(i)
+        #     elif indicator == -1:
+        #         segment.append(i - 1)
+        #         segments.append(segment)
+        #         segment = []
+        # segments = np.array(segments)
+        # assert (
+        #     segments.shape[1] == 2
+        # ), "something wrong in sum_dataset.py: _get_keyshot_summ"
+        segments = np.zeros(n_frames, dtype=np.bool)
         for seg_idx in packed:
             first, last = change_points[seg_idx]
-            summary[first : last + 1] = 1
-        within_indicator = np.zeros(n_frames + 1)
-        within_indicator[1:n_frames] = summary[1:] - summary[:-1]
-        within_indicator[0] = summary[0]
-        within_indicator[-1] = 0 - summary[-1]
-        segments = []
-        segment = []
-        for i, indicator in enumerate(within_indicator):
-            if indicator == 1:
-                segment.append(i)
-            elif indicator == -1:
-                segment.append(i - 1)
-                segments.append(segment)
-                segment = []
-        segments = np.array(segments)
-        assert (
-            segments.shape[1] == 2
-        ), "something wrong in sum_dataset.py: _get_keyshot_summ"
+            segments[first : last + 1] = True
 
         return segments
 
@@ -167,16 +166,24 @@ class SumDataset(BaseDataset):
                     picks,
                     self.keyshot_proportion,
                 )
+                label_action = np.zeros(len(features))
+                for i, pick in enumerate(picks):
+                    if summary[pick]:
+                        label_action[i] = 1.0
             else:
                 summary = None
                 if "user_summary" in video_file:
                     summary = video_file["user_summary"][...].astype(np.float32)
+                label_action = None
 
             video_info = dict(
-                video_name=key, features=features, picks=picks, segments=summary
+                video_name=key,
+                features=features,
+                label_action=label_action,
+                segments=summary,
             )
-            # features, segments
-            # video_meta: picks
+            # features, label_action
+            # video_meta: video_name, segments
             video_infos.append(video_info)
         import pdb
 

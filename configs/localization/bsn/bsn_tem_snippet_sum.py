@@ -5,18 +5,10 @@ array_length = 10
 machines = 1
 gpus_per_machine = 1
 batch_size = 2
-
-# if load_type == 'LoadSnippetRectifiedFeature':  # feature.shape: 4096, 3+temporal+3
-#     data_root = 'data/TruNet/sup_train_feature/'
-#     data_root_val = 'data/TruNet/sup_val_feature/'
-# elif load_type == 'LoadSnippetFeature':  # feature.shape: temporal, 4096
-#     data_root = 'data/TruNet/train_feature/'
-#     data_root_val = 'data/TruNet/val_feature/'
-# else:
-#     raise ValueError(f'wrong load_feature name {load_type} in bsn_tem_snippet')
+split_idx = 0
 
 model = dict(
-    type="SnippetTEM",
+    type="SumTEM",
     tem_feat_dim=1024,
     tem_hidden_dim=512,
     tem_match_threshold=0.5,
@@ -39,70 +31,48 @@ test_pipeline = [
     dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(
         type="Collect",
-        keys=["raw_feature"],
+        keys=["features"],
         meta_name="video_meta",
-        meta_keys=["video_name", "duration_second", "snippet_length"],
+        meta_keys=["video_name", "segments"],
     ),
-    dict(type="ToTensor", keys=["raw_feature"]),
+    dict(type="ToTensor", keys=["features"]),
 ]
 
 train_pipeline = [
     dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(
         type="Collect",
-        keys=["raw_feature", "label_action", "label_start", "label_end"],
+        keys=["features", "label_action"],
         meta_name="video_meta",
-        meta_keys=["video_name", "duration_second", "snippet_length"],
+        meta_keys=["video_name"],
     ),
-    dict(
-        type="ToTensor",
-        keys=["raw_feature", "label_action", "label_start", "label_end"],
-    ),
-    dict(
-        type="ToDataContainer",
-        fields=[
-            dict(key="label_action", stack=False),
-            dict(key="label_start", stack=False),
-            dict(key="label_end", stack=False),
-        ],
-    ),
+    dict(type="ToTensor", keys=["features", "label_action"]),
+    dict(type="ToDataContainer", fields=[dict(key="label_action", stack=False)]),
 ]
 
 val_pipeline = [
     dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(
         type="Collect",
-        keys=["raw_feature", "label_action", "label_start", "label_end"],
+        keys=["features"],
         meta_name="video_meta",
-        meta_keys=["video_name", "duration_second", "snippet_length"],
+        meta_keys=["video_name", "segments"],
     ),
-    dict(
-        type="ToTensor",
-        keys=["raw_feature", "label_action", "label_start", "label_end"],
-    ),
-    dict(
-        type="ToDataContainer",
-        fields=[
-            dict(key="label_action", stack=False),
-            dict(key="label_start", stack=False),
-            dict(key="label_end", stack=False),
-        ],
-    ),
+    dict(type="ToTensor", keys=["features"]),
 ]
 
 data = dict(
     videos_per_gpu=batch_size,
     workers_per_gpu=0,
-    train_dataloader=dict(drop_last=False, shuffle=False),
+    train_dataloader=dict(drop_last=False, shuffle=True),
     val_dataloader=dict(
-        videos_per_gpu=batch_size, workers_per_gpu=0, drop_last=False, shuffle=False
+        videos_per_gpu=1, workers_per_gpu=0, drop_last=False, shuffle=False
     ),
     test_dataloader=dict(
-        videos_per_gpu=batch_size, workers_per_gpu=0, drop_last=False, shuffle=False
+        videos_per_gpu=1, workers_per_gpu=0, drop_last=False, shuffle=False
     ),
     test=dict(
         type=dataset_type,
-        split_idx=0,
         ann_file=ann_file_test,
         pipeline=test_pipeline,
         data_prefix=data_root_val,
@@ -110,7 +80,6 @@ data = dict(
     ),
     val=dict(
         type=dataset_type,
-        split_idx=0,
         ann_file=ann_file_val,
         pipeline=val_pipeline,
         data_prefix=data_root_val,
@@ -118,16 +87,12 @@ data = dict(
     ),
     train=dict(
         type=dataset_type,
-        split_idx=0,
         ann_file=ann_file_train,
         pipeline=train_pipeline,
         data_prefix=data_root,
-        test_mode=True,
+        test_mode=False,
     ),
 )
-
-# reload
-reload = True
 
 # optimizer
 optimizer = dict(
