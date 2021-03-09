@@ -19,11 +19,20 @@ from ortools.algorithms.pywrapknapsack_solver import KnapsackSolver
 
 @DATASETS.register_module()
 class SumDataset(BaseDataset):
-    def __init__(self, ann_file, split_idx, pipeline, data_prefix=None, test_mode=False, keyshot_proportion=0.15):
-        super().__init__(ann_file, pipeline, data_prefix, test_mode)
+    def __init__(
+        self,
+        split_idx,
+        snippet_length=7,
+        pos_neg_ratio=1.0,
+        keyshot_proportion=0.15,
+        *args,
+        **kwargs
+    ):
         self.split_idx = split_idx
-        self.video_paths = self.video_infos
+        self.snippet_length = snippet_length
+        self.pos_neg_ratio = pos_neg_ratio
         self.keyshot_proportion = keyshot_proportion
+        super().__init__(*args, **kwargs)
 
     @staticmethod
     def _load_yaml(path):
@@ -31,10 +40,11 @@ class SumDataset(BaseDataset):
             obj = yaml.safe_load(f)
         return obj
 
-    @staticmethod
-    def _get_datasets(keys):
-        dataset_paths = {str(Path(key).parent) for key in keys}
-        datasets = {path: h5py.File(path, 'r') for path in dataset_paths}
+    def _get_datasets(self, keys):
+        dataset_paths = {
+            str(Path(osp.join(self.data_prefix, key)).parent) for key in keys
+        }
+        datasets = {path: h5py.File(path, "r") for path in dataset_paths}
         return datasets
 
     @staticmethod
@@ -47,7 +57,7 @@ class SumDataset(BaseDataset):
         :return: List of packed item indices.
         """
         knapsack_solver = KnapsackSolver(
-            KnapsackSolver.KNAPSACK_DYNAMIC_PROGRAMMING_SOLVER, 'test'
+            KnapsackSolver.KNAPSACK_DYNAMIC_PROGRAMMING_SOLVER, "test"
         )
 
         values = list(values)
@@ -56,12 +66,15 @@ class SumDataset(BaseDataset):
 
         knapsack_solver.Init(values, [weights], [capacity])
         knapsack_solver.Solve()
-        packed_items = [x for x in range(0, len(weights))
-                        if knapsack_solver.BestSolutionContains(x)]
+        packed_items = [
+            x for x in range(0, len(weights)) if knapsack_solver.BestSolutionContains(x)
+        ]
 
         return packed_items
 
-    def _get_keyshot_summ(self, score, change_points, n_frames, n_frame_per_seg, picks, proportion=0.15):
+    def _get_keyshot_summ(
+        self, score, change_points, n_frames, n_frame_per_seg, picks, proportion=0.15
+    ):
         """Generate keyshot-based video summary i.e. a binary vector.
 
         :param score: Predicted importance scores.
@@ -85,7 +98,7 @@ class SumDataset(BaseDataset):
         # Assign scores to video shots as the average of the frames.
         seg_scores = np.zeros(len(change_points), dtype=np.int32)
         for seg_idx, (first, last) in enumerate(change_points):
-            scores = frame_scores[first:last + 1]
+            scores = frame_scores[first : last + 1]
             seg_scores[seg_idx] = int(1000 * scores.mean())
 
         # Apply knapsack algorithm to find the best shots
@@ -93,10 +106,11 @@ class SumDataset(BaseDataset):
         packed = self._knapsack(seg_scores, n_frame_per_seg, limits)
 
         # Get key-shot based summary
-        summary = np.zeros(n_frames, dtype=np.bool)
+        summary = []
         for seg_idx in packed:
             first, last = change_points[seg_idx]
-            summary[first:last + 1] = True
+            summary.append([float(first), float(last)])
+        summary = np.array(summary)
 
         return summary
 
@@ -104,36 +118,70 @@ class SumDataset(BaseDataset):
         obj = self._load_yaml(self.ann_file)
         split = obj[self.split_idx]
         if self.test_mode:
-            keys = split['test_keys']
+            keys = split["test_keys"]
         else:
-            keys = split['train_keys']
+            keys = split["train_keys"]
         datasets = self._get_datasets(keys)
-        video_infos = []
+        # trunet like data
+        video_infos = list()
         for key in keys:
             video_path = Path(key)
             dataset_name = str(video_path.parent)
             video_name = video_path.name
             video_file = datasets[dataset_name][video_name]
 
-            features = video_file['features'][...].astype(np.float32)
-            change_points = video_file['change_points'][...].astype(np.int32)
-            n_frames = video_file['n_frames'][...].astype(np.int32)
-            n_frame_per_seg = video_file['n_frame_per_seg'][...].astype(np.int32)
-            picks = video_file['picks'][...].astype(np.int32)
+            features = video_file["features"][...].astype(np.float32)
+            change_points = video_file["change_points"][...].astype(np.int32)
+            n_frames = video_file["n_frames"][...].astype(np.int32)
+            n_frame_per_seg = video_file["n_frame_per_seg"][...].astype(np.int32)
+            picks = video_file["picks"][...].astype(np.int32)
 
             if not self.test_mode:
-                gtscore = video_file['gtscore'][...].astype(np.float32)
-                summary = self._get_keyshot_summ(gtscore, change_points, n_frames, n_frame_per_seg, picks,
-                                                 self.keyshot_proportion)
-                # segments
+                gtscore = video_file["gtscore"][...].astype(np.float32)
+                summary = self._get_keyshot_summ(
+                    gtscore,
+                    change_points,
+                    n_frames,
+                    n_frame_per_seg,
+                    picks,
+                    self.keyshot_proportion,
+                )
             else:
                 summary = None
-                if 'user_summary' in video_file:
-                    summary = video_file['user_summary'][...].astype(np.float32)
-                # segments
+                if "user_summary" in video_file:
+                    summary = video_file["user_summary"][...].astype(np.float32)
 
-            # video_info = dict(video_name=key, features=features, segments=segments)
-            # video_infos.append(video_info)
+            video_info = dict(video_name=key, features=features, segments=summary)
+            video_infos.append(video_info)
+
+        # # snippet like data
+        # snippet_infos = list()
+        # for v_info in video_infos:
+        #     v_id = v_info['video_name']
+        #     video_snippets = list()
+        #     for i in range(
+        #             -(self.snippet_length // 2),
+        #             v_info['duration_second'] - self.snippet_length // 2):
+        #         # snippet = self._assign(i, i + self.snippet_length, v_info)
+        #         snippet = dict(
+        #             label_action=0.0,
+        #             label_start=0.0,
+        #             label_end=0.0,
+        #             neg=True,
+        #             video_name=f'{v_id}_{i}',
+        #             duration_second=v_info['duration_second'])
+        #         video_snippets.append(snippet)
+        #     self._assign_label(video_snippets, v_info)
+        #     snippet_infos += video_snippets
+        # pos_snippets = []
+        # neg_snippets = []
+        # for snippet in snippet_infos:
+        #     if snippet['neg']:
+        #         neg_snippets.append(snippet)
+        #     else:
+        #         pos_snippets.append(snippet)
+        # import pdb
+        # pdb.set_trace()
         return video_infos
 
     def prepare_train_frames(self, idx):
