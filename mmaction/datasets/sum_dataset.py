@@ -124,6 +124,9 @@ class SumDataset(BaseDataset):
         datasets = self._get_datasets(keys)
         # trunet like data
         video_infos = list()
+        import pdb
+
+        pdb.set_trace()
         for key in keys:
             video_path = Path(key)
             dataset_name = str(video_path.parent)
