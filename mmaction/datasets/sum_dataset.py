@@ -105,13 +105,33 @@ class SumDataset(BaseDataset):
         packed = self._knapsack(seg_scores, n_frame_per_seg, limits)
 
         # Get key-shot based summary
-        summary = []
+        # summary = []
+        # for seg_idx in packed:
+        #     first, last = change_points[seg_idx]
+        #     summary.append([float(first), float(last)])
+        # summary = np.array(summary)
+        summary = np.zeros(n_frames)
         for seg_idx in packed:
             first, last = change_points[seg_idx]
-            summary.append([float(first), float(last)])
-        summary = np.array(summary)
+            summary[first : last + 1] = 1
+        within_indicator = np.zeros(n_frames + 1)
+        within_indicator[1:n_frames] = summary[1:] - summary[:-1]
+        within_indicator[0] = summary[0]
+        within_indicator[-1] = 0 - summary[-1]
+        segments = []
+        for i, indicator in enumerate(within_indicator):
+            segment = []
+            if indicator == 1:
+                segment.append(i)
+            elif indicator == -1:
+                segment.append(i - 1)
+                segments.append(segment)
+        segments = np.array(segments)
+        assert (
+            segments.shape[1] == 2
+        ), "something wrong in sum_dataset.py: _get_keyshot_summ"
 
-        return summary
+        return segments
 
     def load_annotations(self):
         obj = self._load_yaml(self.ann_file)
