@@ -45,6 +45,7 @@ test_pipeline = [
     ),
     dict(type="ToTensor", keys=["raw_feature"]),
 ]
+
 train_pipeline = [
     dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(
@@ -66,6 +67,7 @@ train_pipeline = [
         ],
     ),
 ]
+
 val_pipeline = [
     dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(

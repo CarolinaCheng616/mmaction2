@@ -180,8 +180,9 @@ class SumDataset(BaseDataset):
         #         neg_snippets.append(snippet)
         #     else:
         #         pos_snippets.append(snippet)
-        # import pdb
-        # pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         return video_infos
 
     def prepare_train_frames(self, idx):
