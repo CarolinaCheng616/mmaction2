@@ -122,6 +122,7 @@ data = dict(
         ann_file=ann_file_train,
         pipeline=train_pipeline,
         data_prefix=data_root,
+        test_mode=True,
     ),
 )
 
