@@ -172,9 +172,15 @@ class SumDataset(BaseDataset):
                 if "user_summary" in video_file:
                     summary = video_file["user_summary"][...].astype(np.float32)
 
-            video_info = dict(video_name=key, features=features, segments=summary)
+            video_info = dict(
+                video_name=key, features=features, picks=picks, segments=summary
+            )
+            # features, segments
+            # video_meta: picks
             video_infos.append(video_info)
+        import pdb
 
+        pdb.set_trace()
         # # snippet like data
         # snippet_infos = list()
         # for v_info in video_infos:
@@ -201,9 +207,9 @@ class SumDataset(BaseDataset):
         #         neg_snippets.append(snippet)
         #     else:
         #         pos_snippets.append(snippet)
-        import pdb
-
-        pdb.set_trace()
+        # import pdb
+        #
+        # pdb.set_trace()
         return video_infos
 
     def prepare_train_frames(self, idx):
