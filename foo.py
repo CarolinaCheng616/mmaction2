@@ -132,14 +132,10 @@ def compute_iou_for_results(result_file, meta_file, new_file):
 
 
 def read_h5_file(file_path):
-    # file = h5py.File(file_path)
-    # import pdb
-    # pdb.set_trace()
-    a = np.zeros(10, dtype=np.int)
-    b = np.ones(10, dtype=np.int)
-    c = a - b
-    if c[0] == int(-1):
-        print(True)
+    file = h5py.File(file_path)
+    import pdb
+
+    pdb.set_trace()
 
 
 if __name__ == "__main__":

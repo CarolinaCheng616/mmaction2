@@ -182,41 +182,7 @@ class SumDataset(BaseDataset):
                 label_action=label_action,
                 segments=summary,
             )
-            # features, label_action
-            # video_meta: video_name, segments
             video_infos.append(video_info)
-        import pdb
-
-        pdb.set_trace()
-        # # snippet like data
-        # snippet_infos = list()
-        # for v_info in video_infos:
-        #     v_id = v_info['video_name']
-        #     video_snippets = list()
-        #     for i in range(
-        #             -(self.snippet_length // 2),
-        #             v_info['duration_second'] - self.snippet_length // 2):
-        #         # snippet = self._assign(i, i + self.snippet_length, v_info)
-        #         snippet = dict(
-        #             label_action=0.0,
-        #             label_start=0.0,
-        #             label_end=0.0,
-        #             neg=True,
-        #             video_name=f'{v_id}_{i}',
-        #             duration_second=v_info['duration_second'])
-        #         video_snippets.append(snippet)
-        #     self._assign_label(video_snippets, v_info)
-        #     snippet_infos += video_snippets
-        # pos_snippets = []
-        # neg_snippets = []
-        # for snippet in snippet_infos:
-        #     if snippet['neg']:
-        #         neg_snippets.append(snippet)
-        #     else:
-        #         pos_snippets.append(snippet)
-        # import pdb
-        #
-        # pdb.set_trace()
         return video_infos
 
     def prepare_train_frames(self, idx):
