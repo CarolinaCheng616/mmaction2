@@ -186,9 +186,9 @@ class SumDataset(BaseDataset):
         return video_infos
 
     def prepare_train_frames(self, idx):
-        # import pdb
-        #
-        # pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
         return self.video_infos[idx]
 
     def prepare_test_frames(self, idx):
