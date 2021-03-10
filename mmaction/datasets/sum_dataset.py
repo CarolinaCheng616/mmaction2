@@ -186,13 +186,12 @@ class SumDataset(BaseDataset):
         return video_infos
 
     def prepare_train_frames(self, idx):
-        import pdb
-
-        pdb.set_trace()
-        return self.video_infos[idx]
+        results = copy.deepcopy(self.video_infos[idx])
+        return self.pipeline(results)
 
     def prepare_test_frames(self, idx):
-        return self.video_infos[idx]
+        results = copy.deepcopy(self.video_infos[idx])
+        return self.pipeline(results)
 
     def evaluate(self):
         pass
