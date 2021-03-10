@@ -3,7 +3,7 @@ use_mc = False
 array_length = 10
 machines = 1
 gpus_per_machine = 1
-batch_size = 2
+batch_size = 1
 split_idx = 0
 
 model = dict(

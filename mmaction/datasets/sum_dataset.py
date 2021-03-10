@@ -176,8 +176,6 @@ class SumDataset(BaseDataset):
                     summary = video_file["user_summary"][...].astype(np.float32)
                 label_action = None
 
-            features = features[np.newaxis, :]
-            label_action = label_action[np.newaxis, :]
             video_info = dict(
                 video_name=key,
                 features=features,
