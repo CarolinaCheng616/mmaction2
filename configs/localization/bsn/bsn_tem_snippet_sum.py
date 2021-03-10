@@ -24,7 +24,7 @@ ann_file_train = "data/summarization/summe.yml"
 ann_file_val = ann_file_train
 ann_file_test = ann_file_train
 
-work_dir = "work_dirs/tem_snippet_sum_dataset/"
+work_dir = f"work_dirs/tem_snippet_sum_dataset/split_{split_idx}"
 tem_results_dir = f"{work_dir}/tem_results/"
 
 test_pipeline = [
@@ -73,6 +73,7 @@ data = dict(
     ),
     test=dict(
         type=dataset_type,
+        split_idx=split_idx,
         ann_file=ann_file_test,
         pipeline=test_pipeline,
         data_prefix=data_root_val,
@@ -80,6 +81,7 @@ data = dict(
     ),
     val=dict(
         type=dataset_type,
+        split_idx=split_idx,
         ann_file=ann_file_val,
         pipeline=val_pipeline,
         data_prefix=data_root_val,
@@ -87,6 +89,7 @@ data = dict(
     ),
     train=dict(
         type=dataset_type,
+        split_idx=split_idx,
         ann_file=ann_file_train,
         pipeline=train_pipeline,
         data_prefix=data_root,
