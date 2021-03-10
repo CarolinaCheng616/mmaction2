@@ -1,5 +1,4 @@
 dataset_type = "SumDataset"
-load_type = "LoadSnippetRectifiedFeature"
 use_mc = False
 array_length = 10
 machines = 1
@@ -28,7 +27,6 @@ work_dir = f"work_dirs/tem_snippet_sum_dataset/split_{split_idx}"
 tem_results_dir = f"{work_dir}/tem_results/"
 
 test_pipeline = [
-    dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(
         type="Collect",
         keys=["features"],
@@ -39,7 +37,6 @@ test_pipeline = [
 ]
 
 train_pipeline = [
-    dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(
         type="Collect",
         keys=["features", "label_action"],
@@ -47,11 +44,10 @@ train_pipeline = [
         meta_keys=["video_name"],
     ),
     dict(type="ToTensor", keys=["features", "label_action"]),
-    dict(type="ToDataContainer", fields=[dict(key="label_action", stack=False)]),
+    # dict(type="ToDataContainer", fields=[dict(key="label_action", stack=False)]),
 ]
 
 val_pipeline = [
-    dict(type=load_type, use_mc=use_mc, array_length=array_length),
     dict(
         type="Collect",
         keys=["features"],
