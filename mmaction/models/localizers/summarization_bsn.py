@@ -101,9 +101,6 @@ class SumTEM(BaseLocalizer):
 
     def forward_train(self, features, label_action, video_meta):
         """Define the computation performed at every call when training."""
-        import pdb
-
-        pdb.set_trace()
         tem_output = self._forward(features)
         score_action = tem_output
 
