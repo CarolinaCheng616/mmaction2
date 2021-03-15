@@ -88,6 +88,9 @@ class SumTEM(BaseLocalizer):
         Returns:
             torch.Tensor: The output of the module.
         """
+        # x.shape: [N, L, C]
+        x = torch.transpose(x, 1, 2)
+        # x.shape: [N, C, L]
         x = F.relu(self.conv1_ratio * self.conv1(x))
         x = F.relu(self.conv2_ratio * self.conv2(x))
         x = torch.sigmoid(self.conv3_ratio * self.conv3(x))
