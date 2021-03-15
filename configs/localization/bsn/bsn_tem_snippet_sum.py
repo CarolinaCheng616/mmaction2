@@ -108,7 +108,7 @@ optimizer_config = dict(grad_clip=None)
 #     min_lr_ratio=1e-5,
 #     warmup_by_epoch=True,
 # )
-lr_config = dict(policy="step", step=[80])
+lr_config = dict(policy="step", step=[40])
 
 total_epochs = 70
 checkpoint_config = dict(interval=80, filename_tmpl="tem_epoch_{}.pth")
