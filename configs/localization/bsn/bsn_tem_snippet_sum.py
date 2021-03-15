@@ -95,10 +95,7 @@ data = dict(
 
 # optimizer
 optimizer = dict(
-    type="SGD",
-    lr=0.004 * gpus_per_machine * machines,
-    momentum=0.9,
-    weight_decay=0.0005,
+    type="SGD", lr=0.01 * gpus_per_machine * machines, momentum=0.9, weight_decay=0.0005
 )  # batch_size
 # 0.001 is for batch 256*4=1024
 optimizer_config = dict(grad_clip=None)
