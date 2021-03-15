@@ -122,9 +122,9 @@ class SumTEM(BaseLocalizer):
             video_results.append((video_name, video_result))
         return video_results
 
-    def forward(self, features, segments=None, video_meta=None, return_loss=True):
+    def forward(self, features, label_action=None, video_meta=None, return_loss=True):
         """Define the computation performed at every call."""
         if return_loss:
-            return self.forward_train(features, segments, video_meta)
+            return self.forward_train(features, label_action, video_meta)
 
         return self.forward_test(features, video_meta)
