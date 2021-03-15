@@ -100,17 +100,18 @@ optimizer = dict(
 # 0.001 is for batch 256*4=1024
 optimizer_config = dict(grad_clip=None)
 # learning policy
-lr_config = dict(
-    policy="CosineAnnealing",
-    warmup="linear",
-    warmup_iters=5,
-    warmup_ratio=1.0 / 10,
-    min_lr_ratio=1e-5,
-    warmup_by_epoch=True,
-)
+# lr_config = dict(
+#     policy="CosineAnnealing",
+#     warmup="linear",
+#     warmup_iters=5,
+#     warmup_ratio=1.0 / 10,
+#     min_lr_ratio=1e-5,
+#     warmup_by_epoch=True,
+# )
+
 
 total_epochs = 70
-checkpoint_config = dict(interval=5, filename_tmpl="tem_epoch_{}.pth")
+checkpoint_config = dict(interval=80, filename_tmpl="tem_epoch_{}.pth")
 
 log_config = dict(
     interval=2, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
