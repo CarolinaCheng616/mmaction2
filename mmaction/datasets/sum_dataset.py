@@ -133,6 +133,28 @@ class SumDataset(BaseDataset):
 
         return segments
 
+    def dump_results(self, results, out, output_format, version='VERSION 1.3'):
+        """Dump data to json/csv files."""
+        if output_format == 'json':
+            result_dict = self.proposals2json(results)
+            mmcv.dump(result_dict, out)
+        elif output_format == 'csv':
+            # TODO: add csv handler to mmcv and use mmcv.dump
+            os.makedirs(out, exist_ok=True)
+            header = 'action,start,end,tmin,tmax'
+            for result in results:
+                video_name, outputs = result
+                output_path = osp.join(out, video_name + '.csv')
+                np.savetxt(
+                    output_path,
+                    outputs,
+                    header=header,
+                    delimiter=',',
+                    comments='')
+        else:
+            raise ValueError(
+                f'The output format {output_format} is not supported.')
+
     def load_annotations(self):
         obj = self._load_yaml(self.ann_file)
         split = obj[self.split_idx]
