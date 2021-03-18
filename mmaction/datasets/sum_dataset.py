@@ -139,6 +139,8 @@ class SumDataset(BaseDataset):
             result_dict = self.proposals2json(results)
             mmcv.dump(result_dict, out)
         elif output_format == 'csv':
+            import pdb
+            pdb.set_trace()
             # TODO: add csv handler to mmcv and use mmcv.dump
             os.makedirs(out, exist_ok=True)
             header = 'action,start,end,tmin,tmax'
