@@ -133,30 +133,6 @@ class SumDataset(BaseDataset):
 
         return segments
 
-    def dump_results(self, results, out, output_format, version='VERSION 1.3'):
-        """Dump data to json/csv files."""
-        if output_format == 'json':
-            result_dict = self.proposals2json(results)
-            mmcv.dump(result_dict, out)
-        elif output_format == 'csv':
-            import pdb
-            pdb.set_trace()
-            # TODO: add csv handler to mmcv and use mmcv.dump
-            os.makedirs(out, exist_ok=True)
-            header = 'action,start,end,tmin,tmax'
-            for result in results:
-                video_name, outputs = result
-                output_path = osp.join(out, video_name + '.csv')
-                np.savetxt(
-                    output_path,
-                    outputs,
-                    header=header,
-                    delimiter=',',
-                    comments='')
-        else:
-            raise ValueError(
-                f'The output format {output_format} is not supported.')
-
     def load_annotations(self):
         obj = self._load_yaml(self.ann_file)
         split = obj[self.split_idx]
@@ -170,9 +146,11 @@ class SumDataset(BaseDataset):
         video_infos = list()
         for key in keys:
             video_path = Path(key)
-            dataset_name = str(video_path.parent)
-            video_name = video_path.name
+            dataset_name = str(video_path.parent)  # whole path for dataset
+            video_name = video_path.name  # video_1, etc
             video_file = datasets[dataset_name][video_name]
+
+            tmp_name = '#'.join([osp.basename(dataset_name), video_name])
 
             features = video_file["features"][...].astype(np.float32)
             change_points = video_file["change_points"][...].astype(np.int32)
@@ -201,7 +179,7 @@ class SumDataset(BaseDataset):
                 label_action = None
 
             video_info = dict(
-                video_name=key,
+                video_name=tmp_name,
                 features=features,
                 label_action=label_action,
                 segments=summary,
@@ -216,6 +194,30 @@ class SumDataset(BaseDataset):
     def prepare_test_frames(self, idx):
         results = copy.deepcopy(self.video_infos[idx])
         return self.pipeline(results)
+
+    def dump_results(self, results, out, output_format, version='VERSION 1.3'):
+        """Dump data to json/csv files."""
+        if output_format == 'json':
+            result_dict = self.proposals2json(results)
+            mmcv.dump(result_dict, out)
+        elif output_format == 'csv':
+            import pdb
+            pdb.set_trace()
+            # TODO: add csv handler to mmcv and use mmcv.dump
+            os.makedirs(out, exist_ok=True)
+            header = 'action,start,end,tmin,tmax'
+            for result in results:
+                video_name, outputs = result
+                output_path = osp.join(out, video_name + '.csv')
+                np.savetxt(
+                    output_path,
+                    outputs,
+                    header=header,
+                    delimiter=',',
+                    comments='')
+        else:
+            raise ValueError(
+                f'The output format {output_format} is not supported.')
 
     def evaluate(self):
         pass

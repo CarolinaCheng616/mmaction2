@@ -121,7 +121,7 @@ class SumTEM(BaseLocalizer):
         for batch_idx, _ in enumerate(batch_action):
             video_name = video_meta_list[batch_idx]["video_name"]
             video_action = batch_action[batch_idx]
-            video_result = np.stack((video_action,), axis=1)
+            video_result = np.stack((video_action,), axis=1)  # output: action
             video_results.append((video_name, video_result))
         return video_results
 
