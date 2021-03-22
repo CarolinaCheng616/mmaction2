@@ -13,7 +13,7 @@ from .bsn import (
     OriFeatBNPEMReg,
     OriFeatBNPEMRegFFLSTM,
 )
-from .summarization_bsn import SumTEM
+from .summarization_bsn import SumTEM, SumOriFeatBNPEMReg
 from .snippetwise_bsn import SnippetTEM, SnippetTEMSR
 from .ssn import SSN
 
@@ -35,4 +35,5 @@ __all__ = [
     "SnippetTEMSR",
     "OriFeatBNPEMRegFFLSTM",
     "SumTEM",
+    "SumOriFeatBNPEMReg",
 ]

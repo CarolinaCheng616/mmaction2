@@ -4,7 +4,7 @@ split_idx = 0
 # dataset settings
 dataset_type = "SumDataset"
 data_root = "data/summarization"
-data_root_val = "data/summarization"
+data_root_val = data_root
 ann_file = "data/summarization/summe.yml"
 
 work_dir = f"work_dirs/tem_snippet_sum_dataset/split_{split_idx}"

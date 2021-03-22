@@ -186,6 +186,7 @@ class SumDataset(BaseDataset):
                 features=features,
                 label_action=label_action,
                 segments=summary,
+                n_frames=n_frames,
             )
             self.video_frames[tmp_name] = [n_frames, picks]
             video_infos.append(video_info)

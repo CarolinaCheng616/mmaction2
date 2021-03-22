@@ -2194,3 +2194,87 @@ class LoadTAGProposalsOffset:
         results['offset'] = offset
 
         return results
+
+
+@PIPELINES.register_module()
+class LoadSumProposalsOffset:
+    """Loading proposals with given proposal results. return tmins, tmaxs,
+    reference_temporal_iou, offset Required keys are "video_name", added or
+    modified keys are 'bsp_feature', 'score' and 'reference_temporal_iou'.
+
+    Args:
+        top_k (int): The top k proposals to be loaded.
+        pgm_proposals_dir (str): Directory to load proposals.
+        pgm_features_dir (str): Directory to load proposal features.
+        proposal_ext (str): Proposal file extension. Default: '.csv'.
+        feature_ext (str): Feature file extension. Default: '.npy'.
+    """
+
+    def __init__(self,
+                 top_k,
+                 pgm_proposals_dir,
+                 pgm_features_dir,
+                 use_mc=False):
+        self.top_k = top_k
+        self.pgm_proposals_dir = pgm_proposals_dir
+        self.pgm_features_dir = pgm_features_dir
+        self.mc_cfg = \
+            dict(
+                server_list_cfg='/mnt/lustre/share/memcached_client/server_list.conf',  # noqa
+                client_cfg='/mnt/lustre/share/memcached_client/client.conf',
+                sys_path='/mnt/lustre/share/pymc/py3')
+        self.io_backend = 'memcached'
+        self.file_client = None
+        self.use_mc = use_mc
+
+    def __call__(self, results):
+        """Perform the LoadTAGProposals loading.
+
+        Args:
+            results (dict): The resulting dict to be modified and passed
+                to the next transform in pipeline.
+        """
+        if self.use_mc and self.file_client is None:
+            self.file_client = FileClient(self.io_backend, **self.mc_cfg)
+        video_name = results['video_name']
+        proposal_path = osp.join(self.pgm_proposals_dir,
+                                 video_name + '.csv')
+        if self.file_client is not None:
+            buf = self.file_client.get(proposal_path)
+            data = io.BytesIO(buf)
+            pgm_proposals = np.loadtxt(
+                data, dtype=np.float32, delimiter=',', skiprows=1)
+        else:
+            pgm_proposals = np.loadtxt(
+                proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
+
+        # tmin, tmax, action_score, match_iou, tmin_offset, tmax_offset  # noqa
+        if self.top_k != -1:
+            pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        if len(pgm_proposals.shape) == 1:
+            pgm_proposals = pgm_proposals[np.newaxis, :]
+        tmin = pgm_proposals[:, 0]
+        tmax = pgm_proposals[:, 1]
+        reference_temporal_iou = pgm_proposals[:, 3]
+        offset = pgm_proposals[:, 4:]
+
+        feature_path = osp.join(self.pgm_features_dir,
+                                video_name + '.npy')
+        if self.file_client is not None:
+            buf = self.file_client.get(feature_path)
+            buf = io.BytesIO(buf)
+            bsp_feature = np.load(
+                buf, allow_pickle=True).astype(np.float32)
+        else:
+            bsp_feature = np.load(feature_path).astype(np.float32)
+        if self.top_k != -1:
+            bsp_feature = bsp_feature[:self.top_k]
+
+        results['bsp_feature'] = bsp_feature
+        results['tmin'] = tmin
+        results['tmax'] = tmax
+        results['reference_temporal_iou'] = reference_temporal_iou
+        results['offset'] = offset
+        # video_name, features, label_action, segments, n_frames
+
+        return results
