@@ -32,6 +32,7 @@ class SumDataset(BaseDataset):
         self.snippet_length = snippet_length
         self.pos_neg_ratio = pos_neg_ratio
         self.keyshot_proportion = keyshot_proportion
+        self.test = kwargs.pop('test', False)
         super().__init__(*args, **kwargs)
 
     @staticmethod
@@ -136,29 +137,31 @@ class SumDataset(BaseDataset):
     def load_annotations(self):
         obj = self._load_yaml(self.ann_file)
         split = obj[self.split_idx]
-        if self.test_mode:
+        if self.test:
             keys = split["test_keys"]
         else:
             keys = split["train_keys"]
         keys = [osp.join(self.data_prefix, key) for key in keys]
         datasets = self._get_datasets(keys)
         # trunet like data
+
         video_infos = list()
+        self.video_frames = dict()
         for key in keys:
             video_path = Path(key)
             dataset_name = str(video_path.parent)  # whole path for dataset
-            video_name = video_path.name  # video_1, etc
+            video_name = video_path.name  # video_1
             video_file = datasets[dataset_name][video_name]
 
             tmp_name = '#'.join([osp.basename(dataset_name), video_name])
 
-            features = video_file["features"][...].astype(np.float32)
-            change_points = video_file["change_points"][...].astype(np.int32)
-            n_frames = video_file["n_frames"][...].astype(np.int32)
-            n_frame_per_seg = video_file["n_frame_per_seg"][...].astype(np.int32)
-            picks = video_file["picks"][...].astype(np.int32)
+            features = video_file["features"][...].astype(np.float32)                # 被采样的那些帧的feature
+            change_points = video_file["change_points"][...].astype(np.int32)        # 范围是所有帧,shape=[num, 2]
+            n_frames = video_file["n_frames"][...].astype(np.int32)                  # 所有帧的数量
+            n_frame_per_seg = video_file["n_frame_per_seg"][...].astype(np.int32)    # 每两个change_points之间的帧数量,shape=(num,)
+            picks = video_file["picks"][...].astype(np.int32)                        # 被采样的那些帧的idx
 
-            if not self.test_mode:
+            if not self.test:
                 gtscore = video_file["gtscore"][...].astype(np.float32)
                 summary = self._get_keyshot_summ(
                     gtscore,
@@ -184,6 +187,7 @@ class SumDataset(BaseDataset):
                 label_action=label_action,
                 segments=summary,
             )
+            self.video_frames[tmp_name] = [n_frames, picks]
             video_infos.append(video_info)
         return video_infos
 
@@ -201,13 +205,12 @@ class SumDataset(BaseDataset):
             result_dict = self.proposals2json(results)
             mmcv.dump(result_dict, out)
         elif output_format == 'csv':
-            import pdb
-            pdb.set_trace()
-            # TODO: add csv handler to mmcv and use mmcv.dump
             os.makedirs(out, exist_ok=True)
-            header = 'action,start,end,tmin,tmax'
             for result in results:
                 video_name, outputs = result
+                header = f'frame,action,n_frames {self.video_frames[video_name][0]}'
+                picks = self.video_frames[video_name][1].reshape(-1, 1).astype(np.int)
+                outputs = np.concatenate((picks, outputs), axis=1)
                 output_path = osp.join(out, video_name + '.csv')
                 np.savetxt(
                     output_path,

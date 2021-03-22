@@ -1,10 +1,14 @@
 dataset_type = "SumDataset"
+
 use_mc = False
 array_length = 10
+
+batch_size = 1
 machines = 1
 gpus_per_machine = 1
-batch_size = 1
+
 split_idx = 0
+test = False
 
 model = dict(
     type="SumTEM",
@@ -73,7 +77,7 @@ data = dict(
         ann_file=ann_file_test,
         pipeline=test_pipeline,
         data_prefix=data_root_val,
-        test_mode=True,
+        test=test,
     ),
     val=dict(
         type=dataset_type,
@@ -81,7 +85,7 @@ data = dict(
         ann_file=ann_file_val,
         pipeline=val_pipeline,
         data_prefix=data_root_val,
-        test_mode=True,
+        test=test,
     ),
     train=dict(
         type=dataset_type,
@@ -89,7 +93,7 @@ data = dict(
         ann_file=ann_file_train,
         pipeline=train_pipeline,
         data_prefix=data_root,
-        test_mode=False,
+        test=test,
     ),
 )
 
