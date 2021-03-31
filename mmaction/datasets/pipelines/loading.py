@@ -1716,8 +1716,21 @@ class LoadDmText:
 
     def __call__(self, result):
         file_path = result["path"]
+        # for liwei code
         with open(file_path, "rb") as f:
             text_list = pickle.load(f, encoding="bytes")
+
+        # for haoyue code
+        times = []
+        dms = []
+        with open(file_path, "r") as f:
+            for line in f:
+                tokens = line.strip().split('#*,')
+                times.append(float(tokens[0]))
+                dms.append(tokens[1])
+        result['times'] = times
+        result['dms'] = dms
+        return result
 
     def __repr__(self):
         pass
