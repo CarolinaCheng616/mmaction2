@@ -14,3 +14,5 @@ class BertExtractor(nn.Module):
 
     def forward(self):
         pass
+
+    # def

@@ -12,10 +12,23 @@ from .rawframe_dataset import RawframeDataset
 from .rawvideo_dataset import RawVideoDataset
 from .ssn_dataset import SSNDataset
 from .video_dataset import VideoDataset
+from .bilibili_dm_dataset import DmDataset
 
 __all__ = [
-    'VideoDataset', 'build_dataloader', 'build_dataset', 'RepeatDataset',
-    'RawframeDataset', 'BaseDataset', 'ActivityNetDataset', 'SSNDataset',
-    'HVUDataset', 'AudioDataset', 'AudioFeatureDataset', 'ImageDataset',
-    'RawVideoDataset', 'AVADataset', 'AudioVisualDataset'
+    "VideoDataset",
+    "build_dataloader",
+    "build_dataset",
+    "RepeatDataset",
+    "RawframeDataset",
+    "BaseDataset",
+    "ActivityNetDataset",
+    "SSNDataset",
+    "HVUDataset",
+    "AudioDataset",
+    "AudioFeatureDataset",
+    "ImageDataset",
+    "RawVideoDataset",
+    "AVADataset",
+    "AudioVisualDataset",
+    "DmDataset",
 ]
