@@ -33,7 +33,10 @@ test_pipeline = [
         meta_name="video_meta",
         meta_keys=[],
     ),
-    # dict(type='ToTensor', keys=['raw_feature']),
+    # dict(type='ToTensor', keys=['times']),
+    dict(type="ToDataContainer", fields=[dict(key="times", stack=False)]),
+    dict(type="ToDataContainer", fields=[dict(key="dms", stack=False)]),
+    dict(type="ToDataContainer", fields=[dict(key="path", stack=False)]),
 ]
 train_pipeline = test_pipeline
 val_pipeline = test_pipeline

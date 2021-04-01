@@ -1728,8 +1728,8 @@ class LoadDmText:
                 tokens = line.strip().split("#*,")
                 times.append(float(tokens[0]))
                 dms.append(tokens[1])
-        result["times"] = times
-        result["dms"] = dms
+        result["times"] = np.array(times)
+        result["dms"] = np.array(dms)
         return result
 
     def __repr__(self):
