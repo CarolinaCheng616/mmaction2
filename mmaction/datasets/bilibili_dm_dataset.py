@@ -11,7 +11,7 @@ from .base import BaseDataset
 
 @DATASETS.register_module()
 class DmDataset(BaseDataset):
-    def __init__(self, ann_file, pipeline, data_prefix, test_mode=False):
+    def __init__(self, ann_file, pipeline, data_prefix, test_mode=True):
         super().__init__(ann_file, pipeline, data_prefix, test_mode)
 
     def __len__(self):
@@ -41,6 +41,10 @@ class DmDataset(BaseDataset):
         return video_infos
 
     def prepare_train_frames(self, idx):
+        import pdb
+
+        pdb.set_trace()
+        print("train frames")
         results = copy.deepcopy(self.video_infos[idx])
         return self.pipeline(results)
 
@@ -49,7 +53,7 @@ class DmDataset(BaseDataset):
 
         pdb.set_trace()
         results = copy.deepcopy(self.video_infos[idx])
-        print("load data")
+        print("test frames")
         return self.pipeline(results)
 
     def dump_results(self, results, out, output_format):

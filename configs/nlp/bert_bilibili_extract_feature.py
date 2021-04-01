@@ -72,3 +72,4 @@ total_epochs = 9
 log_config = dict(interval=50, hooks=[dict(type="TextLoggerHook")])
 work_dir = "work_dirs/bert_bilibili/"
 output_config = dict(out=None, output_format="json")
+dist_params = dict(backend="nccl")
