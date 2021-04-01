@@ -37,7 +37,7 @@ class DmDataset(BaseDataset):
                 video_infos += files
         else:
             raise ValueError("something wrong in ann_file and data_prefix")
-        print("finish initializing dataset.")
+        # print("finish initializing dataset.")
         return video_infos
 
     def prepare_train_frames(self, idx):
