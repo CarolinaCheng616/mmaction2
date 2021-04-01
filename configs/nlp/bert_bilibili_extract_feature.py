@@ -1,6 +1,7 @@
 # dataset settings
 dataset_type = "DmDataset"
-data_root = "/mnt/lustre/chenghaoyue/bilibili_dm"
+# data_root = "/mnt/lustre/chenghaoyue/bilibili_dm"
+data_root = "data/bilibili"
 data_root_val = data_root
 ann_file_train = None
 ann_file_val = ann_file_train
@@ -9,11 +10,15 @@ ann_file_test = ann_file_val
 # model settings
 model = dict(
     type="BertExtractor",
-    bert_path="/mnt/lustre/share_data/liwei_to_haoyue/bert_model",
+    # bert_path="/mnt/lustre/share_data/liwei_to_haoyue/bert_model",
+    bert_path="work_dirs/bert_model",
     bert_backbone=dict(
-        type="BERT", pretrained="/mnt/lustre/share_data/liwei_to_haoyue/bert_model"
+        type="BERT",
+        # pretrained="/mnt/lustre/share_data/liwei_to_haoyue/bert_model"
+        pretrained="work_dirs/bert_model",
     ),
-    new_path="/mnt/lustre/chenghaoyue/bilibili_text_feature/",
+    # new_path="/mnt/lustre/chenghaoyue/bilibili_text_feature/",
+    new_path="data/bilibili_new",
 )
 # model training and testing settings
 train_cfg = None
