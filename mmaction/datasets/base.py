@@ -287,9 +287,6 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
 
     def __getitem__(self, idx):
         """Get the sample for either training or testing given index."""
-        import pdb
-
-        pdb.set_trace()
         if self.test_mode:
             return self.prepare_test_frames(idx)
 
