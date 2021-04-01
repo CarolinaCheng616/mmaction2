@@ -51,11 +51,12 @@ class BertExtractor(nn.Module):
 
         return 0
 
-    def forward_test(self, times, dms, video_meta):
+    def forward_test(self, times, dms, path):
         import pdb
 
         pdb.set_trace()
-        base_path = osp.basename(video_meta["path"]).split()[0]
+        # base_path = osp.basename(video_meta["path"]).split()[0]
+        base_path = osp.splitext(osp.basename(path))[0]
         # for dm
         number_per_iter = 500
         nums = (len(dms) + number_per_iter - 1) // number_per_iter
@@ -79,10 +80,10 @@ class BertExtractor(nn.Module):
 
         return None
 
-    def forward(self, times, dms, video_meta, return_loss=False):
+    def forward(self, times, dms, path, return_loss=False):
         if return_loss:
-            return self.forward_train(times, dms, video_meta)
+            return self.forward_train(times, dms, path)
         else:
-            return self.forward_test(times, dms, video_meta)
+            return self.forward_test(times, dms, path)
 
     # def

@@ -29,9 +29,9 @@ test_pipeline = [
     dict(type="LoadDmText"),
     dict(
         type="Collect",
-        keys=["times", "dms"],
-        meta_name="video_meta",
-        meta_keys=["path"],
+        keys=["times", "dms", "path"],
+        # meta_name="video_meta",
+        # meta_keys=["path"],
     ),
     # dict(type='ToTensor', keys=['raw_feature']),
 ]
