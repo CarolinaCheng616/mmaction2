@@ -38,8 +38,8 @@ test_pipeline = [
 train_pipeline = test_pipeline
 val_pipeline = test_pipeline
 data = dict(
-    videos_per_gpu=8,
-    workers_per_gpu=8,
+    videos_per_gpu=1,
+    workers_per_gpu=1,
     train_dataloader=dict(drop_last=False),
     val_dataloader=dict(videos_per_gpu=1),
     test_dataloader=dict(videos_per_gpu=1),
