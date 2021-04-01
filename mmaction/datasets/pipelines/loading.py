@@ -1730,9 +1730,7 @@ class LoadDmText:
                     times.append(float(tokens[0]))
                     dms.append(tokens[1])
                 except ValueError:
-                    import pdb
-
-                    pdb.set_trace()
+                    pass
         result["times"] = times
         result["dms"] = dms
         return result

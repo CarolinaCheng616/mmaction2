@@ -21,7 +21,8 @@ class DmDataset(BaseDataset):
     def load_annotations(self):
         if self.ann_file is not None and self.data_prefix is None:  # for liwei code
             with open(self.ann_file, "r") as f:
-                video_infos = [dict(path=line.strip()) for line in f]
+                video_infos = [line.strip() for line in f]
+                video_infos = [line for line in video_infos if line.endswith(".txt")]
         elif self.ann_file is None and self.data_prefix is not None:  # for haoyue code
             path_list = set()
             path_list.add(self.data_prefix)
