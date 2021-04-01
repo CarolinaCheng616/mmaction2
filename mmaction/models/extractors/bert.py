@@ -32,6 +32,7 @@ class BertExtractor(nn.Module):
         pdb.set_trace()
         for video in video_meta:
             times, dms, path = video["times"], video["dms"], video["path"]
+            times = np.array(times)
             base_path = osp.splitext(osp.basename(path))[0]
             pattern = r".*bilibili\w?\/"
             new_path = re.sub(pattern, self.new_path, osp.dirname(path))
@@ -49,7 +50,10 @@ class BertExtractor(nn.Module):
                     sub_tokens[key] = sub_tokens[key].cuda()
                 sub_feat = self.bert(sub_tokens).cpu().numpy()
                 features.append(sub_feat)
-            features = np.concatenate(features, axis=0)
+            if len(features) > 0:
+                features = np.concatenate(features, axis=0)
+            else:
+                features = np.array(features)
             # save npz file
             np.savez(
                 osp.join(new_path, base_path + "_dm.npz"),

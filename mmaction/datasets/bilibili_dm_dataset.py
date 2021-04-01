@@ -37,23 +37,14 @@ class DmDataset(BaseDataset):
                 video_infos += files
         else:
             raise ValueError("something wrong in ann_file and data_prefix")
-        # print("finish initializing dataset.")
         return video_infos
 
     def prepare_train_frames(self, idx):
-        # import pdb
-        #
-        # pdb.set_trace()
-        # print("train frames")
         results = copy.deepcopy(self.video_infos[idx])
         return self.pipeline(results)
 
     def prepare_test_frames(self, idx):
-        # import pdb
-        #
-        # pdb.set_trace()
         results = copy.deepcopy(self.video_infos[idx])
-        # print("test frames")
         return self.pipeline(results)
 
     def dump_results(self, results, out, output_format):
