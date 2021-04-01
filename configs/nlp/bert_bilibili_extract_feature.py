@@ -33,7 +33,7 @@ test_pipeline = [
         meta_name="video_meta",
         meta_keys=[],
     ),
-    # dict(type='ToTensor', keys=['times']),
+    dict(type="ToTensor", keys=["times", "dms"]),
     dict(type="ToDataContainer", fields=[dict(key="times", stack=False)]),
     dict(type="ToDataContainer", fields=[dict(key="dms", stack=False)]),
     dict(type="ToDataContainer", fields=[dict(key="path", stack=False)]),
