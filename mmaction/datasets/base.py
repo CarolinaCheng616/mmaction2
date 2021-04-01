@@ -10,8 +10,12 @@ import torch
 from mmcv.utils import print_log
 from torch.utils.data import Dataset
 
-from ..core import (mean_average_precision, mean_class_accuracy,
-                    mmit_mean_average_precision, top_k_accuracy)
+from ..core import (
+    mean_average_precision,
+    mean_class_accuracy,
+    mmit_mean_average_precision,
+    top_k_accuracy,
+)
 from .pipelines import Compose
 
 
@@ -53,23 +57,27 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             Default: None.
     """
 
-    def __init__(self,
-                 ann_file,
-                 pipeline,
-                 data_prefix=None,
-                 test_mode=False,
-                 multi_class=False,
-                 num_classes=None,
-                 start_index=1,
-                 modality='RGB',
-                 sample_by_class=False,
-                 power=None):
+    def __init__(
+        self,
+        ann_file,
+        pipeline,
+        data_prefix=None,
+        test_mode=False,
+        multi_class=False,
+        num_classes=None,
+        start_index=1,
+        modality="RGB",
+        sample_by_class=False,
+        power=None,
+    ):
         super().__init__()
 
         self.ann_file = ann_file
-        self.data_prefix = osp.realpath(
-            data_prefix) if data_prefix is not None and osp.isdir(
-                data_prefix) else data_prefix
+        self.data_prefix = (
+            osp.realpath(data_prefix)
+            if data_prefix is not None and osp.isdir(data_prefix)
+            else data_prefix
+        )
         self.test_mode = test_mode
         self.multi_class = multi_class
         self.num_classes = num_classes
@@ -94,7 +102,7 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
         """Load json annotation file to get video information."""
         video_infos = mmcv.load(self.ann_file)
         num_videos = len(video_infos)
-        path_key = 'frame_dir' if 'frame_dir' in video_infos[0] else 'filename'
+        path_key = "frame_dir" if "frame_dir" in video_infos[0] else "filename"
         for i in range(num_videos):
             path_value = video_infos[i][path_key]
             if self.data_prefix is not None:
@@ -103,29 +111,31 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             if self.multi_class:
                 assert self.num_classes is not None
             else:
-                assert len(video_infos[i]['label']) == 1
-                video_infos[i]['label'] = video_infos[i]['label'][0]
+                assert len(video_infos[i]["label"]) == 1
+                video_infos[i]["label"] = video_infos[i]["label"][0]
         return video_infos
 
     def parse_by_class(self):
         video_infos_by_class = defaultdict(list)
         for item in self.video_infos:
-            label = item['label']
+            label = item["label"]
             video_infos_by_class[label].append(item)
         return video_infos_by_class
 
     @staticmethod
     def label2array(num, label):
         arr = np.zeros(num, dtype=np.float32)
-        arr[label] = 1.
+        arr[label] = 1.0
         return arr
 
-    def evaluate(self,
-                 results,
-                 metrics='top_k_accuracy',
-                 metric_options=dict(top_k_accuracy=dict(topk=(1, 5))),
-                 logger=None,
-                 **deprecated_kwargs):
+    def evaluate(
+        self,
+        results,
+        metrics="top_k_accuracy",
+        metric_options=dict(top_k_accuracy=dict(topk=(1, 5))),
+        logger=None,
+        **deprecated_kwargs,
+    ):
         """Perform evaluation for common datasets.
 
         Args:
@@ -148,76 +158,79 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
 
         if deprecated_kwargs != {}:
             warnings.warn(
-                'Option arguments for metrics has been changed to '
+                "Option arguments for metrics has been changed to "
                 "`metric_options`, See 'https://github.com/open-mmlab/mmaction2/pull/286' "  # noqa: E501
-                'for more details')
-            metric_options['top_k_accuracy'] = dict(
-                metric_options['top_k_accuracy'], **deprecated_kwargs)
+                "for more details"
+            )
+            metric_options["top_k_accuracy"] = dict(
+                metric_options["top_k_accuracy"], **deprecated_kwargs
+            )
 
         if not isinstance(results, list):
-            raise TypeError(f'results must be a list, but got {type(results)}')
+            raise TypeError(f"results must be a list, but got {type(results)}")
         assert len(results) == len(self), (
-            f'The length of results is not equal to the dataset len: '
-            f'{len(results)} != {len(self)}')
+            f"The length of results is not equal to the dataset len: "
+            f"{len(results)} != {len(self)}"
+        )
 
         metrics = metrics if isinstance(metrics, (list, tuple)) else [metrics]
         allowed_metrics = [
-            'top_k_accuracy', 'mean_class_accuracy', 'mean_average_precision',
-            'mmit_mean_average_precision'
+            "top_k_accuracy",
+            "mean_class_accuracy",
+            "mean_average_precision",
+            "mmit_mean_average_precision",
         ]
 
         for metric in metrics:
             if metric not in allowed_metrics:
-                raise KeyError(f'metric {metric} is not supported')
+                raise KeyError(f"metric {metric} is not supported")
 
         eval_results = OrderedDict()
-        gt_labels = [ann['label'] for ann in self.video_infos]
+        gt_labels = [ann["label"] for ann in self.video_infos]
 
         for metric in metrics:
-            msg = f'Evaluating {metric} ...'
+            msg = f"Evaluating {metric} ..."
             if logger is None:
-                msg = '\n' + msg
+                msg = "\n" + msg
             print_log(msg, logger=logger)
 
-            if metric == 'top_k_accuracy':
-                topk = metric_options.setdefault('top_k_accuracy',
-                                                 {}).setdefault(
-                                                     'topk', (1, 5))
+            if metric == "top_k_accuracy":
+                topk = metric_options.setdefault("top_k_accuracy", {}).setdefault(
+                    "topk", (1, 5)
+                )
                 if not isinstance(topk, (int, tuple)):
-                    raise TypeError('topk must be int or tuple of int, '
-                                    f'but got {type(topk)}')
+                    raise TypeError(
+                        "topk must be int or tuple of int, " f"but got {type(topk)}"
+                    )
                 if isinstance(topk, int):
-                    topk = (topk, )
+                    topk = (topk,)
 
                 top_k_acc = top_k_accuracy(results, gt_labels, topk)
                 log_msg = []
                 for k, acc in zip(topk, top_k_acc):
-                    eval_results[f'top{k}_acc'] = acc
-                    log_msg.append(f'\ntop{k}_acc\t{acc:.4f}')
-                log_msg = ''.join(log_msg)
+                    eval_results[f"top{k}_acc"] = acc
+                    log_msg.append(f"\ntop{k}_acc\t{acc:.4f}")
+                log_msg = "".join(log_msg)
                 print_log(log_msg, logger=logger)
                 continue
 
-            if metric == 'mean_class_accuracy':
+            if metric == "mean_class_accuracy":
                 mean_acc = mean_class_accuracy(results, gt_labels)
-                eval_results['mean_class_accuracy'] = mean_acc
-                log_msg = f'\nmean_acc\t{mean_acc:.4f}'
+                eval_results["mean_class_accuracy"] = mean_acc
+                log_msg = f"\nmean_acc\t{mean_acc:.4f}"
                 print_log(log_msg, logger=logger)
                 continue
 
-            if metric in [
-                    'mean_average_precision', 'mmit_mean_average_precision'
-            ]:
+            if metric in ["mean_average_precision", "mmit_mean_average_precision"]:
                 gt_labels = [
-                    self.label2array(self.num_classes, label)
-                    for label in gt_labels
+                    self.label2array(self.num_classes, label) for label in gt_labels
                 ]
-                if metric == 'mean_average_precision':
+                if metric == "mean_average_precision":
                     mAP = mean_average_precision(results, gt_labels)
-                elif metric == 'mmit_mean_average_precision':
+                elif metric == "mmit_mean_average_precision":
                     mAP = mmit_mean_average_precision(results, gt_labels)
-                eval_results['mean_average_precision'] = mAP
-                log_msg = f'\nmean_average_precision\t{mAP:.4f}'
+                eval_results["mean_average_precision"] = mAP
+                log_msg = f"\nmean_average_precision\t{mAP:.4f}"
                 print_log(log_msg, logger=logger)
                 continue
 
@@ -236,15 +249,15 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             results = copy.deepcopy(np.random.choice(samples))
         else:
             results = copy.deepcopy(self.video_infos[idx])
-        results['modality'] = self.modality
-        results['start_index'] = self.start_index
+        results["modality"] = self.modality
+        results["start_index"] = self.start_index
 
         # prepare tensor in getitem
         # If HVU, type(results['label']) is dict
-        if self.multi_class and isinstance(results['label'], list):
+        if self.multi_class and isinstance(results["label"], list):
             onehot = torch.zeros(self.num_classes)
-            onehot[results['label']] = 1.
-            results['label'] = onehot
+            onehot[results["label"]] = 1.0
+            results["label"] = onehot
 
         return self.pipeline(results)
 
@@ -256,15 +269,15 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
             results = copy.deepcopy(np.random.choice(samples))
         else:
             results = copy.deepcopy(self.video_infos[idx])
-        results['modality'] = self.modality
-        results['start_index'] = self.start_index
+        results["modality"] = self.modality
+        results["start_index"] = self.start_index
 
         # prepare tensor in getitem
         # If HVU, type(results['label']) is dict
-        if self.multi_class and isinstance(results['label'], list):
+        if self.multi_class and isinstance(results["label"], list):
             onehot = torch.zeros(self.num_classes)
-            onehot[results['label']] = 1.
-            results['label'] = onehot
+            onehot[results["label"]] = 1.0
+            results["label"] = onehot
 
         return self.pipeline(results)
 
@@ -274,6 +287,9 @@ class BaseDataset(Dataset, metaclass=ABCMeta):
 
     def __getitem__(self, idx):
         """Get the sample for either training or testing given index."""
+        import pdb
+
+        pdb.set_trace()
         if self.test_mode:
             return self.prepare_test_frames(idx)
 
