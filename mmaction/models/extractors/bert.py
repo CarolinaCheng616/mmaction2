@@ -19,6 +19,9 @@ class BertExtractor(nn.Module):
         self.bert = builder.build_backbone(bert_backbone)
         self.tokenizer = BertTokenizer.from_pretrained(bert_path)
         self.new_path = new_path
+        self.conv = nn.Conv1d(
+            in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=0, groups=1
+        )
 
     def forward_train(self, times, dms, path):
         base_path = osp.basename(path).split()[0]
