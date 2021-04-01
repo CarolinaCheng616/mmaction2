@@ -10,7 +10,9 @@ ann_file_test = ann_file_val
 model = dict(
     type="BertExtractor",
     bert_path="/mnt/lustre/share_data/liwei_to_haoyue/bert_model",
-    bert_backbone="BERT",
+    bert_backbone=dict(
+        type="BERT", pretrained="/mnt/lustre/share_data/liwei_to_haoyue/bert_model"
+    ),
     new_path="/mnt/lustre/chenghaoyue/bilibili_text_feature/",
 )
 # model training and testing settings

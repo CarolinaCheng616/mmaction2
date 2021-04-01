@@ -16,7 +16,7 @@ class BertExtractor(nn.Module):
     def __init__(self, bert_path, bert_backbone, new_path):
         super().__init__()
         self.bert_path = bert_path
-        self.bert = builder.build_backbone(bert_backbone)(pretrained=bert_path)
+        self.bert = builder.build_backbone(bert_backbone)
         self.tokenizer = BertTokenizer.from_pretrained(bert_path)
         self.new_path = new_path
 
