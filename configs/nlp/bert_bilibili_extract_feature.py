@@ -30,8 +30,8 @@ test_pipeline = [
     dict(
         type="Collect",
         keys=["times", "dms", "path"],
-        # meta_name="video_meta",
-        # meta_keys=["path"],
+        meta_name="video_meta",
+        meta_keys=[],
     ),
     # dict(type='ToTensor', keys=['raw_feature']),
 ]
