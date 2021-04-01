@@ -72,15 +72,14 @@ class BertExtractor(nn.Module):
         return 0
 
     def forward_test(self, video_meta):
-        import pdb
-
-        pdb.set_trace()
-
+        # import pdb
+        #
+        # pdb.set_trace()
         for video in video_meta:
             times, dms, path = video["times"], video["dms"], video["path"]
             times = np.array(times)
             base_path = osp.splitext(osp.basename(path))[0]
-            pattern = r".*bilibili\w?\/"
+            pattern = r".*bilibili_parse_xml\/"
             new_path = re.sub(pattern, self.new_path, osp.dirname(path))
             os.makedirs(new_path, exist_ok=True)
             # for dm
