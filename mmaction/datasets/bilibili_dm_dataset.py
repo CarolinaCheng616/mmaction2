@@ -20,6 +20,9 @@ class DmDataset(BaseDataset):
 
     def load_annotations(self):
         # print("load dataset annotations")
+        import pdb
+
+        pdb.set_trace()
         if self.ann_file is not None and self.data_prefix is None:  # for liwei code
             with open(self.ann_file, "r") as f:
                 video_infos = [dict(path=line.strip()) for line in f]
