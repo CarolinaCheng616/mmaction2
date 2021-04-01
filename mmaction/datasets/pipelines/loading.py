@@ -1726,8 +1726,13 @@ class LoadDmText:
         with open(file_path, "r") as f:
             for line in f:
                 tokens = line.strip().split("#*,")
-                times.append(float(tokens[0]))
-                dms.append(tokens[1])
+                try:
+                    times.append(float(tokens[0]))
+                    dms.append(tokens[1])
+                except ValueError:
+                    import pdb
+
+                    pdb.set_trace()
         result["times"] = times
         result["dms"] = dms
         return result
