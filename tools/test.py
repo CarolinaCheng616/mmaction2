@@ -195,9 +195,9 @@ def main():
     if args.fuse_conv_bn:
         model = fuse_conv_bn(model)
 
-    import pdb
-
-    pdb.set_trace()
+    # import pdb
+    #
+    # pdb.set_trace()
 
     if not distributed:
         model = MMDataParallel(model, device_ids=[0])

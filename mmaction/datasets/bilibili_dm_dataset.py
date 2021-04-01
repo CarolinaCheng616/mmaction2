@@ -46,6 +46,7 @@ class DmDataset(BaseDataset):
 
     def prepare_test_frames(self, idx):
         results = copy.deepcopy(self.video_infos[idx])
+        print("load data")
         return self.pipeline(results)
 
     def dump_results(self, results, out, output_format):
