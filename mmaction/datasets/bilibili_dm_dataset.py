@@ -16,10 +16,10 @@ class DmDataset(BaseDataset):
 
     def __len__(self):
         """Get the size of the dataset."""
-        pass
+        return len(self.video_infos)
 
     def load_annotations(self):
-        if self.ann_file != "" and self.data_prefix is None:  # for liwei code
+        if self.ann_file is not None and self.data_prefix is None:  # for liwei code
             with open(self.ann_file, "r") as f:
                 video_infos = [dict(path=line.strip()) for line in f]
         elif self.ann_file is None and self.data_prefix is not None:  # for haoyue code
@@ -46,3 +46,6 @@ class DmDataset(BaseDataset):
     def prepare_test_frames(self, idx):
         results = copy.deepcopy(self.video_infos[idx])
         return self.pipeline(results)
+
+    def dump_results(self, results, out, output_format):
+        pass
