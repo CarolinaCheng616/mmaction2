@@ -51,8 +51,8 @@ class BertExtractor(nn.Module):
 
         return 0
 
-    def forward_test(self, times, dms, path):
-        base_path = osp.basename(path).split()[0]
+    def forward_test(self, times, dms, video_meta):
+        base_path = osp.basename(video_meta["path"]).split()[0]
         # for dm
         import pdb
 
@@ -79,10 +79,10 @@ class BertExtractor(nn.Module):
 
         return None
 
-    def forward(self, times, dms, path, return_loss=False):
+    def forward(self, times, dms, video_meta, return_loss=False):
         if return_loss:
-            return self.forward_train(times, dms, path)
+            return self.forward_train(times, dms, video_meta)
         else:
-            return self.forward_test(times, dms, path)
+            return self.forward_test(times, dms, video_meta)
 
     # def
