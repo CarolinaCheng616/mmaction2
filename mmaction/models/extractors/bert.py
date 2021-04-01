@@ -24,6 +24,7 @@ class BertExtractor(nn.Module):
             in_channels=1, out_channels=1, kernel_size=3, stride=1, padding=0, groups=1
         )
         self.bert.init_weights()
+        print("finish initializing model.")
 
     def forward_train(self, video_meta):
         import pdb
@@ -69,7 +70,6 @@ class BertExtractor(nn.Module):
         return 0
 
     def forward_test(self, video_meta):
-
         for video in video_meta:
             times, dms, path = video["times"], video["dms"], video["path"]
             base_path = osp.splitext(osp.basename(path))[0]
