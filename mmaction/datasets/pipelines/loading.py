@@ -1721,9 +1721,6 @@ class LoadDmText:
         #     text_list = pickle.load(f, encoding="bytes")
 
         # for haoyue code
-        import pdb
-
-        pdb.set_trace()
         times = []
         dms = []
         with open(file_path, "r") as f:
