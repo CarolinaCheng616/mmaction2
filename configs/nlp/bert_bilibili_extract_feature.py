@@ -18,7 +18,7 @@ model = dict(
         pretrained="work_dirs/bert_model",
     ),
     # new_path="/mnt/lustre/chenghaoyue/bilibili_text_feature/",
-    new_path="data/bilibili_new",
+    new_path="data/bilibili_new/",
 )
 # model training and testing settings
 train_cfg = None

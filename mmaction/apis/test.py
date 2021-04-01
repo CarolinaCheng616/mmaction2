@@ -66,12 +66,13 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=True):
     # pdb.set_trace()
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
-    # for data in data_loader:
-    for i in range(len(data_loader)):
-        data = data_loader.dataset.prepare_test_frames(i)
+    for data in data_loader:
+        # for i in range(len(data_loader)):
+        #     data = data_loader.dataset.prepare_test_frames(i)
         with torch.no_grad():
-            result = model(return_loss=False, **data)
-        results.extend(result)
+            # result = model(return_loss=False, **data)
+            model(return_loss=False, **data)
+        # results.extend(result)
 
         if rank == 0:
             # use the first key as main key to calculate the batch size
@@ -80,11 +81,11 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=True):
                 prog_bar.update()
 
     # collect results from all ranks
-    if gpu_collect:
-        results = collect_results_gpu(results, len(dataset))
-    else:
-        results = collect_results_cpu(results, len(dataset), tmpdir)
-    return results
+    # if gpu_collect:
+    #     results = collect_results_gpu(results, len(dataset))
+    # else:
+    #     results = collect_results_cpu(results, len(dataset), tmpdir)
+    # return results
 
 
 def collect_results_cpu(result_part, size, tmpdir=None):
