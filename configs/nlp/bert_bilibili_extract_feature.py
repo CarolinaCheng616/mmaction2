@@ -1,8 +1,10 @@
 # dataset settings
 dataset_type = "DmDataset"
-data_root = "/mnt/lustre/share_data/bilibili_parse_xml"
+# data_root = "/mnt/lustre/share_data/bilibili_parse_xml"
+data_root = None
 data_root_val = data_root
-ann_file_train = None
+# ann_file_train = None
+ann_file_train = "/mnt/lustre/chenghaoyue/chy_dm_anno.txt"
 ann_file_val = ann_file_train
 ann_file_test = ann_file_val
 

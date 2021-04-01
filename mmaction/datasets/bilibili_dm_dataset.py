@@ -19,26 +19,22 @@ class DmDataset(BaseDataset):
         return len(self.video_infos)
 
     def load_annotations(self):
-        # print("load dataset annotations")
-        import pdb
-
-        pdb.set_trace()
         if self.ann_file is not None and self.data_prefix is None:  # for liwei code
             with open(self.ann_file, "r") as f:
                 video_infos = [dict(path=line.strip()) for line in f]
         elif self.ann_file is None and self.data_prefix is not None:  # for haoyue code
             path_list = set()
             path_list.add(self.data_prefix)
-            for i in range(4):
+            for i in range(3):
                 tmp_list = set()
                 for path in path_list:
                     for subdir in os.listdir(path):
                         tmp_list.add(osp.join(path, subdir))
                 path_list = tmp_list
-            # video_infos = list()
-            # for path in path_list:
-            #     files = [dict(path=osp.join(path, file)) for file in os.listdir(path)]
-            #     video_infos += files
+            video_infos = list()
+            for path in path_list:
+                files = [dict(path=osp.join(path, file)) for file in os.listdir(path)]
+                video_infos += files
         else:
             raise ValueError("something wrong in ann_file and data_prefix")
         print("finish initializing dataset.")
