@@ -1,6 +1,6 @@
 # dataset settings
 dataset_type = "DmDataset"
-data_root = "/mnt/lustre/share_data/bilibili_parse_xml"
+data_root = "/mnt/lustre/chenghaoyue/bilibili_dm"
 data_root_val = data_root
 ann_file_train = None
 ann_file_val = ann_file_train
@@ -11,7 +11,7 @@ model = dict(
     type="BertExtractor",
     bert_path="/mnt/lustre/share_data/liwei_to_haoyue/bert_model",
     bert_backbone="BERT",
-    new_path="/mnt/lustre/share_data/bilibili_text_feature/",
+    new_path="/mnt/lustre/chenghaoyue/bilibili_text_feature/",
 )
 # model training and testing settings
 train_cfg = None
@@ -28,35 +28,6 @@ test_pipeline = [
     ),
     # dict(type='ToTensor', keys=['raw_feature']),
 ]
-# train_pipeline = [
-#     dict(type='LoadDmText'),
-#     dict(type='GenerateLocalizationLabels'),
-#     dict(
-#         type='Collect',
-#         keys=['raw_feature', 'gt_bbox'],
-#         meta_name='video_meta',
-#         meta_keys=['video_name']),
-#     dict(type='ToTensor', keys=['raw_feature', 'gt_bbox']),
-#     dict(
-#         type='ToDataContainer',
-#         fields=[dict(key='gt_bbox', stack=False, cpu_only=True)])
-# ]
-# val_pipeline = [
-#     dict(type='LoadDmText'),
-#     dict(type='GenerateLocalizationLabels'),
-#     dict(
-#         type='Collect',
-#         keys=['raw_feature', 'gt_bbox'],
-#         meta_name='video_meta',
-#         meta_keys=[
-#             'video_name', 'duration_second', 'duration_frame', 'annotations',
-#             'feature_frame'
-#         ]),
-#     dict(type='ToTensor', keys=['raw_feature', 'gt_bbox']),
-#     dict(
-#         type='ToDataContainer',
-#         fields=[dict(key='gt_bbox', stack=False, cpu_only=True)])
-# ]
 train_pipeline = test_pipeline
 val_pipeline = test_pipeline
 data = dict(
