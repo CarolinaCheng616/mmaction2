@@ -4,15 +4,23 @@ import torch.nn as nn
 from mmcv.utils import Registry, build_from_cfg
 
 from mmaction.utils import import_module_error_func
-from .registry import BACKBONES, HEADS, LOCALIZERS, LOSSES, NECKS, RECOGNIZERS
+from .registry import (
+    BACKBONES,
+    HEADS,
+    LOCALIZERS,
+    LOSSES,
+    NECKS,
+    RECOGNIZERS,
+    EXTRACTORS,
+)
 
 try:
     from mmdet.models.builder import DETECTORS, build_detector
 except (ImportError, ModuleNotFoundError):
     # Define an empty registry and building func, so that can import
-    DETECTORS = Registry('detector')
+    DETECTORS = Registry("detector")
 
-    @import_module_error_func('mmdet')
+    @import_module_error_func("mmdet")
     def build_detector(cfg, train_cfg, test_cfg):
         pass
 
@@ -32,9 +40,7 @@ def build(cfg, registry, default_args=None):
     """
 
     if isinstance(cfg, list):
-        modules = [
-            build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg
-        ]
+        modules = [build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg]
         return nn.Sequential(*modules)
 
     return build_from_cfg(cfg, registry, default_args)
@@ -54,16 +60,18 @@ def build_recognizer(cfg, train_cfg=None, test_cfg=None):
     """Build recognizer."""
     if train_cfg is not None or test_cfg is not None:
         warnings.warn(
-            'train_cfg and test_cfg is deprecated, '
-            'please specify them in model. Details see this '
-            'PR: https://github.com/open-mmlab/mmaction2/pull/629',
-            UserWarning)
-    assert cfg.get('train_cfg') is None or train_cfg is None, \
-        'train_cfg specified in both outer field and model field '
-    assert cfg.get('test_cfg') is None or test_cfg is None, \
-        'test_cfg specified in both outer field and model field '
-    return build(cfg, RECOGNIZERS,
-                 dict(train_cfg=train_cfg, test_cfg=test_cfg))
+            "train_cfg and test_cfg is deprecated, "
+            "please specify them in model. Details see this "
+            "PR: https://github.com/open-mmlab/mmaction2/pull/629",
+            UserWarning,
+        )
+    assert (
+        cfg.get("train_cfg") is None or train_cfg is None
+    ), "train_cfg specified in both outer field and model field "
+    assert (
+        cfg.get("test_cfg") is None or test_cfg is None
+    ), "test_cfg specified in both outer field and model field "
+    return build(cfg, RECOGNIZERS, dict(train_cfg=train_cfg, test_cfg=test_cfg))
 
 
 def build_loss(cfg):
@@ -76,10 +84,14 @@ def build_localizer(cfg):
     return build(cfg, LOCALIZERS)
 
 
+def build_extractor(cfg):
+    return build(cfg, EXTRACTORS)
+
+
 def build_model(cfg, train_cfg=None, test_cfg=None):
     """Build model."""
     args = cfg.copy()
-    obj_type = args.pop('type')
+    obj_type = args.pop("type")
     if obj_type in LOCALIZERS:
         return build_localizer(cfg)
     if obj_type in RECOGNIZERS:
@@ -87,17 +99,21 @@ def build_model(cfg, train_cfg=None, test_cfg=None):
     if obj_type in DETECTORS:
         if train_cfg is not None or test_cfg is not None:
             warnings.warn(
-                'train_cfg and test_cfg is deprecated, '
-                'please specify them in model. Details see this '
-                'PR: https://github.com/open-mmlab/mmaction2/pull/629',
-                UserWarning)
+                "train_cfg and test_cfg is deprecated, "
+                "please specify them in model. Details see this "
+                "PR: https://github.com/open-mmlab/mmaction2/pull/629",
+                UserWarning,
+            )
         return build_detector(cfg, train_cfg, test_cfg)
-    model_in_mmdet = ['FastRCNN']
+    if obj_type in EXTRACTORS:
+        return build_extractor(cfg)
+    model_in_mmdet = ["FastRCNN"]
     if obj_type in model_in_mmdet:
-        raise ImportError(
-            'Please install mmdet for spatial temporal detection tasks.')
-    raise ValueError(f'{obj_type} is not registered in '
-                     'LOCALIZERS, RECOGNIZERS or DETECTORS')
+        raise ImportError("Please install mmdet for spatial temporal detection tasks.")
+    raise ValueError(
+        f"{obj_type} is not registered in "
+        "LOCALIZERS, RECOGNIZERS, DETECTORS or EXTRACTORS"
+    )
 
 
 def build_neck(cfg):
