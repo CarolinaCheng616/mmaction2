@@ -98,7 +98,7 @@ class SumDataset(BaseDataset):
         # Assign scores to video shots as the average of the frames.
         seg_scores = np.zeros(len(change_points), dtype=np.int32)
         for seg_idx, (first, last) in enumerate(change_points):
-            scores = frame_scores[first : last + 1]
+            scores = frame_scores[first: last + 1]
             seg_scores[seg_idx] = int(1000 * scores.mean())
 
         # Apply knapsack algorithm to find the best shots
@@ -130,7 +130,7 @@ class SumDataset(BaseDataset):
         segments = np.zeros(n_frames, dtype=np.bool)
         for seg_idx in packed:
             first, last = change_points[seg_idx]
-            segments[first : last + 1] = True
+            segments[first: last + 1] = True
 
         return segments
 
@@ -161,34 +161,38 @@ class SumDataset(BaseDataset):
             n_frame_per_seg = video_file["n_frame_per_seg"][...].astype(np.int32)    # 每两个change_points之间的帧数量,shape=(num,)
             picks = video_file["picks"][...].astype(np.int32)                        # 被采样的那些帧的idx
 
-            if not self.test:
-                gtscore = video_file["gtscore"][...].astype(np.float32)
-                summary = self._get_keyshot_summ(
-                    gtscore,
-                    change_points,
-                    n_frames,
-                    n_frame_per_seg,
-                    picks,
-                    self.keyshot_proportion,
-                )
-                label_action = np.zeros(len(features))
-                for i, pick in enumerate(picks):
-                    if summary[pick]:
-                        label_action[i] = 1.0
-            else:
-                summary = None
-                if "user_summary" in video_file:
-                    summary = video_file["user_summary"][...].astype(np.float32)
+            # if not self.test:
+            gtscore = video_file["gtscore"][...].astype(np.float32)
+            segments = self._get_keyshot_summ(
+                gtscore,
+                change_points,
+                n_frames,
+                n_frame_per_seg,
+                picks,
+                self.keyshot_proportion,
+            )
+            label_action = np.zeros(len(features))
+            for i, pick in enumerate(picks):
+                if segments[pick]:
+                    label_action[i] = 1.0
+            summary = None
+            if "user_summary" in video_file:
+                summary = video_file["user_summary"][...].astype(np.float32)
+            if self.test:
                 label_action = None
 
             video_info = dict(
                 video_name=tmp_name,
                 features=features,
-                label_action=label_action,
-                segments=summary,
+                change_points=change_points,
                 n_frames=n_frames,
+                n_frame_per_seg=n_frame_per_seg,
+                label_action=label_action,
+                segments=segments,
+                user_summary=summary,
+                picks=picks,
             )
-            self.video_frames[tmp_name] = [n_frames, picks]
+            self.video_frames[tmp_name] = video_info
             video_infos.append(video_info)
         return video_infos
 
@@ -200,17 +204,47 @@ class SumDataset(BaseDataset):
         results = copy.deepcopy(self.video_infos[idx])
         return self.pipeline(results)
 
+    def bbox2summary(self, results):
+        summary_result = dict()
+        for result in results:
+            video_name, proposal_list = result['video_name'], result['proposal_list']
+            n_frames = self.video_frames[video_name]['n_frames']
+            change_points = self.video_frames[video_name]['change_points']
+            n_frame_per_seg = self.video_frames[video_name]['n_frame_per_seg']
+            scores = np.zeros(n_frames, dtype=np.float32)
+            for proposal in proposal_list:
+                score, segment = proposal['score'], proposal['segment']
+                low, high = segment
+                scores[low: high] = np.maximum(scores[low: high], score)
+            # calculate change_point scores
+            seg_scores = np.zeros(len(change_points), dtype=np.int32)
+            for seg_idx, (first, last) in enumerate(change_points):
+                tmp_score = int(1000 * np.mean(scores[first: last + 1]))
+                seg_scores[seg_idx] = tmp_score
+            # generate selected segments
+            limits = int(n_frames * self.keyshot_proportion)
+            packed = self._knapsack(seg_scores, n_frame_per_seg, limits)
+            # generate summary
+            summary = np.zeros(n_frames, dtype=np.float32)
+            for seg_idx in packed:
+                first, last = change_points[seg_idx]
+                summary[first: last + 1] = 1.
+            summary_result[video_name] = summary
+        return summary_result
+
     def dump_results(self, results, out, output_format, version='VERSION 1.3'):
         """Dump data to json/csv files."""
-        if output_format == 'json':
-            result_dict = self.proposals2json(results)
-            mmcv.dump(result_dict, out)
+        if output_format == 'npz':
+            # results: [{'video_name': str, 'proposal_list':[{'score': 0.5, 'segment': [1, 2]}]}]
+            result_dict = self.bbox2summary(results)
+            # result_dict: {video_name1: scores1, video_name2: scores2}
+            np.savez(out, **result_dict)
         elif output_format == 'csv':
             os.makedirs(out, exist_ok=True)
             for result in results:
                 video_name, outputs = result
-                header = f'frame,action,n_frames {self.video_frames[video_name][0]}'
-                picks = self.video_frames[video_name][1].reshape(-1, 1).astype(np.int)
+                header = f"frame,action,n_frames {self.video_frames[video_name]['n_frames']}"
+                picks = self.video_frames[video_name]['picks'].reshape(-1, 1).astype(np.int)
                 outputs = np.concatenate((picks, outputs), axis=1)
                 output_path = osp.join(out, video_name + '.csv')
                 np.savetxt(
@@ -223,5 +257,35 @@ class SumDataset(BaseDataset):
             raise ValueError(
                 f'The output format {output_format} is not supported.')
 
-    def evaluate(self):
-        pass
+    def evaluate(self, results, eval_metric='avg'):
+        """Compare predicted summary with ground truth summary (keyshot-based).
+
+        Args:
+            results (dict): Predicted binary label of N frames. Sized [N].
+            # test_summ: Ground truth binary labels of U users. Sized [U, N].
+            eval_metric: Evaluation method. Choose from (max, avg).
+        return:
+            F1-score value.
+        """
+        f1_score = list()
+        for video_name in results:
+            pred_summ = results[video_name].astype(np.bool)
+            test_summ = self.video_frames[video_name]['user_summary']
+            f1s = []
+            for tsum in test_summ:
+                assert pred_summ.shape == tsum.shape
+                tsum = tsum.astype(np.bool)
+                overlap = (pred_summ & tsum).sum()
+                if overlap == 0:
+                    f1 = 0
+                else:
+                    precision = overlap / pred_summ.sum()
+                    recall = overlap / tsum.sum()
+                    f1 = 2 * precision * recall / (precision + recall)
+                f1s.append(f1)
+            if eval_metric == 'avg':
+                final_f1 = np.mean(f1s)
+            else:
+                final_f1 = np.max(f1s)
+            f1_score.append(final_f1)
+        return np.mean(f1_score)

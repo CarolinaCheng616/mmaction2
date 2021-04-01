@@ -8,6 +8,35 @@ from ..registry import LOCALIZERS
 from .base import BaseLocalizer
 
 
+def temporal_iou(proposal_min, proposal_max, gt_min, gt_max):
+    """Compute IoU score between a groundtruth bbox and the proposals.
+
+    Args:
+        proposal_min (float): temporal anchor min.
+        proposal_max (float): temporal anchor max.
+        gt_min (list[float]): List of Groundtruth temporal box min.
+        gt_max (list[float]): List of Groundtruth temporal box max.
+
+    Returns:
+        list[float]: List of iou scores.
+    """
+    len_anchors = proposal_max - proposal_min
+    int_tmin = np.maximum(proposal_min, gt_min)
+    int_tmax = np.minimum(proposal_max, gt_max)
+    inter_len = np.maximum(int_tmax - int_tmin, 0.)
+    # ephs = 1e-5
+    union_len = len_anchors - inter_len + gt_max - gt_min
+
+    jaccard = np.zeros(len(inter_len))
+    nonzero_idx = union_len.nonzero()[0]
+    jaccard[nonzero_idx] = np.divide(inter_len[nonzero_idx], union_len[nonzero_idx])
+    # jaccard = np.divide(inter_len, union_len)
+    # if not np.isfinite(jaccard).all():
+    #     import pdb
+    #     pdb.set_trace()
+    return jaccard
+
+
 def hard_nms(proposals, threshold, top_k):
     """
     Hard nms for post processing.
@@ -56,12 +85,14 @@ def post_processing_hard_nms(result, video_info, threshold, post_process_top_k):
     proposal_list = []
 
     for j in range(min(post_process_top_k, len(result))):
-        proposal = {}
-        propossal['score'] = float(result[j, -1])
+        proposal = dict()
+        proposal['score'] = float(result[j, -1])
         proposal['segment'] = [
             int(max(0, result[j, 0]) * n_frames),
             int(min(1, result[j, 1]) * n_frames)
         ]
+        proposal['segment'][0] = min(proposal['segment'][0], n_frames)
+        proposal['segment'][1] = min(proposal['segment'][1], n_frames)
         proposal_list.append(proposal)
     return proposal_list
 
@@ -233,7 +264,7 @@ class SumOriFeatBNPEMReg(BaseLocalizer):
                  loss_cls=dict(type='BinaryThresholdClassificationLoss'),
                  classify_loss_ratio=1,
                  regression_loss_ratio=1,
-                 offset_scale=1000):
+                 offset_scale=100):
         super(BaseLocalizer, self).__init__()
 
         self.feat_dim = pem_feat_dim
@@ -328,13 +359,13 @@ class SumOriFeatBNPEMReg(BaseLocalizer):
         regression_pos = regression[positive_idx]
         offset_pos = self.offset_scale * offset[positive_idx]
 
-        import pdb
-        pdb.set_trace()
-
         regression_loss = self.regression_loss_ratio * F.smooth_l1_loss(
             regression_pos, offset_pos)
         loss_dict = dict(
             classify_loss=classify_loss, regression_loss=regression_loss)
+
+        # import pdb
+        # pdb.set_trace()
 
         return loss_dict
 

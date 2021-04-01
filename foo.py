@@ -138,6 +138,13 @@ def read_h5_file(file_path):
     pdb.set_trace()
 
 
+def test_npz():
+    inter_len = np.zeros(10)
+    union_len = inter_len
+    a = np.divide(inter_len, union_len)
+    print(a)
+
+
 if __name__ == "__main__":
     # parser = argparse.ArgumentParser()
     # parser.add_argument('--result_file')
@@ -148,5 +155,6 @@ if __name__ == "__main__":
     # meta_file = args.meta_file
     # new_file = args.new_file
     # compute_iou_for_results(result_file, meta_file, new_file)
-    file_path = "data/summarization/eccv16_dataset_summe_google_pool5.h5"
-    read_h5_file(file_path)
+    # file_path = "data/summarization/eccv16_dataset_summe_google_pool5.h5"
+    # read_h5_file(file_path)
+    test_npz()
