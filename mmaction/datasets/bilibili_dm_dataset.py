@@ -44,7 +44,7 @@ class DmDataset(BaseDataset):
         # import pdb
         #
         # pdb.set_trace()
-        print("train frames")
+        # print("train frames")
         results = copy.deepcopy(self.video_infos[idx])
         return self.pipeline(results)
 
@@ -53,7 +53,7 @@ class DmDataset(BaseDataset):
         #
         # pdb.set_trace()
         results = copy.deepcopy(self.video_infos[idx])
-        print("test frames")
+        # print("test frames")
         return self.pipeline(results)
 
     def dump_results(self, results, out, output_format):
