@@ -29,14 +29,14 @@ test_pipeline = [
     dict(type="LoadDmText"),
     dict(
         type="Collect",
-        keys=["times", "dms", "path"],
+        keys=[],
         meta_name="video_meta",
-        meta_keys=[],
+        meta_keys=["times", "dms", "path"],
     ),
-    dict(type="ToTensor", keys=["times"]),
-    dict(type="ToDataContainer", fields=[dict(key="times", stack=False)]),
-    dict(type="ToDataContainer", fields=[dict(key="dms", stack=False)]),
-    dict(type="ToDataContainer", fields=[dict(key="path", stack=False)]),
+    # dict(type="ToTensor", keys=["times"]),
+    # dict(type="ToDataContainer", fields=[dict(key="times", stack=False)]),
+    # dict(type="ToDataContainer", fields=[dict(key="dms", stack=False)]),
+    # dict(type="ToDataContainer", fields=[dict(key="path", stack=False)]),
 ]
 train_pipeline = test_pipeline
 val_pipeline = test_pipeline
