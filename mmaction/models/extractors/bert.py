@@ -30,6 +30,7 @@ class BertExtractor(nn.Module):
         import pdb
 
         pdb.set_trace()
+
         for video in video_meta:
             times, dms, path = video["times"], video["dms"], video["path"]
             times = np.array(times)
