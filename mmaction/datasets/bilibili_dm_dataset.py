@@ -45,6 +45,9 @@ class DmDataset(BaseDataset):
         return self.pipeline(results)
 
     def prepare_test_frames(self, idx):
+        import pdb
+
+        pdb.set_trace()
         results = copy.deepcopy(self.video_infos[idx])
         print("load data")
         return self.pipeline(results)
