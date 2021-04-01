@@ -4,6 +4,7 @@ import torch.distributed as dist
 import numpy as np
 import os
 import os.path as osp
+import re
 
 from ..backbones import bert
 from ..registry import EXTRACTORS
@@ -26,6 +27,9 @@ class BertExtractor(nn.Module):
 
     def forward_train(self, times, dms, path, video_meta):
         base_path = osp.basename(path).split()[0]
+        # dir_path =
+        pattern = r".*bilibili\w?\/"
+        new_path = re.sub(pattern, self.new_path, osp.dirname(path))
         # for dm
         import pdb
 
@@ -56,11 +60,13 @@ class BertExtractor(nn.Module):
         import pdb
 
         pdb.set_trace()
-        # base_path = osp.basename(video_meta["path"]).split()[0]
         base_path = osp.splitext(osp.basename(path))[0]
+        pattern = r".*bilibili\w?\/"
+        new_path = re.sub(pattern, self.new_path, osp.dirname(path))
         # for dm
         number_per_iter = 500
         nums = (len(dms) + number_per_iter - 1) // number_per_iter
+        features = []
         for i in range(nums):
             sub_dm = dms[i * number_per_iter : (i + 1) * number_per_iter]
             sub_tokens = self.tokenizer(
@@ -68,7 +74,13 @@ class BertExtractor(nn.Module):
             )
             for key in sub_tokens:
                 sub_tokens[key] = sub_tokens[key].cuda()
-            sub_feat = self.bert(sub_tokens)
+            sub_feat = self.bert(sub_tokens).cpu().numpy()
+            features.append(sub_feat)
+        features = np.concatenate(features, axis=0)
+        # save npz file
+        np.savez(
+            osp.join(new_path, base_path + "_dm.npz"), times=times, features=features
+        )
 
         # for video name
         tokens = self.tokenizer(
@@ -76,8 +88,9 @@ class BertExtractor(nn.Module):
         )
         for key in tokens:
             tokens[key] = tokens[key].cuda()
-        title_feat = self.bert(tokens)
+        title_feat = self.bert(tokens).cpu().numpy()
         # save npy file
+        np.save(osp.join(new_path, base_path + "_title.npy"), title_feat)
 
         return None
 
