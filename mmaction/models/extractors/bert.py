@@ -80,7 +80,7 @@ class BertExtractor(nn.Module):
 
         return None
 
-    def forward(self, times, dms, path, video_meta, return_loss=False):
+    def forward(self, times, dms, path, video_meta=None, return_loss=False):
         if return_loss:
             return self.forward_train(times, dms, path, video_meta)
         else:
