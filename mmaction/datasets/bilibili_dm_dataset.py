@@ -41,17 +41,17 @@ class DmDataset(BaseDataset):
         return video_infos
 
     def prepare_train_frames(self, idx):
-        import pdb
-
-        pdb.set_trace()
+        # import pdb
+        #
+        # pdb.set_trace()
         print("train frames")
         results = copy.deepcopy(self.video_infos[idx])
         return self.pipeline(results)
 
     def prepare_test_frames(self, idx):
-        import pdb
-
-        pdb.set_trace()
+        # import pdb
+        #
+        # pdb.set_trace()
         results = copy.deepcopy(self.video_infos[idx])
         print("test frames")
         return self.pipeline(results)
