@@ -28,10 +28,6 @@ class BertExtractor(nn.Module):
         print("finish initializing model.")
 
     def forward_train(self, video_meta):
-        import pdb
-
-        pdb.set_trace()
-
         for video in video_meta:
             times, dms, path = video["times"], video["dms"], video["path"]
             times = np.array(times)
@@ -76,6 +72,10 @@ class BertExtractor(nn.Module):
         return 0
 
     def forward_test(self, video_meta):
+        import pdb
+
+        pdb.set_trace()
+
         for video in video_meta:
             times, dms, path = video["times"], video["dms"], video["path"]
             times = np.array(times)
