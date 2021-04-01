@@ -66,9 +66,6 @@ def multi_gpu_test(model, data_loader, tmpdir=None, gpu_collect=True):
     # pdb.set_trace()
     if rank == 0:
         prog_bar = mmcv.ProgressBar(len(dataset))
-    # import pdb
-    #
-    # pdb.set_trace()
     for data in data_loader:
         # for i in range(len(data_loader)):
         #     data = data_loader.dataset.prepare_test_frames(i)

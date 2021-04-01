@@ -25,41 +25,51 @@ class BertExtractor(nn.Module):
         )
         self.bert.init_weights()
 
-    def forward_train(self, times, dms, path, video_meta):
-        base_path = osp.basename(path).split()[0]
-        # dir_path =
-        pattern = r".*bilibili\w?\/"
-        new_path = re.sub(pattern, self.new_path, osp.dirname(path))
-        # for dm
+    def forward_train(self, video_meta):
         import pdb
 
         pdb.set_trace()
-        number_per_iter = 500
-        nums = (len(dms) + number_per_iter - 1) // number_per_iter
-        for i in range(nums):
-            sub_dm = dms[i * number_per_iter : (i + 1) * number_per_iter]
-            sub_tokens = self.tokenizer(
-                sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+        for video in video_meta:
+            times, dms, path = video["times"], video["dms"], video["path"]
+            base_path = osp.splitext(osp.basename(path))[0]
+            pattern = r".*bilibili\w?\/"
+            new_path = re.sub(pattern, self.new_path, osp.dirname(path))
+            os.makedirs(new_path, exist_ok=True)
+            # for dm
+            number_per_iter = 500
+            nums = (len(dms) + number_per_iter - 1) // number_per_iter
+            features = []
+            for i in range(nums):
+                sub_dm = dms[i * number_per_iter : (i + 1) * number_per_iter]
+                sub_tokens = self.tokenizer(
+                    sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+                )
+                for key in sub_tokens:
+                    sub_tokens[key] = sub_tokens[key].cuda()
+                sub_feat = self.bert(sub_tokens).cpu().numpy()
+                features.append(sub_feat)
+            features = np.concatenate(features, axis=0)
+            # save npz file
+            np.savez(
+                osp.join(new_path, base_path + "_dm.npz"),
+                times=times,
+                features=features,
             )
-            for key in sub_tokens:
-                sub_tokens[key] = sub_tokens[key].cuda()
-            sub_feat = self.bert(sub_tokens)
 
-        # for video name
-        tokens = self.tokenizer(
-            base_path, truncation=True, padding="max_length", return_tensors="pt"
-        )
-        for key in tokens:
-            tokens[key] = tokens[key].cuda()
-        title_feat = self.bert(tokens)
-        # save npy file
+            # for video name
+            tokens = self.tokenizer(
+                base_path, truncation=True, padding="max_length", return_tensors="pt"
+            )
+            for key in tokens:
+                tokens[key] = tokens[key].cuda()
+            title_feat = self.bert(tokens).cpu().numpy()
+            # save npy file
+            np.save(osp.join(new_path, base_path + "_title.npy"), title_feat)
 
         return 0
 
     def forward_test(self, video_meta):
-        import pdb
 
-        pdb.set_trace()
         for video in video_meta:
             times, dms, path = video["times"], video["dms"], video["path"]
             base_path = osp.splitext(osp.basename(path))[0]
