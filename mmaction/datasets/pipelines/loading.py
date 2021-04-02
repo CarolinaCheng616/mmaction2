@@ -1731,7 +1731,7 @@ class LoadDmText:
                     dm = tokens[1]
                     times.append(t)
                     dms.append(dm)
-                except ValueError:
+                except ValueError or IndexError:
                     pass
         result["times"] = times
         result["dms"] = dms
