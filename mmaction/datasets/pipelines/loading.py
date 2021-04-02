@@ -1727,8 +1727,10 @@ class LoadDmText:
             for line in f:
                 tokens = line.strip().split("#*,")
                 try:
-                    times.append(float(tokens[0]))
-                    dms.append(tokens[1])
+                    t = float(tokens[0])
+                    dm = tokens[1]
+                    times.append(t)
+                    dms.append(dm)
                 except ValueError:
                     pass
         result["times"] = times
