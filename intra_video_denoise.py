@@ -286,6 +286,9 @@ class IntraFilter:
             ]
         )
         db = DBSCAN(eps=0.5, metric="precomputed", min_samples=1).fit(distance)
+        import pdb
+
+        pdb.set_trace()
         dic = defaultdict(list)
         for i, label in enumerate(db.labels_):
             if label != -1:
@@ -308,16 +311,16 @@ class IntraFilter:
 
 if __name__ == "__main__":
     ############################### generate paths file #######################################
-    root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
-    wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    proc1.start()
-    root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
-    wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
-    proc2.start()
-    proc1.join()
-    proc2.join()
+    # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
+    # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
+    # proc1.start()
+    # root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
+    # wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
+    # proc2.start()
+    # proc1.join()
+    # proc2.join()
 
     ####################################  load dataset  ######################################
     feature_files = (
