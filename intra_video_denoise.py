@@ -56,6 +56,31 @@ def read_tree_dir_files_to_file(path, wfile, depth=4):
         f.write("\n".join(path_list))
 
 
+class DataSet:
+    def __init__(self, dm_file, feature_file):
+        with open(dm_file, "r", encoding="utf-8") as f:
+            self.dm_paths = [line.strip() for line in f]
+        with open(feature_file, "r", encoding="utf-8") as f:
+            self.feature_paths = [line.strip() for line in f if "_dm.npz" in line]
+        self.path_idx = defaultdict(list)
+        self.length = 0
+        for i, path in enumerate(self.dm_paths):
+            self.path_idx[osp.splitext(osp.basename(path))[0]].append(i)
+        for i, path in enumerate(self.feature_paths):
+            name = osp.basename(path)[: -len("_dm.npz")]
+            if len(self.path_idx[name]) == 1:
+                self.path_idx[name].append(i)
+                self.length += 1
+        self.keys = sorted(list(self.path_idx.keys()))
+
+    def __len__(self):
+        return self.length
+
+    def __getitem__(self, idx):
+        idx1, idx2 = self.path_idx[self.keys[idx]]
+        return self.dm_paths[idx1], self.feature_paths[idx2]
+
+
 ############################################# read file ###################################################
 
 # read dm file
@@ -225,16 +250,20 @@ class IntraFilter:
 
 
 if __name__ == "__main__":
-    root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
-    wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    proc1.start()
-    root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
-    wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
-    proc2.start()
-    proc1.join()
-    proc2.join()
+    # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
+    # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
+    # proc1.start()
+    # root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
+    # wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
+    # proc2.start()
+    # proc1.join()
+    # proc2.join()
 
-    # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
+    text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    dataset = DataSet(text_files, feature_files)
+    for i in range(len(dataset)):
+        dm_path, feature_path = dataset[i]
+        print(dm_path, feature_path)
