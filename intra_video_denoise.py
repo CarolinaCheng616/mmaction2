@@ -237,7 +237,7 @@ def tgap_distance(time_array):
     return distance
 
 
-def feature_distance(feature_array, temperature=0.01):
+def feature_distance(feature_array, temperature=0.1):
     """
     given features array, return cosine distances
     :param feature_array(numpy.array):
