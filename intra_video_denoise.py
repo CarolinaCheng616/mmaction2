@@ -261,8 +261,10 @@ if __name__ == "__main__":
     # proc1.join()
     # proc2.join()
 
-    feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    feature_files = (
+        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    )
+    text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
     dataset = DataSet(text_files, feature_files)
     for i in range(len(dataset)):
         dm_path, feature_path = dataset[i]
