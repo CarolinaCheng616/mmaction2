@@ -308,16 +308,16 @@ class IntraFilter:
 
 if __name__ == "__main__":
     ############################### generate paths file #######################################
-    # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
-    # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    # proc1.start()
-    # root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
-    # wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
-    # proc2.start()
-    # proc1.join()
-    # proc2.join()
+    root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
+    wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
+    proc1.start()
+    root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
+    wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
+    proc2.start()
+    proc1.join()
+    proc2.join()
 
     ####################################  load dataset  ######################################
     feature_files = (
@@ -341,7 +341,4 @@ if __name__ == "__main__":
         time_array, text_list = read_dm_file(dm_path)
         feature_array = get_feature(feature_path, text_list)
         centers, center_weight = filter.cluster(text_list, time_array, feature_array)
-        import pdb
-
-        pdb.set_trace()
         save_denoised_file(dm_path, time_array, text_list, centers, center_weight)
