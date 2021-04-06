@@ -285,7 +285,7 @@ class IntraFilter:
                 for dis, weight, in zip(distance_list, self.distance_weight_list)
             ]
         )
-        db = DBSCAN(eps=0.5, metric="precomputed", min_samples=1).fit(distance)
+        db = DBSCAN(eps=0.3, metric="precomputed", min_samples=1).fit(distance)
         import pdb
 
         pdb.set_trace()
