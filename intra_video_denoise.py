@@ -108,7 +108,9 @@ def save_denoised_file(ori_path, time_array, text_list, save_idx, weight):
     os.makedirs(osp.dirname(new_path), exist_ok=True)
     lines = []
     for i, idx in enumerate(save_idx):
-        lines.append(str(time_array[idx]) + "#*," + text_list[idx] + "#*," + weight[i])
+        lines.append(
+            str(time_array[idx]) + "#*," + text_list[idx] + "#*," + str(weight[i])
+        )
     with open(new_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
@@ -284,9 +286,6 @@ class IntraFilter:
             ]
         )
         db = DBSCAN(eps=0.5, metric="precomputed", min_samples=1).fit(distance)
-        import pdb
-
-        pdb.set_trace()
         dic = defaultdict(list)
         for i, label in enumerate(db.labels_):
             if label != -1:
