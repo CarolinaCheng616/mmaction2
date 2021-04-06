@@ -27,6 +27,48 @@ import torch
 from multiprocessing import Process
 
 
+bert_path = ""
+tokenizer = None
+bert = None
+
+
+############################################# init bert ##################################################
+
+
+class BERT(nn.Module):
+    """BERT backbone.
+    """
+
+    def __init__(self, pretrained=None, freeze=True):
+        super(BERT, self).__init__()
+        self.pretrained = pretrained
+        self.freeze = freeze
+        self.init_weights()
+
+    def init_weights(self):
+        """Initiate the parameters either from existing checkpoint or from
+        scratch."""
+        if isinstance(self.pretrained, str):
+            self.model = AutoModel.from_pretrained(self.pretrained).to("cuda")
+            self.model.train()
+        else:
+            raise TypeError("pretrained must be a str")
+
+    def forward(self, x):
+        if self.freeze:
+            with torch.no_grad():
+                text_out = self.model(**x).pooler_output
+        else:
+            text_out = self.model(**x).pooler_output
+        return text_out
+
+
+def init_bert():
+    global tokenizer, bert
+    tokenizer = BertTokenizer.from_pretrained(bert_path)
+    bert = BERT(bert_path)
+
+
 ############################################# get file directory ##########################################
 
 
@@ -97,31 +139,30 @@ def read_dm_file(file_name):
                 text_list.append(text)
             except (ValueError, IndexError):
                 pass
-    return time_list, text_list
+    return np.array(time_list), text_list
 
 
 # read feature file
-def get_feature(feature_file, time_array, text_list):
+def get_feature(feature_file, text_list):
     data = np.load(feature_file)
     features = data["features"]
-    # if len(features) != len(text_list):
-    #     tokenizer = BertTokenizer.from_pretrained(bert_path)
-    #     features = []
-    #     number_per_iter = 500
-    #     nums = (len(text_list) + number_per_iter - 1) // number_per_iter
-    #     features = []
-    #     for i in range(nums):
-    #         sub_dm = text_list[i * number_per_iter: (i + 1) * number_per_iter]
-    #         sub_tokens = tokenizer(
-    #             sub_dm,
-    #             truncation=True,
-    #             padding="max_length",
-    #             return_tensors="pt",
-    #         )
-    #         for key in sub_tokens:
-    #             sub_tokens[key] = sub_tokens[key].cuda()
-    #         sub_feat = bert(sub_tokens).cpu().numpy()
-    #         features.append(sub_feat)
+    if len(features) != len(text_list):
+        number_per_iter = 500
+        nums = (len(text_list) + number_per_iter - 1) // number_per_iter
+        features = []
+        for i in range(nums):
+            sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
+            sub_tokens = tokenizer(
+                sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+            )
+            for key in sub_tokens:
+                sub_tokens[key] = sub_tokens[key].cuda()
+            sub_feat = bert(sub_tokens).cpu().numpy()
+            features.append(sub_feat)
+        if len(features) > 0:
+            features = np.concatenate(features, axis=0)
+        else:
+            features = np.array(features)
     return features
 
 
@@ -250,6 +291,7 @@ class IntraFilter:
 
 
 if __name__ == "__main__":
+    ############################### generate paths file #######################################
     # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
     # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
     # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
@@ -261,11 +303,13 @@ if __name__ == "__main__":
     # proc1.join()
     # proc2.join()
 
-    feature_files = (
-        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    )
-    text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    dataset = DataSet(text_files, feature_files)
-    for i in range(len(dataset)):
-        dm_path, feature_path = dataset[i]
-        print(dm_path, feature_path)
+    ####################################  load dataset  ######################################
+    # feature_files = (
+    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    # )
+    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # dataset = DataSet(text_files, feature_files)
+    # for i in range(len(dataset)):
+    #     dm_path, feature_path = dataset[i]
+    #     print(dm_path, feature_path)
+    pass
