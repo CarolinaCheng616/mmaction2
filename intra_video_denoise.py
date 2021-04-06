@@ -125,10 +125,10 @@ class DataSet:
         self.length = 0
         for i, path in enumerate(self.dm_paths):
             self.path_idx[osp.splitext(osp.basename(path))[0]].append(i)
-        import pdb
-
-        pdb.set_trace()
         for i, path in enumerate(self.feature_paths):
+            import pdb
+
+            pdb.set_trace()
             name = osp.basename(path)[: -len("_dm.npz")]
             if len(self.path_idx[name]) == 1:
                 self.path_idx[name].append(i)
