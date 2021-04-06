@@ -225,18 +225,16 @@ class IntraFilter:
 
 
 if __name__ == "__main__":
-    # dm_root = "/mnt/lustre/chenghaoyue/bilibili_dm"                   # absolute path or file
-    # feature_root = "/mnt/lustre/share_data/bilibili_text_feature"     # absolute path or file
-    root1 = "/mnt/lustre/share_data/bilibili_text_feature"
-    wfile1 = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
+    root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
+    wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
     proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
     proc1.start()
-    # read_tree_dir_files_to_file(root, wfile)
-    # dm_file_paths = get_paths(dm_root)
-    root2 = "/mnt/lustre/share_data/bilibili_parse_xml"
-    wfile2 = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    root2 = "//home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
+    wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
     proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
     proc2.start()
     proc1.join()
     proc2.join()
-    # read_tree_dir_files_to_file(root, wfile)
+
+    # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
+    # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
