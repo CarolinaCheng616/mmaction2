@@ -294,7 +294,7 @@ class IntraFilter:
         centers = []
         center_weight = []
         for cluster in dic.keys():
-            centers.append(np.random.choice(dic[cluster], 1))
+            centers.append(*np.random.choice(dic[cluster], 1))
             center_weight.append(len(dic[cluster]))
         centers = np.array(centers)
         center_weight = np.array(center_weight)
