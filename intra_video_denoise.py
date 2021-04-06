@@ -27,9 +27,10 @@ import torch
 from multiprocessing import Process
 
 
-bert_path = ""
+bert_path = "data/bert_model"
 tokenizer = None
 bert = None
+new_root = "data/bilibili_intra_denoise"
 
 
 ############################################# init bert ##################################################
@@ -63,7 +64,7 @@ class BERT(nn.Module):
         return text_out
 
 
-def init_bert():
+def init_global():
     global tokenizer, bert
     tokenizer = BertTokenizer.from_pretrained(bert_path)
     bert = BERT(bert_path)
@@ -96,6 +97,20 @@ def read_tree_dir_files_to_file(path, wfile, depth=4):
     path_list = get_paths(path, depth)
     with open(wfile, "w", encoding="utf-8") as f:
         f.write("\n".join(path_list))
+
+
+def save_denoised_file(ori_path, time_array, text_list, save_idx, weight):
+    base_name = osp.splitext(osp.basename(ori_path))[0] + ".txt"
+    new_name = "/".join(
+        [*ori_path[ori_path.find("bilibili") :].split("/")[1:-1], base_name]
+    )
+    new_path = osp.join(new_root, new_name)
+    os.makedirs(osp.dirname(new_path), exist_ok=True)
+    lines = []
+    for i, idx in enumerate(save_idx):
+        lines.append(str(time_array[idx]) + "#*," + text_list[idx] + "#*," + weight[i])
+    with open(new_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
 
 
 class DataSet:
@@ -304,12 +319,28 @@ if __name__ == "__main__":
     # proc2.join()
 
     ####################################  load dataset  ######################################
-    # feature_files = (
-    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    # )
-    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # dataset = DataSet(text_files, feature_files)
-    # for i in range(len(dataset)):
-    #     dm_path, feature_path = dataset[i]
-    #     print(dm_path, feature_path)
-    pass
+    feature_files = (
+        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    )
+    text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    dataset = DataSet(text_files, feature_files)
+
+    #################################### cluster ##############################################
+    distance_list = [
+        "edit_distance",
+        "tf_idf_distance",
+        "tgap_distance",
+        "feature_distance",
+    ]
+    distance_weight_list = [0.1, 0.15, 0.15, 0.6]
+    filter = IntraFilter(distance_list, distance_weight_list)
+
+    for i in range(len(dataset)):
+        dm_path, feature_path = dataset[i]
+        time_array, text_list = read_dm_file(dm_path)
+        feature_array = get_feature(feature_path, text_list)
+        centers, center_weight = filter.cluster(text_list, time_array, feature_array)
+        import pdb
+
+        pdb.set_trace()
+        save_denoised_file(dm_path, time_array, text_list, centers, center_weight)
