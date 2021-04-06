@@ -229,7 +229,7 @@ if __name__ == "__main__":
     wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
     proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
     proc1.start()
-    root2 = "//home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
+    root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
     wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
     proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
     proc2.start()
