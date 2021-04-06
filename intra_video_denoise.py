@@ -284,7 +284,9 @@ class IntraFilter:
             ]
         )
         db = DBSCAN(eps=0.5, metric="precomputed", min_samples=1).fit(distance)
+        import pdb
 
+        pdb.set_trace()
         dic = defaultdict(list)
         for i, label in enumerate(db.labels_):
             if label != -1:
