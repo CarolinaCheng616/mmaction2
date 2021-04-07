@@ -27,12 +27,12 @@ import jieba.posseg as pseg
 from mmcv import ProgressBar
 
 
-bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
-# bert_path = "data/bert_model"
+# bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
+bert_path = "data/bert_model"
 tokenizer = None
 bert = None
-new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-# new_root = "data/bilibili_intra_denoise"
+# new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+new_root = "data/bilibili_intra_denoise"
 
 forbidden_list = ["e", "m", "o", "x", "y", "z"]
 
@@ -198,7 +198,10 @@ def filter_meaningless_text(text_list, time_array, feature_array):
             idxes.append(i)
             filtered_text_list.append(text)
     idxes = np.array(idxes)
-    return filtered_text_list, time_array[idxes], feature_array[idxes]
+    if len(idxes) == 0:
+        return filtered_text_list, np.array([]), np.array([])
+    else:
+        return filtered_text_list, time_array[idxes], feature_array[idxes]
 
 
 ############################################# compute distance #############################################
@@ -304,9 +307,7 @@ class IntraFilter:
             ]
         )
         db = DBSCAN(eps=0.4, metric="precomputed", min_samples=1).fit(distance)
-        # import pdb
-        #
-        # pdb.set_trace()
+
         dic = defaultdict(list)
         for i, label in enumerate(db.labels_):
             if label != -1:
@@ -371,8 +372,12 @@ if __name__ == "__main__":
     ####################################  load dataset  ######################################
     # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
     # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
-    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
+    feature_files = (
+        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    )
+    text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
+    # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
     dataset = DataSet(text_files, feature_files)
 
     #################################### cluster ##############################################
