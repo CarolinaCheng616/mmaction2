@@ -22,14 +22,12 @@ def filter_meaningless_text(text_list, time_array, feature_array):
     idxes = []
     filtered_text_list = []
     for i, text in enumerate(text_list):
-        words = [
-            flag[0] in forbidden_list and flag != "eng" for word, flag in pseg.cut(text)
-        ]
-        # print(words)
-        if not all(words):
-            print(text)
-            # idxes.append(i)
-            # filtered_text_list.append(text)
+        words = [flag for word, flag in pseg.cut(text)]
+        print(words)
+        # if not all(words):
+        #     print(text)
+        # idxes.append(i)
+        # filtered_text_list.append(text)
     # idxes = np.array(idxes)
     # for i, text in enumerate(text_list):
     #     words = [flag for _, flag in pseg.cut(text)]
@@ -38,7 +36,7 @@ def filter_meaningless_text(text_list, time_array, feature_array):
 
 
 if __name__ == "__main__":
-    text_list = ["yeah", "一头牛", "哈哈哈哈哈"]
+    text_list = ["yeah", "一头牛", "哈哈哈哈哈", "靠", "的"]
     time_array = np.array([1, 2, 3])
     feature_array = np.array([[1, 2], [2, 3], [3, 4]])
     filter_meaningless_text(text_list, time_array, feature_array)
