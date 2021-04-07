@@ -26,6 +26,8 @@ import jieba.posseg as pseg
 
 from mmcv import ProgressBar
 
+import argparse
+
 
 bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
 # bert_path = "data/bert_model"
@@ -121,25 +123,64 @@ class DataSet:
         with open(feature_file, "r", encoding="utf-8") as f:
             self.feature_paths = [line.strip() for line in f if "_dm.npz" in line]
         self.path_idx = defaultdict(list)
+        self.video_cat = dict()
         for i, path in enumerate(self.dm_paths):
-            self.path_idx[osp.splitext(osp.basename(path))[0]].append(i)
+            name = osp.splitext(osp.basename(path))[0]
+            self.path_idx[name].append(i)
+            cat = path[path.find("bilibili_dm/") + len("bilibili_dm/") :].split("/")[0]
+            self.video_cat[name] = cat
         for i, path in enumerate(self.feature_paths):
             self.path_idx[osp.basename(path)[: -len("_dm.npz")]].append(i)
-        for name in self.path_idx:
+        names = list(self.path_idx.keys())
+        for name in names:
             if len(self.path_idx[name]) != 2:
                 del self.path_idx[name]
+                if name in self.video_cat:
+                    del self.video_cat[name]
         self.keys = sorted(list(self.path_idx.keys()))
         self.length = len(self.path_idx.keys())
+
+        self.cat_videos = defaultdict(list)
+        for video, cat in self.video_cat.items():
+            self.cat_videos[cat].append(video)
 
     def __len__(self):
         return self.length
 
     def __getitem__(self, idx):
         idx1, idx2 = self.path_idx[self.keys[idx]]
+        cat = self.video_cat[self.keys[idx]]
+        return self.dm_paths[idx1], self.feature_paths[idx2], cat
+
+    def get_video_cat(self):
+        return self.video_cat
+
+    def get_cat_videos(self):
+        return self.cat_videos
+
+    def get_by_name(self, name):
+        idx1, idx2 = self.path_idx[name]
+        # cat = self.video_cat[name]
         return self.dm_paths[idx1], self.feature_paths[idx2]
+
+    def get_idx_list(self, idx_list):
+        dm_paths = []
+        feature_paths = []
+        cats = []
+        for idx in idx_list:
+            dp, fp, cat = self.__getitem__(idx)
+            dm_paths.append(dp)
+            feature_paths.append(fp)
+            cats.append(cat)
+        return dm_paths, feature_paths, cats
+
+    def get_all(self):
+        idx_list = list(range(len(self.path_idx.keys())))
+        return self.get_idx_list(idx_list)
 
 
 ############################################# read file ###################################################
+
 
 # read dm file
 def read_dm_file(file_name):
@@ -361,22 +402,54 @@ def multi_cluster(dataset, idxes):
         pb.update()
 
 
+def collect_by_cat(dataset, cat_videos, num_per_cat):
+    cats = []
+    for cat in cat_videos:
+        videos = cat_videos[cat]
+        for name in videos:
+            dm_path, feature_path = dataset.get_by_name(name)
+
+            base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
+            new_name = "/".join(
+                [*dm_path[dm_path.find("bilibili") :].split("/")[1:-1], base_name]
+            )
+            new_path = osp.join(new_root, new_name)
+            if osp.exists(new_path):
+                continue
+
+            time_array, text_list = read_dm_file(dm_path)
+            feature_array = get_feature(feature_path, text_list)
+            text_list, time_array, feature_array = filter_meaningless_text(
+                text_list, time_array, feature_array
+            )
+            if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
+                save_denoised_file(
+                    new_path, np.array([]), np.array([]), np.array([]), np.array([])
+                )
+            else:
+                centers, center_weight = filter.cluster(
+                    text_list, time_array, feature_array
+                )
+                save_denoised_file(
+                    new_path, time_array, text_list, centers, center_weight
+                )
+
+
+def parse_args():
+    parser = argparse.ArgumentParser("")
+    parser.add_argument(
+        "--num_per_category",
+        type=int,
+        default=100,
+        help="number of videos per category",
+    )
+    args = parser.parse_args()
+    num_per_cat = args.num_per_category
+    return num_per_cat
+
+
 if __name__ == "__main__":
-    ############################### generate paths file #######################################
-    # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
-    # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    # # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
-    # # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    # proc1.start()
-    # root2 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_text_feature"
-    # wfile2 = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    # # root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
-    # # wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
-    # proc2.start()
-    # proc1.join()
-    # proc2.join()
+    num_per_cat = parse_args()
 
     ####################################  load dataset  ######################################
     # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
@@ -388,6 +461,7 @@ if __name__ == "__main__":
     feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
     text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
     dataset = DataSet(text_files, feature_files)
+    cat_videos = dataset.get_cat_videos()
 
     #################################### cluster ##############################################
     distance_list = [
@@ -399,17 +473,17 @@ if __name__ == "__main__":
     distance_weight_list = [0.1, 0.15, 0.15, 0.6]
     filter = IntraFilter(distance_list, distance_weight_list)
 
-    proc_num = 16
-    procs = []
-    data_num_per_proc = (len(dataset) + proc_num - 1) // proc_num
-    idxes = list(range(len(dataset)))
-
-    for i in range(proc_num):
-        proc = Process(
-            target=multi_cluster,
-            args=(dataset, idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc]),
-        )
-        proc.start()
-        procs.append(proc)
-    for proc in procs:
-        proc.join()
+    # proc_num = 16
+    # procs = []
+    # data_num_per_proc = (len(dataset) + proc_num - 1) // proc_num
+    # idxes = list(range(len(dataset)))
+    #
+    # for i in range(proc_num):
+    #     proc = Process(
+    #         target=multi_cluster,
+    #         args=(dataset, idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc]),
+    #     )
+    #     proc.start()
+    #     procs.append(proc)
+    # for proc in procs:
+    #     proc.join()

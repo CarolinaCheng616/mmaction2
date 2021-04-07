@@ -148,15 +148,18 @@ def read_dm_file(file_name):
     time_list = []
     text_list = []
     with open(file_name, "r", encoding="utf-8") as f:
-        for line in f:
-            tokens = line.strip().split("#*,")
-            try:
-                time = float(tokens[0])
-                text = tokens[1]
-                time_list.append(time)
-                text_list.append(text)
-            except (ValueError, IndexError):
-                pass
+        try:
+            for line in f:
+                tokens = line.strip().split("#*,")
+                try:
+                    time = float(tokens[0])
+                    text = tokens[1]
+                    time_list.append(time)
+                    text_list.append(text)
+                except (ValueError, IndexError):
+                    pass
+        except UnicodeDecodeError:
+            print(f"unicode error file:{file_name}")
     return np.array(time_list), text_list
 
 
@@ -351,7 +354,7 @@ def multi_cluster(dataset, idxes):
         text_list, time_array, feature_array = filter_meaningless_text(
             text_list, time_array, feature_array
         )
-        if len(text_list) == 0:
+        if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
             save_denoised_file(
                 new_path, np.array([]), np.array([]), np.array([]), np.array([])
             )
