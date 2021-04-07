@@ -159,6 +159,10 @@ def get_feature_and_save(time_array, text_list, dm_path):
         for key in sub_tokens:
             sub_tokens[key] = sub_tokens[key].cuda()
         sub_feat = bert(sub_tokens).cpu().numpy()
+
+        for key in sub_tokens:
+            sub_tokens[key] = sub_tokens[key].cpu()
+
         features.append(sub_feat)
     if len(features) > 0:
         features = np.concatenate(features, axis=0)
