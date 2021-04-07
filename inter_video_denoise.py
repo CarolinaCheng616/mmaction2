@@ -29,12 +29,12 @@ from mmcv import ProgressBar
 import argparse
 
 
-bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
-# bert_path = "data/bert_model"
+# bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
+bert_path = "data/bert_model"
 tokenizer = None
 bert = None
-new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-# new_root = "data/bilibili_intra_denoise"
+# new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+new_root = "data/bilibili_intra_denoise"
 
 forbidden_list = ["e", "m", "o", "x", "y", "z"]
 
@@ -117,66 +117,75 @@ def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
 
 
 class DataSet:
-    def __init__(self, dm_file, feature_file):
+    def __init__(self, dm_file):
         with open(dm_file, "r", encoding="utf-8") as f:
-            self.dm_paths = [line.strip() for line in f]
-        with open(feature_file, "r", encoding="utf-8") as f:
-            self.feature_paths = [line.strip() for line in f if "_dm.npz" in line]
-        self.path_idx = defaultdict(list)
-        self.video_cat = dict()
-        for i, path in enumerate(self.dm_paths):
-            name = osp.splitext(osp.basename(path))[0]
-            self.path_idx[name].append(i)
+            dm_paths = [line.strip() for line in f]
+        self.dm_paths = []
+        for path in dm_paths:
             cat = path[path.find("bilibili_dm/") + len("bilibili_dm/") :].split("/")[0]
-            self.video_cat[name] = cat
-        for i, path in enumerate(self.feature_paths):
-            self.path_idx[osp.basename(path)[: -len("_dm.npz")]].append(i)
-        names = list(self.path_idx.keys())
-        for name in names:
-            if len(self.path_idx[name]) != 2:
-                del self.path_idx[name]
-                if name in self.video_cat:
-                    del self.video_cat[name]
-        self.keys = sorted(list(self.path_idx.keys()))
-        self.length = len(self.path_idx.keys())
-
+            self.dm_paths.append((path, cat))
         self.cat_videos = defaultdict(list)
-        for video, cat in self.video_cat.items():
-            self.cat_videos[cat].append(video)
+        for path, cat in self.cat_videos.items():
+            self.cat_videos[cat].append(path)
+        # self.video_cat = dict()
+        # for i, path in enumerate(self.dm_paths):
+        #     name = osp.splitext(osp.basename(path))[0]
+        #     self.path_idx[name].append(i)
+        #     cat = path[path.find("bilibili_dm/") + len("bilibili_dm/") :].split("/")[0]
+        #     self.video_cat[name] = cat
+        # for i, path in enumerate(self.feature_paths):
+        #     self.path_idx[osp.basename(path)[: -len("_dm.npz")]].append(i)
+        # names = list(self.path_idx.keys())
+        # for name in names:
+        #     if len(self.path_idx[name]) != 2:
+        #         del self.path_idx[name]
+        #         if name in self.video_cat:
+        #             del self.video_cat[name]
+        # self.keys = sorted(list(self.path_idx.keys()))
+        # self.length = len(self.path_idx.keys())
+        #
+        # self.cat_videos = defaultdict(list)
+        # for video, cat in self.video_cat.items():
+        #     self.cat_videos[cat].append(video)
+
+        import pdb
+
+        pdb.set_trace()
 
     def __len__(self):
-        return self.length
+        return len(self.dm_paths)
 
     def __getitem__(self, idx):
-        idx1, idx2 = self.path_idx[self.keys[idx]]
-        cat = self.video_cat[self.keys[idx]]
-        return self.dm_paths[idx1], self.feature_paths[idx2], cat
+        # idx1, idx2 = self.path_idx[self.keys[idx]]
+        # cat = self.video_cat[self.keys[idx]]
+        # return self.dm_paths[idx1], self.feature_paths[idx2], cat
+        return self.dm_paths[idx]
 
-    def get_video_cat(self):
-        return self.video_cat
+    # def get_video_cat(self):
+    #     return self.video_cat
 
     def get_cat_videos(self):
         return self.cat_videos
 
-    def get_by_name(self, name):
-        idx1, idx2 = self.path_idx[name]
-        # cat = self.video_cat[name]
-        return self.dm_paths[idx1], self.feature_paths[idx2]
+    # def get_by_name(self, name):
+    #     idx1, idx2 = self.path_idx[name]
+    #     # cat = self.video_cat[name]
+    #     return self.dm_paths[idx1], self.feature_paths[idx2]
 
-    def get_idx_list(self, idx_list):
-        dm_paths = []
-        feature_paths = []
-        cats = []
-        for idx in idx_list:
-            dp, fp, cat = self.__getitem__(idx)
-            dm_paths.append(dp)
-            feature_paths.append(fp)
-            cats.append(cat)
-        return dm_paths, feature_paths, cats
+    # def get_idx_list(self, idx_list):
+    #     dm_paths = []
+    #     feature_paths = []
+    #     cats = []
+    #     for idx in idx_list:
+    #         dp, fp, cat = self.__getitem__(idx)
+    #         dm_paths.append(dp)
+    #         feature_paths.append(fp)
+    #         cats.append(cat)
+    #     return dm_paths, feature_paths, cats
 
-    def get_all(self):
-        idx_list = list(range(len(self.path_idx.keys())))
-        return self.get_idx_list(idx_list)
+    # def get_all(self):
+    #     idx_list = list(range(len(self.path_idx.keys())))
+    #     return self.get_idx_list(idx_list)
 
 
 ############################################# read file ###################################################
@@ -226,21 +235,21 @@ def get_feature(feature_file, text_list):
 ############################################# filter meaningless text #####################################
 
 
-def filter_meaningless_text(text_list, time_array, feature_array):
-    idxes = []
-    filtered_text_list = []
-    for i, text in enumerate(text_list):
-        words = [
-            flag[0] in forbidden_list and flag != "eng" for word, flag in pseg.cut(text)
-        ]
-        if not all(words):
-            idxes.append(i)
-            filtered_text_list.append(text)
-    idxes = np.array(idxes)
-    if len(idxes) == 0:
-        return filtered_text_list, np.array([]), np.array([])
-    else:
-        return filtered_text_list, time_array[idxes], feature_array[idxes]
+# def filter_meaningless_text(text_list, time_array, feature_array):
+#     idxes = []
+#     filtered_text_list = []
+#     for i, text in enumerate(text_list):
+#         words = [
+#             flag[0] in forbidden_list and flag != "eng" for word, flag in pseg.cut(text)
+#         ]
+#         if not all(words):
+#             idxes.append(i)
+#             filtered_text_list.append(text)
+#     idxes = np.array(idxes)
+#     if len(idxes) == 0:
+#         return filtered_text_list, np.array([]), np.array([])
+#     else:
+#         return filtered_text_list, time_array[idxes], feature_array[idxes]
 
 
 ############################################# compute distance #############################################
@@ -371,71 +380,63 @@ class IntraFilter:
 ############################################## main ###########################################################
 
 
-def multi_cluster(dataset, idxes):
-    pb = ProgressBar(len(idxes))
-    pb.start()
-    for idx in idxes:
-        dm_path, feature_path = dataset[idx]
-
-        base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
-        new_name = "/".join(
-            [*dm_path[dm_path.find("bilibili") :].split("/")[1:-1], base_name]
-        )
-        new_path = osp.join(new_root, new_name)
-        if osp.exists(new_path):
-            continue
-
-        time_array, text_list = read_dm_file(dm_path)
-        feature_array = get_feature(feature_path, text_list)
-        text_list, time_array, feature_array = filter_meaningless_text(
-            text_list, time_array, feature_array
-        )
-        if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
-            save_denoised_file(
-                new_path, np.array([]), np.array([]), np.array([]), np.array([])
-            )
-        else:
-            centers, center_weight = filter.cluster(
-                text_list, time_array, feature_array
-            )
-            save_denoised_file(new_path, time_array, text_list, centers, center_weight)
-        pb.update()
+# def multi_cluster(dataset, idxes):
+#     pb = ProgressBar(len(idxes))
+#     pb.start()
+#     for idx in idxes:
+#         dm_path, feature_path = dataset[idx]
+#
+#         base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
+#         new_name = "/".join(
+#             [*dm_path[dm_path.find("bilibili") :].split("/")[1:-1], base_name]
+#         )
+#         new_path = osp.join(new_root, new_name)
+#         if osp.exists(new_path):
+#             continue
+#
+#         time_array, text_list = read_dm_file(dm_path)
+#         feature_array = get_feature(feature_path, text_list)
+#         text_list, time_array, feature_array = filter_meaningless_text(
+#             text_list, time_array, feature_array
+#         )
+#         if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
+#             save_denoised_file(
+#                 new_path, np.array([]), np.array([]), np.array([]), np.array([])
+#             )
+#         else:
+#             centers, center_weight = filter.cluster(
+#                 text_list, time_array, feature_array
+#             )
+#             save_denoised_file(new_path, time_array, text_list, centers, center_weight)
+#         pb.update()
 
 
 def collect_by_cat(dataset, cat_videos, num_per_cat):
     cats = []
+    text_list = []
+    time_array = []
+    feature_array = []
     for cat in cat_videos:
-        videos = cat_videos[cat]
+        videos = cat_videos[cat][:num_per_cat]
         for name in videos:
             dm_path, feature_path = dataset.get_by_name(name)
-
-            base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
-            new_name = "/".join(
-                [
-                    *dm_path[dm_path.find("bilibili_intra_denoise") :].split("/")[1:-1],
-                    base_name,
-                ]
-            )
-            new_path = osp.join(new_root, new_name)
-            if osp.exists(new_path):
+            time, text = read_dm_file(dm_path)
+            feature = get_feature(feature_path, text)
+            if len(time) == 0 or len(text) == 0 or len(feature) == 0:
                 continue
+            assert len(time) == len(text) and len(time) == len(
+                feature
+            ), f"not match for {name}"
+            cats += [cat] * len(text)
+            text_list += text
+            time_array.append(time)
+            feature_array.append(feature)
+    time_array = np.concatenate(time_array, axis=0)
+    feature_array = np.concatenate(feature_array, axis=0)
+    import pdb
 
-            time_array, text_list = read_dm_file(dm_path)
-            feature_array = get_feature(feature_path, text_list)
-            text_list, time_array, feature_array = filter_meaningless_text(
-                text_list, time_array, feature_array
-            )
-            if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
-                save_denoised_file(
-                    new_path, np.array([]), np.array([]), np.array([]), np.array([])
-                )
-            else:
-                centers, center_weight = filter.cluster(
-                    text_list, time_array, feature_array
-                )
-                save_denoised_file(
-                    new_path, time_array, text_list, centers, center_weight
-                )
+    pdb.set_trace()
+    return text_list, time_array, feature_array
 
 
 def parse_args():
@@ -452,29 +453,37 @@ def parse_args():
 
 
 if __name__ == "__main__":
+
     num_per_cat = parse_args()
+
+    # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
+    # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
+    wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
+    proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
+    proc1.start()
+    proc1.join()
 
     ####################################  load dataset  ######################################
     # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
     # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    # feature_files = (
-    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    # )
-    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
-    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
-    dataset = DataSet(text_files, feature_files)
-    cat_videos = dataset.get_cat_videos()
-
-    #################################### cluster ##############################################
-    distance_list = [
-        "edit_distance",
-        "tf_idf_distance",
-        "tgap_distance",
-        "feature_distance",
-    ]
-    distance_weight_list = [0.1, 0.15, 0.15, 0.6]
-    filter = IntraFilter(distance_list, distance_weight_list)
+    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
+    # # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # # feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
+    # # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
+    # dataset = DataSet(dm_file=text_files, feature_file=feature_files)
+    # cat_videos = dataset.get_cat_videos()
+    # text_list, time_array, feature_array = collect_by_cat(dataset, cat_videos, num_per_cat)
+    #
+    # #################################### cluster ##############################################
+    # distance_list = [
+    #     "edit_distance",
+    #     "tf_idf_distance",
+    #     "tgap_distance",
+    #     "feature_distance",
+    # ]
+    # distance_weight_list = [0.1, 0.15, 0.15, 0.6]
+    # filter = IntraFilter(distance_list, distance_weight_list)
 
     # proc_num = 16
     # procs = []
