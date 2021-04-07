@@ -125,7 +125,7 @@ def list_possible_invalid_dm_file(file, wfile):
             if osp.exists(line):
                 files += [osp.join(line, file) for file in os.listdir(line)]
     with open(wfile, "w", encoding="utf-8") as f:
-        f.write("\n".join(files))
+        f.write("\n".join(sorted(files)))
 
 
 if __name__ == "__main__":
