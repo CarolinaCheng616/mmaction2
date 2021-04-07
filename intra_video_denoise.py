@@ -24,8 +24,10 @@ from multiprocessing import Process
 
 import jieba.posseg as pseg
 
+from mmcv import ProgressBar
 
-bert_path = "work_dirs/bert_model"
+
+bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
 # bert_path = "data/bert_model"
 tokenizer = None
 bert = None
@@ -101,12 +103,7 @@ def read_tree_dir_files_to_file(path, wfile, depth=4):
         f.write("\n".join(path_list))
 
 
-def save_denoised_file(ori_path, time_array, text_list, save_idx, weight):
-    base_name = osp.splitext(osp.basename(ori_path))[0] + ".txt"
-    new_name = "/".join(
-        [*ori_path[ori_path.find("bilibili") :].split("/")[1:-1], base_name]
-    )
-    new_path = osp.join(new_root, new_name)
+def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
     os.makedirs(osp.dirname(new_path), exist_ok=True)
     lines = []
     for i, idx in enumerate(save_idx):
@@ -330,6 +327,30 @@ class IntraFilter:
 ############################################## main ###########################################################
 
 
+def multi_cluster(dataset, idxes):
+    pb = ProgressBar(len(idxes))
+    pb.start()
+    for idx in idxes:
+        dm_path, feature_path = dataset[idx]
+
+        base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
+        new_name = "/".join(
+            [*dm_path[dm_path.find("bilibili") :].split("/")[1:-1], base_name]
+        )
+        new_path = osp.join(new_root, new_name)
+        if osp.exists(new_path):
+            continue
+
+        time_array, text_list = read_dm_file(dm_path)
+        feature_array = get_feature(feature_path, text_list)
+        text_list, time_array, feature_array = filter_meaningless_text(
+            text_list, time_array, feature_array
+        )
+        centers, center_weight = filter.cluster(text_list, time_array, feature_array)
+        save_denoised_file(new_path, time_array, text_list, centers, center_weight)
+        pb.update()
+
+
 if __name__ == "__main__":
     ############################### generate paths file #######################################
     # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
@@ -364,12 +385,17 @@ if __name__ == "__main__":
     distance_weight_list = [0.1, 0.15, 0.15, 0.6]
     filter = IntraFilter(distance_list, distance_weight_list)
 
-    for i in range(len(dataset)):
-        dm_path, feature_path = dataset[i]
-        time_array, text_list = read_dm_file(dm_path)
-        feature_array = get_feature(feature_path, text_list)
-        text_list, time_array, feature_array = filter_meaningless_text(
-            text_list, time_array, feature_array
+    proc_num = 16
+    procs = []
+    data_num_per_proc = (len(dataset) + proc_num - 1) // proc_num
+    idxes = list(range(len(dataset)))
+
+    for i in range(proc_num):
+        proc = Process(
+            target=multi_cluster,
+            args=(dataset, idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc]),
         )
-        centers, center_weight = filter.cluster(text_list, time_array, feature_array)
-        save_denoised_file(dm_path, time_array, text_list, centers, center_weight)
+        proc.start()
+        procs.append(proc)
+    for proc in procs:
+        proc.join()
