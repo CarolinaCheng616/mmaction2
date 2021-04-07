@@ -194,7 +194,10 @@ def filter_meaningless_text(text_list, time_array, feature_array):
     idxes = []
     filtered_text_list = []
     for i, text in enumerate(text_list):
-        words = [flag[0] in forbidden_list for word, flag in pseg.cut(text)]
+        words = [
+            flag[0] in forbidden_list and flag != "yeah"
+            for word, flag in pseg.cut(text)
+        ]
         if not all(words):
             idxes.append(i)
             filtered_text_list.append(text)
