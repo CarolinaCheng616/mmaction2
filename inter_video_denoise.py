@@ -20,12 +20,6 @@ from transformers import BertTokenizer, AutoModel
 import torch.nn as nn
 import torch
 
-from multiprocessing import Process
-
-import jieba.posseg as pseg
-
-from mmcv import ProgressBar
-
 import argparse
 
 
@@ -117,28 +111,40 @@ def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
         f.write("\n".join(lines))
 
 
-class DataSet:
-    def __init__(self, dm_file):
-        with open(dm_file, "r", encoding="utf-8") as f:
-            dm_paths = [line.strip() for line in f]
-        self.dm_paths = []
-        for path in dm_paths:
+# class DataSet:
+#     def __init__(self, dm_file):
+#         with open(dm_file, "r", encoding="utf-8") as f:
+#             dm_paths = [line.strip() for line in f]
+#         self.dm_paths = []
+#         for path in dm_paths:
+#             cat = path[
+#                 path.find("bilibili_intra_denoise/") + len("bilibili_intra_denoise/") :
+#             ].split("/")[0]
+#             self.dm_paths.append((path, cat))
+#         self.cat_videos = defaultdict(list)
+#         for path, cat in self.dm_paths:
+#             self.cat_videos[cat].append(path)
+#
+#     def __len__(self):
+#         return len(self.dm_paths)
+#
+#     def __getitem__(self, idx):
+#         return self.dm_paths[idx]
+#
+#     def get_cat_videos(self):
+#         return self.cat_videos
+
+
+def get_cat_videos_dict(dm_file):
+    cat_videos = defaultdict(list)
+    with open(dm_file, "r", encoding="utf-8") as f:
+        for line in f:
+            path = line.strip()
             cat = path[
                 path.find("bilibili_intra_denoise/") + len("bilibili_intra_denoise/") :
             ].split("/")[0]
-            self.dm_paths.append((path, cat))
-        self.cat_videos = defaultdict(list)
-        for path, cat in self.dm_paths:
-            self.cat_videos[cat].append(path)
-
-    def __len__(self):
-        return len(self.dm_paths)
-
-    def __getitem__(self, idx):
-        return self.dm_paths[idx]
-
-    def get_cat_videos(self):
-        return self.cat_videos
+            cat_videos[cat].append(path)
+    return cat_videos
 
 
 ############################################# read file ###################################################
@@ -186,26 +192,6 @@ def get_feature_and_save(time_array, text_list, dm_path):
         features = np.array(features)
     np.savez(new_path, times=time_array, features=features)
     return features
-
-
-############################################# filter meaningless text #####################################
-
-
-# def filter_meaningless_text(text_list, time_array, feature_array):
-#     idxes = []
-#     filtered_text_list = []
-#     for i, text in enumerate(text_list):
-#         words = [
-#             flag[0] in forbidden_list and flag != "eng" for word, flag in pseg.cut(text)
-#         ]
-#         if not all(words):
-#             idxes.append(i)
-#             filtered_text_list.append(text)
-#     idxes = np.array(idxes)
-#     if len(idxes) == 0:
-#         return filtered_text_list, np.array([]), np.array([])
-#     else:
-#         return filtered_text_list, time_array[idxes], feature_array[idxes]
 
 
 ############################################# compute distance #############################################
@@ -287,19 +273,28 @@ def feature_distance(feature_array, temperature=0.1):
 ############################################# cluster #########################################################
 
 
-class IntraFilter:
-    def __init__(self, distance_list, distance_weight_list):
+class Filter:
+    def __init__(self, distance_list, distance_weight_list, num_per_cat, num_per_video):
         self.disfunc_list = []
         for dis in distance_list:
             if not hasattr(sys.modules[__name__], dis):
                 raise ValueError(f"no distance function {dis}!")
             self.disfunc_list.append(getattr(sys.modules[__name__], dis))
         self.distance_weight_list = distance_weight_list
+        self.num_per_cat = num_per_cat
+        self.num_per_video = num_per_video
 
     def change_weight_list(self, distance_weight_list):
         self.distance_weight_list = distance_weight_list
 
-    def cluster(self, text_list, time_array=None, feature_array=None):
+    def cluster(
+        self,
+        text_list,
+        cat_list,
+        write_cluster_file,
+        time_array=None,
+        feature_array=None,
+    ):
         distance_list = []
         for dis in self.disfunc_list:
             if dis.__name__ == "edit_distance" or dis.__name__ == "tf_idf_distance":
@@ -316,59 +311,33 @@ class IntraFilter:
         )
         db = DBSCAN(eps=0.4, metric="precomputed", min_samples=1).fit(distance)
 
-        dic = defaultdict(list)
+        lines = []
         for i, label in enumerate(db.labels_):
-            if label != -1:
-                dic[label].append(i)
-        centers = []
-        center_weight = []
-        for cluster in dic.keys():
-            centers.append(*np.random.choice(dic[cluster], 1))
-            center_weight.append(len(dic[cluster]))
-        centers = np.array(centers)
-        center_weight = np.array(center_weight)
-        idxes = np.argsort(centers)
-        centers = centers[idxes]
-        center_weight = center_weight[idxes]
-        return centers, center_weight
+            lines.append("#*,".join([text_list[i], cat_list[i], str(label)]))
+        with open(write_cluster_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
+        # dic = defaultdict(list)
+        # for i, label in enumerate(db.labels_):
+        #     if label != -1:
+        #         dic[label].append(i)
+        # centers = []
+        # # center_weight = []
+        # for cluster in dic.keys():
+        #     centers.append(*np.random.choice(dic[cluster], 1))
+        #     # center_weight.append(len(dic[cluster]))
+        # centers = np.array(centers)
+        # # center_weight = np.array(center_weight)
+        # idxes = np.argsort(centers)
+        # centers = centers[idxes]
+        # # center_weight = center_weight[idxes]
+        # return centers
 
 
 ############################################## main ###########################################################
 
 
-# def multi_cluster(dataset, idxes):
-#     pb = ProgressBar(len(idxes))
-#     pb.start()
-#     for idx in idxes:
-#         dm_path, feature_path = dataset[idx]
-#
-#         base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
-#         new_name = "/".join(
-#             [*dm_path[dm_path.find("bilibili") :].split("/")[1:-1], base_name]
-#         )
-#         new_path = osp.join(new_root, new_name)
-#         if osp.exists(new_path):
-#             continue
-#
-#         time_array, text_list = read_dm_file(dm_path)
-#         feature_array = get_feature(feature_path, text_list)
-#         text_list, time_array, feature_array = filter_meaningless_text(
-#             text_list, time_array, feature_array
-#         )
-#         if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
-#             save_denoised_file(
-#                 new_path, np.array([]), np.array([]), np.array([]), np.array([])
-#             )
-#         else:
-#             centers, center_weight = filter.cluster(
-#                 text_list, time_array, feature_array
-#             )
-#             save_denoised_file(new_path, time_array, text_list, centers, center_weight)
-#         pb.update()
-
-
-def collect_by_cat(cat_videos, num_per_cat):
-    cats = []
+def collect_by_cat(cat_videos, num_per_cat, num_per_video):
+    cat_list = []
     text_list = []
     time_array = []
     feature_array = []
@@ -382,58 +351,57 @@ def collect_by_cat(cat_videos, num_per_cat):
             assert len(time) == len(text) and len(time) == len(
                 feature
             ), f"not match for {path}"
-            cats += [cat] * len(text)
-            text_list += text
-            time_array.append(time)
-            feature_array.append(feature)
+            idxes = np.random.choice(
+                len(text), min(num_per_video, len(text)), replace=False
+            )
+            for idx in idxes:
+                text_list.append(text[idx])
+            cat_list += [cat] * len(idxes)
+            time_array.append(time[idxes])
+            feature_array.append(feature[idxes])
     time_array = np.concatenate(time_array, axis=0)
     feature_array = np.concatenate(feature_array, axis=0)
-    return text_list, time_array, feature_array
+    return text_list, cat_list, time_array, feature_array
 
 
 def parse_args():
     parser = argparse.ArgumentParser("")
     parser.add_argument(
-        "--num_per_category",
-        type=int,
-        default=100,
-        help="number of videos per category",
+        "--num_per_category", type=int, default=50, help="number of videos per category"
     )
+    parser.add_argument("--num_per_video", type=int, default=10)
+    parser.add_argument("--write_cluster_file", type=str, required=True)
     args = parser.parse_args()
     num_per_cat = args.num_per_category
-    return num_per_cat
+    num_per_video = args.num_per_video
+    write_cluster_file = args.write_cluster_file
+    return num_per_cat, num_per_video, write_cluster_file
 
 
 if __name__ == "__main__":
 
-    num_per_cat = parse_args()
-    init_global()
+    # num_per_cat, num_per_video, write_cluster_file = parse_args()
+    # init_global()
 
-    # # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
-    # # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+    wfile1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
     # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
     # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    # proc1.start()
-    # proc1.join()
+    read_tree_dir_files_to_file(root1, wfile1)
 
-    ####################################  load dataset  ######################################
-    # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    text_files = (
-        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    )
-    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
-    # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
-    dataset = DataSet(dm_file=text_files)
-    cat_videos = dataset.get_cat_videos()
-    text_list, time_array, feature_array = collect_by_cat(cat_videos, num_per_cat)
-    import pdb
-
-    pdb.set_trace()
-
-    #################################### cluster ##############################################
+    # ####################################  load dataset  ######################################
+    # # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
+    # # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    # text_files = (
+    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
+    # )
+    # # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # # feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
+    # # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
+    # cat_videos = get_cat_videos_dict(text_files)
+    # text_list, cat_list, time_array, feature_array = collect_by_cat(cat_videos, num_per_cat, num_per_video)
+    #
+    # #################################### cluster ##############################################
     # distance_list = [
     #     "edit_distance",
     #     "tf_idf_distance",
@@ -441,19 +409,6 @@ if __name__ == "__main__":
     #     "feature_distance",
     # ]
     # distance_weight_list = [0.1, 0.15, 0.15, 0.6]
-    # filter = IntraFilter(distance_list, distance_weight_list)
-
-    # proc_num = 16
-    # procs = []
-    # data_num_per_proc = (len(dataset) + proc_num - 1) // proc_num
-    # idxes = list(range(len(dataset)))
+    # filter = Filter(distance_list, distance_weight_list, num_per_cat, num_per_video)
     #
-    # for i in range(proc_num):
-    #     proc = Process(
-    #         target=multi_cluster,
-    #         args=(dataset, idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc]),
-    #     )
-    #     proc.start()
-    #     procs.append(proc)
-    # for proc in procs:
-    #     proc.join()
+    # filter.cluster(text_list, cat_list, write_cluster_file, time_array, feature_array)
