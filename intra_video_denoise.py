@@ -29,8 +29,8 @@ bert_path = "work_dirs/bert_model"
 # bert_path = "data/bert_model"
 tokenizer = None
 bert = None
-# new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-new_root = "data/bilibili_intra_denoise"
+new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+# new_root = "data/bilibili_intra_denoise"
 
 forbidden_list = ["e", "m", "o", "x", "y", "z"]
 
@@ -332,46 +332,44 @@ class IntraFilter:
 
 if __name__ == "__main__":
     ############################### generate paths file #######################################
-    root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
-    wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
-    # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    proc1.start()
-    root2 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_text_feature"
-    wfile2 = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    # root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
-    # wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
-    proc2.start()
-    proc1.join()
-    proc2.join()
+    # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
+    # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    # # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
+    # # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
+    # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
+    # proc1.start()
+    # root2 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_text_feature"
+    # wfile2 = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
+    # # root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
+    # # wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
+    # proc2.start()
+    # proc1.join()
+    # proc2.join()
 
-    # ####################################  load dataset  ######################################
-    # # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    # # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    # feature_files = (
-    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    # )
-    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # dataset = DataSet(text_files, feature_files)
-    #
-    # #################################### cluster ##############################################
-    # distance_list = [
-    #     "edit_distance",
-    #     "tf_idf_distance",
-    #     "tgap_distance",
-    #     "feature_distance",
-    # ]
-    # distance_weight_list = [0.1, 0.15, 0.15, 0.6]
-    # filter = IntraFilter(distance_list, distance_weight_list)
-    #
-    # for i in range(len(dataset)):
-    #     dm_path, feature_path = dataset[i]
-    #     time_array, text_list = read_dm_file(dm_path)
-    #     feature_array = get_feature(feature_path, text_list)
-    #     text_list, time_array, feature_array = filter_meaningless_text(
-    #         text_list, time_array, feature_array
-    #     )
-    #     centers, center_weight = filter.cluster(text_list, time_array, feature_array)
-    #     save_denoised_file(dm_path, time_array, text_list, centers, center_weight)
+    ####################################  load dataset  ######################################
+    # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
+    # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
+    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
+    dataset = DataSet(text_files, feature_files)
+
+    #################################### cluster ##############################################
+    distance_list = [
+        "edit_distance",
+        "tf_idf_distance",
+        "tgap_distance",
+        "feature_distance",
+    ]
+    distance_weight_list = [0.1, 0.15, 0.15, 0.6]
+    filter = IntraFilter(distance_list, distance_weight_list)
+
+    for i in range(len(dataset)):
+        dm_path, feature_path = dataset[i]
+        time_array, text_list = read_dm_file(dm_path)
+        feature_array = get_feature(feature_path, text_list)
+        text_list, time_array, feature_array = filter_meaningless_text(
+            text_list, time_array, feature_array
+        )
+        centers, center_weight = filter.cluster(text_list, time_array, feature_array)
+        save_denoised_file(dm_path, time_array, text_list, centers, center_weight)
