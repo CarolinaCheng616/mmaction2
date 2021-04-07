@@ -251,8 +251,7 @@ def tgap_distance(time_array):
     :param time_list(float numpy.array):  sorted time stamp list
     :return:
     """
-    tmin = time_array[0]
-    time_array_copy = time_array - tmin
+    time_array_copy = time_array - time_array[0]
     distance = abs(time_array_copy.reshape(-1, 1) - time_array_copy.reshape(1, -1))
     tmax = time_array_copy[-1]
     if tmax != 0:
@@ -272,6 +271,8 @@ def feature_distance(feature_array, temperature=0.1):
     smin, smax = np.min(similarity), np.max(similarity)
     if smin != smax:
         similarity = (similarity - smin) / (smax - smin)
+    elif smin != 0:
+        similarity = similarity / smin
     distance = 1 - similarity
     return distance
 
