@@ -23,13 +23,13 @@ import torch
 import argparse
 
 
-# bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
-bert_path = "data/bert_model"
+bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
+# bert_path = "data/bert_model"
 tokenizer = None
 bert = None
-# new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-new_root = "data/bilibili_intra_denoise"
-feature_root = "data/bilibili_intra_denoise_feature"
+new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+# new_root = "data/bilibili_intra_denoise"
+feature_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise_feature"
 
 
 ############################################# init bert ##################################################
@@ -98,15 +98,15 @@ def read_tree_dir_files_to_file(path, wfile, depth=4):
         f.write("\n".join(path_list))
 
 
-def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
-    os.makedirs(osp.dirname(new_path), exist_ok=True)
-    lines = []
-    for i, idx in enumerate(save_idx):
-        lines.append(
-            str(time_array[idx]) + "#*," + text_list[idx] + "#*," + str(weight[i])
-        )
-    with open(new_path, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+# def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
+#     os.makedirs(osp.dirname(new_path), exist_ok=True)
+#     lines = []
+#     for i, idx in enumerate(save_idx):
+#         lines.append(
+#             str(time_array[idx]) + "#*," + text_list[idx] + "#*," + str(weight[i])
+#         )
+#     with open(new_path, "w", encoding="utf-8") as f:
+#         f.write("\n".join(lines))
 
 
 def get_cat_videos_dict(dm_file):
@@ -382,12 +382,10 @@ if __name__ == "__main__":
     # read_tree_dir_files_to_file(root1, wfile1)
 
     ####################################  load dataset  ######################################
+    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
     # text_files = (
-    #     "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
+    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
     # )
-    text_files = (
-        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    )
     cat_videos = get_cat_videos_dict(text_files)
     text_list, cat_list, time_array, feature_array = collect_by_cat(
         cat_videos, num_per_cat, num_per_video
