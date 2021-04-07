@@ -128,7 +128,7 @@ class DataSet:
             ].split("/")[0]
             self.dm_paths.append((path, cat))
         self.cat_videos = defaultdict(list)
-        for path, cat in self.cat_videos.items():
+        for path, cat in self.dm_paths:
             self.cat_videos[cat].append(path)
         # self.video_cat = dict()
         # for i, path in enumerate(self.dm_paths):
