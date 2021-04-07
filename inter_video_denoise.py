@@ -31,8 +31,6 @@ bert = None
 new_root = "data/bilibili_intra_denoise"
 feature_root = "data/bilibili_intra_denoise_feature"
 
-# forbidden_list = ["e", "m", "o", "x", "y", "z"]
-
 
 ############################################# init bert ##################################################
 
@@ -109,30 +107,6 @@ def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
         )
     with open(new_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
-
-
-# class DataSet:
-#     def __init__(self, dm_file):
-#         with open(dm_file, "r", encoding="utf-8") as f:
-#             dm_paths = [line.strip() for line in f]
-#         self.dm_paths = []
-#         for path in dm_paths:
-#             cat = path[
-#                 path.find("bilibili_intra_denoise/") + len("bilibili_intra_denoise/") :
-#             ].split("/")[0]
-#             self.dm_paths.append((path, cat))
-#         self.cat_videos = defaultdict(list)
-#         for path, cat in self.dm_paths:
-#             self.cat_videos[cat].append(path)
-#
-#     def __len__(self):
-#         return len(self.dm_paths)
-#
-#     def __getitem__(self, idx):
-#         return self.dm_paths[idx]
-#
-#     def get_cat_videos(self):
-#         return self.cat_videos
 
 
 def get_cat_videos_dict(dm_file):
@@ -311,26 +285,44 @@ class Filter:
         )
         db = DBSCAN(eps=0.4, metric="precomputed", min_samples=1).fit(distance)
 
-        lines = []
+        lines = [f"{num_per_cat}#*,{num_per_video}"]
         for i, label in enumerate(db.labels_):
             lines.append("#*,".join([text_list[i], cat_list[i], str(label)]))
         with open(write_cluster_file, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
-        # dic = defaultdict(list)
-        # for i, label in enumerate(db.labels_):
-        #     if label != -1:
-        #         dic[label].append(i)
-        # centers = []
-        # # center_weight = []
-        # for cluster in dic.keys():
-        #     centers.append(*np.random.choice(dic[cluster], 1))
-        #     # center_weight.append(len(dic[cluster]))
-        # centers = np.array(centers)
-        # # center_weight = np.array(center_weight)
-        # idxes = np.argsort(centers)
-        # centers = centers[idxes]
-        # # center_weight = center_weight[idxes]
-        # return centers
+
+
+def analysis_stop_sentenses(file):
+    text_list = []
+    cat_list = []
+    label_list = []
+    with open(file, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        for i, line in enumerate(lines):
+            tokens = line.strip().split("#*,")
+            if i == 0:
+                num_per_cat, num_per_video = int(tokens[0]), int(tokens[1])
+            else:
+                text, cat, label = tokens[0], tokens[1], int(tokens[2])
+                text_list.append(text)
+                cat_list.append(cat)
+                label_list.append(label)
+
+    dic = defaultdict(list)
+    for i, label in enumerate(label_list):
+        if label != -1:
+            dic[label].append(i)
+    centers = []
+    # center_weight = []
+    for cluster in dic.keys():
+        centers.append(*np.random.choice(dic[cluster], 1))
+        # center_weight.append(len(dic[cluster]))
+    centers = np.array(centers)
+    # center_weight = np.array(center_weight)
+    idxes = np.argsort(centers)
+    centers = centers[idxes]
+    # center_weight = center_weight[idxes]
+    return centers
 
 
 ############################################## main ###########################################################
@@ -380,35 +372,35 @@ def parse_args():
 
 if __name__ == "__main__":
 
-    # num_per_cat, num_per_video, write_cluster_file = parse_args()
-    # init_global()
+    num_per_cat, num_per_video, write_cluster_file = parse_args()
+    init_global()
 
-    root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-    wfile1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
+    # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+    # wfile1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
     # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
     # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    read_tree_dir_files_to_file(root1, wfile1)
+    # read_tree_dir_files_to_file(root1, wfile1)
 
-    # ####################################  load dataset  ######################################
-    # # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    # # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    ####################################  load dataset  ######################################
     # text_files = (
-    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
+    #     "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
     # )
-    # # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # # feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
-    # # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
-    # cat_videos = get_cat_videos_dict(text_files)
-    # text_list, cat_list, time_array, feature_array = collect_by_cat(cat_videos, num_per_cat, num_per_video)
-    #
-    # #################################### cluster ##############################################
-    # distance_list = [
-    #     "edit_distance",
-    #     "tf_idf_distance",
-    #     "tgap_distance",
-    #     "feature_distance",
-    # ]
-    # distance_weight_list = [0.1, 0.15, 0.15, 0.6]
-    # filter = Filter(distance_list, distance_weight_list, num_per_cat, num_per_video)
-    #
-    # filter.cluster(text_list, cat_list, write_cluster_file, time_array, feature_array)
+    text_files = (
+        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
+    )
+    cat_videos = get_cat_videos_dict(text_files)
+    text_list, cat_list, time_array, feature_array = collect_by_cat(
+        cat_videos, num_per_cat, num_per_video
+    )
+
+    #################################### cluster ##############################################
+    distance_list = [
+        "edit_distance",
+        "tf_idf_distance",
+        "tgap_distance",
+        "feature_distance",
+    ]
+    distance_weight_list = [0.1, 0.15, 0.15, 0.6]
+    filter = Filter(distance_list, distance_weight_list, num_per_cat, num_per_video)
+
+    filter.cluster(text_list, cat_list, write_cluster_file, time_array, feature_array)
