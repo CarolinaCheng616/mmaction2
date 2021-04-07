@@ -128,66 +128,17 @@ class DataSet:
             ].split("/")[0]
             self.dm_paths.append((path, cat))
         self.cat_videos = defaultdict(list)
-        import pdb
-
-        pdb.set_trace()
         for path, cat in self.dm_paths:
             self.cat_videos[cat].append(path)
-        # self.video_cat = dict()
-        # for i, path in enumerate(self.dm_paths):
-        #     name = osp.splitext(osp.basename(path))[0]
-        #     self.path_idx[name].append(i)
-        #     cat = path[path.find("bilibili_dm/") + len("bilibili_dm/") :].split("/")[0]
-        #     self.video_cat[name] = cat
-        # for i, path in enumerate(self.feature_paths):
-        #     self.path_idx[osp.basename(path)[: -len("_dm.npz")]].append(i)
-        # names = list(self.path_idx.keys())
-        # for name in names:
-        #     if len(self.path_idx[name]) != 2:
-        #         del self.path_idx[name]
-        #         if name in self.video_cat:
-        #             del self.video_cat[name]
-        # self.keys = sorted(list(self.path_idx.keys()))
-        # self.length = len(self.path_idx.keys())
-        #
-        # self.cat_videos = defaultdict(list)
-        # for video, cat in self.video_cat.items():
-        #     self.cat_videos[cat].append(video)
 
     def __len__(self):
         return len(self.dm_paths)
 
     def __getitem__(self, idx):
-        # idx1, idx2 = self.path_idx[self.keys[idx]]
-        # cat = self.video_cat[self.keys[idx]]
-        # return self.dm_paths[idx1], self.feature_paths[idx2], cat
         return self.dm_paths[idx]
-
-    # def get_video_cat(self):
-    #     return self.video_cat
 
     def get_cat_videos(self):
         return self.cat_videos
-
-    # def get_by_name(self, name):
-    #     idx1, idx2 = self.path_idx[name]
-    #     # cat = self.video_cat[name]
-    #     return self.dm_paths[idx1], self.feature_paths[idx2]
-
-    # def get_idx_list(self, idx_list):
-    #     dm_paths = []
-    #     feature_paths = []
-    #     cats = []
-    #     for idx in idx_list:
-    #         dp, fp, cat = self.__getitem__(idx)
-    #         dm_paths.append(dp)
-    #         feature_paths.append(fp)
-    #         cats.append(cat)
-    #     return dm_paths, feature_paths, cats
-
-    # def get_all(self):
-    #     idx_list = list(range(len(self.path_idx.keys())))
-    #     return self.get_idx_list(idx_list)
 
 
 ############################################# read file ###################################################
@@ -212,9 +163,6 @@ def read_dm_file(file_name):
 
 # read feature file
 def get_feature_and_save(time_array, text_list, dm_path):
-    import pdb
-
-    pdb.set_trace()
     new_path = osp.splitext(dm_path.replace(new_root, feature_root, 1))[0] + "_dm.npz"
     if osp.exists(new_path):
         features = np.load(new_path)["features"]
@@ -424,13 +372,9 @@ def collect_by_cat(cat_videos, num_per_cat):
     text_list = []
     time_array = []
     feature_array = []
-    import pdb
-
-    pdb.set_trace()
     for cat in cat_videos:
         paths = cat_videos[cat][:num_per_cat]
         for path in paths:
-            # dm_path, feature_path = dataset.get_by_name(name)
             time, text = read_dm_file(path)
             feature = get_feature_and_save(time, text, path)
             if len(time) == 0 or len(text) == 0 or len(feature) == 0:
@@ -485,6 +429,9 @@ if __name__ == "__main__":
     dataset = DataSet(dm_file=text_files)
     cat_videos = dataset.get_cat_videos()
     text_list, time_array, feature_array = collect_by_cat(cat_videos, num_per_cat)
+    import pdb
+
+    pdb.set_trace()
 
     #################################### cluster ##############################################
     # distance_list = [
