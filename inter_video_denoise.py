@@ -128,6 +128,9 @@ class DataSet:
             ].split("/")[0]
             self.dm_paths.append((path, cat))
         self.cat_videos = defaultdict(list)
+        import pdb
+
+        pdb.set_trace()
         for path, cat in self.dm_paths:
             self.cat_videos[cat].append(path)
         # self.video_cat = dict()
@@ -150,10 +153,6 @@ class DataSet:
         # self.cat_videos = defaultdict(list)
         # for video, cat in self.video_cat.items():
         #     self.cat_videos[cat].append(video)
-
-        import pdb
-
-        pdb.set_trace()
 
     def __len__(self):
         return len(self.dm_paths)
