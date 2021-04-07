@@ -72,48 +72,46 @@ def modify(file, wfile, new_root):
         f.write("\n".join(new_lines))
 
 
+def remove_invalid_dm_file(file, wfile):
+    new_lines = []
+    with open(file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if (
+                line.endswith("_dm.npz") or line.endswith("_title.npy")
+            ) and "bilibili_dm" in line:
+                if osp.exists(line):
+                    os.remove(line)
+            else:
+                new_lines.append(line)
+    with open(wfile, "w", encoding="utf-8") as f:
+        f.write("\n".join(new_lines))
+
+
+def remove_invalid_numpy_file(file, wfile):
+    new_lines = []
+    with open(file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line.endswith(".txt") and "bilibili_text_feature" in line:
+                if osp.exists(line):
+                    os.remove(line)
+            else:
+                new_lines.append(line)
+    with open(wfile, "w", encoding="utf-8") as f:
+        f.write("\n".join(new_lines))
+
+
 if __name__ == "__main__":
-    # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
-    # # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    # # # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_text_feature"
-    # # # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/text_feature_files.txt"
-    # # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    # # proc1.start()
-    # # root2 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_text_feature"
-    # # wfile2 = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
-    # # # root2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_parse_xml"
-    # # # wfile2 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # # proc2 = Process(target=read_tree_dir_files_to_file, args=(root2, wfile2))
-    # # proc2.start()
-    # # proc1.join()
-    # # proc2.join()
-    # # from multiprocessing import Process
-    # #
-    # # file1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
-    # # wfile1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files2.txt"
-    # # new_root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
-    # # proc1 = Process(target=modify, args=(file1, wfile1, new_root1))
-    # # proc1.start()
-    # #
-    # # file2 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
-    # # wfile2 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files2.txt"
-    # # new_root2 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_text_feature"
-    # # proc2 = Process(target=modify, args=(file2, wfile2, new_root2))
-    # # proc2.start()
-    # #
-    # # proc1.join()
-    # # proc2.join()
-    #
-    # text_list = []
+    dm_file = "data/bilibili/dm_files.txt"
+    dm_wfile = "data/bilibili/dm_files2.txt"
+    remove_invalid_dm_file(dm_file, dm_wfile)
+    # feature_file = "data/bilibili/text_feature_files.txt"
+    # feature_wfile = "data/bilibili/text_feature_files2.txt"
+    # remove_invalid_numpy_file(feature_file, feature_wfile)
+    # new_path = "/home/chy/projects/mmaction2/test.txt"
     # time_array = np.array([])
-    # feature_array = np.array([])
-    # filter_meaningless_text(text_list, time_array, feature_array)
-    # print(text_list)
-    # print(time_array)
-    # print(feature_array)
-    new_path = "/home/chy/projects/mmaction2/test.txt"
-    time_array = np.array([])
-    text_list = []
-    save_idx = time_array
-    weight = time_array
-    save_denoised_file(new_path, time_array, text_list, save_idx, weight)
+    # text_list = []
+    # save_idx = time_array
+    # weight = time_array
+    # save_denoised_file(new_path, time_array, text_list, save_idx, weight)

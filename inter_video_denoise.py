@@ -411,7 +411,10 @@ def collect_by_cat(dataset, cat_videos, num_per_cat):
 
             base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
             new_name = "/".join(
-                [*dm_path[dm_path.find("bilibili") :].split("/")[1:-1], base_name]
+                [
+                    *dm_path[dm_path.find("bilibili_intra_denoise") :].split("/")[1:-1],
+                    base_name,
+                ]
             )
             new_path = osp.join(new_root, new_name)
             if osp.exists(new_path):
