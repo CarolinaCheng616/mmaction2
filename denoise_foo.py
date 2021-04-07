@@ -115,10 +115,24 @@ def find_invalid_dm_file(file, wfile):
         f.write("\n".join(new_lines))
 
 
+def list_possible_invalid_dm_file(file, wfile):
+    files = []
+    with open(file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip().replace(
+                "bilibili_dm", "bilibili_intra_denoise/bilibili_dm", 1
+            )
+            files += [osp.join(line, file) for file in os.listdir(line)]
+    with open(wfile, "w", encoding="utf-8") as f:
+        f.write("\n".join(files))
+
+
 if __name__ == "__main__":
-    dm_file = "data/bilibili/ori_dm_files.txt"
-    dm_wfile = "data/bilibili/invalid_dm_files.txt"
-    find_invalid_dm_file(dm_file, dm_wfile)
+    # dm_file = "data/bilibili/ori_dm_files.txt"
+    dm_file = "data/bilibili/invalid_dm_files.txt"
+    wfile = "data/bilibili/invalid_dir_dm_files.txt"
+    list_possible_invalid_dm_file(dm_file, wfile)
+    # find_invalid_dm_file(dm_file, dm_wfile)
     # feature_file = "data/bilibili/text_feature_files.txt"
     # feature_wfile = "data/bilibili/text_feature_files2.txt"
     # remove_invalid_numpy_file(feature_file, feature_wfile)
