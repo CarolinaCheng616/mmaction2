@@ -121,7 +121,6 @@ class DataSet:
         with open(feature_file, "r", encoding="utf-8") as f:
             self.feature_paths = [line.strip() for line in f if "_dm.npz" in line]
         self.path_idx = defaultdict(list)
-        self.length = 0
         for i, path in enumerate(self.dm_paths):
             self.path_idx[osp.splitext(osp.basename(path))[0]].append(i)
         for i, path in enumerate(self.feature_paths):
@@ -350,7 +349,7 @@ def multi_cluster(dataset, idxes):
         text_list, time_array, feature_array = filter_meaningless_text(
             text_list, time_array, feature_array
         )
-        if len(text_list) == 0:
+        if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
             save_denoised_file(
                 new_path, np.array([]), np.array([]), np.array([]), np.array([])
             )
