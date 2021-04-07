@@ -102,10 +102,23 @@ def remove_invalid_numpy_file(file, wfile):
         f.write("\n".join(new_lines))
 
 
+def find_invalid_dm_file(file, wfile):
+    new_lines = []
+    with open(file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if (
+                line.endswith("_dm.npz") or line.endswith("_title.npy")
+            ) and "bilibili_dm" in line:
+                new_lines.append(line)
+    with open(wfile, "w", encoding="utf-8") as f:
+        f.write("\n".join(new_lines))
+
+
 if __name__ == "__main__":
-    dm_file = "data/bilibili/dm_files.txt"
-    dm_wfile = "data/bilibili/dm_files2.txt"
-    remove_invalid_dm_file(dm_file, dm_wfile)
+    dm_file = "data/bilibili/ori_dm_files.txt"
+    dm_wfile = "data/bilibili/invalid_dm_files.txt"
+    find_invalid_dm_file(dm_file, dm_wfile)
     # feature_file = "data/bilibili/text_feature_files.txt"
     # feature_wfile = "data/bilibili/text_feature_files2.txt"
     # remove_invalid_numpy_file(feature_file, feature_wfile)
