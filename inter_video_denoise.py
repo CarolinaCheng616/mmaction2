@@ -35,8 +35,9 @@ tokenizer = None
 bert = None
 # new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
 new_root = "data/bilibili_intra_denoise"
+feature_root = "data/bilibili_intra_denoise_feature"
 
-forbidden_list = ["e", "m", "o", "x", "y", "z"]
+# forbidden_list = ["e", "m", "o", "x", "y", "z"]
 
 
 ############################################# init bert ##################################################
@@ -122,7 +123,9 @@ class DataSet:
             dm_paths = [line.strip() for line in f]
         self.dm_paths = []
         for path in dm_paths:
-            cat = path[path.find("bilibili_dm/") + len("bilibili_dm/") :].split("/")[0]
+            cat = path[
+                path.find("bilibili_intra_denoise/") + len("bilibili_intra_denoise/") :
+            ].split("/")[0]
             self.dm_paths.append((path, cat))
         self.cat_videos = defaultdict(list)
         for path, cat in self.cat_videos.items():
@@ -209,26 +212,32 @@ def read_dm_file(file_name):
 
 
 # read feature file
-def get_feature(feature_file, text_list):
-    data = np.load(feature_file)
-    features = data["features"]
-    if len(features) != len(text_list):
-        number_per_iter = 500
-        nums = (len(text_list) + number_per_iter - 1) // number_per_iter
-        features = []
-        for i in range(nums):
-            sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
-            sub_tokens = tokenizer(
-                sub_dm, truncation=True, padding="max_length", return_tensors="pt"
-            )
-            for key in sub_tokens:
-                sub_tokens[key] = sub_tokens[key].cuda()
-            sub_feat = bert(sub_tokens).cpu().numpy()
-            features.append(sub_feat)
-        if len(features) > 0:
-            features = np.concatenate(features, axis=0)
-        else:
-            features = np.array(features)
+def get_feature_and_save(time_array, text_list, dm_path):
+    import pdb
+
+    pdb.set_trace()
+    new_path = osp.splitext(dm_path.replace(new_root, feature_root, 1))[0] + "_dm.npz"
+    if osp.exists(new_path):
+        features = np.load(new_path)["features"]
+        return features
+    os.makedirs(osp.dirname(new_path), exist_ok=True)
+    number_per_iter = 500
+    nums = (len(text_list) + number_per_iter - 1) // number_per_iter
+    features = []
+    for i in range(nums):
+        sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
+        sub_tokens = tokenizer(
+            sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+        )
+        for key in sub_tokens:
+            sub_tokens[key] = sub_tokens[key].cuda()
+        sub_feat = bert(sub_tokens).cpu().numpy()
+        features.append(sub_feat)
+    if len(features) > 0:
+        features = np.concatenate(features, axis=0)
+    else:
+        features = np.array(features)
+    np.savez(new_path, times=time_array, features=features)
     return features
 
 
@@ -411,31 +420,31 @@ class IntraFilter:
 #         pb.update()
 
 
-def collect_by_cat(dataset, cat_videos, num_per_cat):
+def collect_by_cat(cat_videos, num_per_cat):
     cats = []
     text_list = []
     time_array = []
     feature_array = []
+    import pdb
+
+    pdb.set_trace()
     for cat in cat_videos:
-        videos = cat_videos[cat][:num_per_cat]
-        for name in videos:
-            dm_path, feature_path = dataset.get_by_name(name)
-            time, text = read_dm_file(dm_path)
-            feature = get_feature(feature_path, text)
+        paths = cat_videos[cat][:num_per_cat]
+        for path in paths:
+            # dm_path, feature_path = dataset.get_by_name(name)
+            time, text = read_dm_file(path)
+            feature = get_feature_and_save(time, text, path)
             if len(time) == 0 or len(text) == 0 or len(feature) == 0:
                 continue
             assert len(time) == len(text) and len(time) == len(
                 feature
-            ), f"not match for {name}"
+            ), f"not match for {path}"
             cats += [cat] * len(text)
             text_list += text
             time_array.append(time)
             feature_array.append(feature)
     time_array = np.concatenate(time_array, axis=0)
     feature_array = np.concatenate(feature_array, axis=0)
-    import pdb
-
-    pdb.set_trace()
     return text_list, time_array, feature_array
 
 
@@ -456,26 +465,28 @@ if __name__ == "__main__":
 
     num_per_cat = parse_args()
 
-    # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
-    # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
-    wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
-    proc1.start()
-    proc1.join()
+    # # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
+    # # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
+    # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
+    # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
+    # proc1 = Process(target=read_tree_dir_files_to_file, args=(root1, wfile1))
+    # proc1.start()
+    # proc1.join()
 
     ####################################  load dataset  ######################################
     # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
     # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
-    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    # # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
-    # # feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
-    # # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
-    # dataset = DataSet(dm_file=text_files, feature_file=feature_files)
-    # cat_videos = dataset.get_cat_videos()
-    # text_list, time_array, feature_array = collect_by_cat(dataset, cat_videos, num_per_cat)
-    #
-    # #################################### cluster ##############################################
+    text_files = (
+        "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
+    )
+    # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
+    # feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
+    # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
+    dataset = DataSet(dm_file=text_files)
+    cat_videos = dataset.get_cat_videos()
+    text_list, time_array, feature_array = collect_by_cat(cat_videos, num_per_cat)
+
+    #################################### cluster ##############################################
     # distance_list = [
     #     "edit_distance",
     #     "tf_idf_distance",
