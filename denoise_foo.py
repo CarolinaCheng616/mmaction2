@@ -122,7 +122,8 @@ def list_possible_invalid_dm_file(file, wfile):
             line = osp.dirname(line.strip()).replace(
                 "bilibili_dm", "bilibili_intra_denoise/bilibili_dm", 1
             )
-            files += [osp.join(line, file) for file in os.listdir(line)]
+            if osp.exists(line):
+                files += [osp.join(line, file) for file in os.listdir(line)]
     with open(wfile, "w", encoding="utf-8") as f:
         f.write("\n".join(files))
 
