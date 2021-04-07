@@ -464,6 +464,7 @@ def parse_args():
 if __name__ == "__main__":
 
     num_per_cat = parse_args()
+    init_global()
 
     # # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_dm"
     # # wfile1 = "/mnt/lustre/chenghaoyue/dm_files.txt"
