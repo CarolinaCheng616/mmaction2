@@ -126,7 +126,8 @@ class DataSet:
             self.path_idx[osp.splitext(osp.basename(path))[0]].append(i)
         for i, path in enumerate(self.feature_paths):
             self.path_idx[osp.basename(path)[: -len("_dm.npz")]].append(i)
-        for name in self.path_idx:
+        names = list(self.path_idx.keys())
+        for name in names:
             if len(self.path_idx[name]) != 2:
                 del self.path_idx[name]
         self.keys = sorted(list(self.path_idx.keys()))
