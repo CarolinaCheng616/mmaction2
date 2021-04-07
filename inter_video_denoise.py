@@ -160,8 +160,7 @@ def get_feature_and_save(time_array, text_list, dm_path):
             sub_tokens[key] = sub_tokens[key].cuda()
         sub_feat = bert(sub_tokens).cpu().numpy()
 
-        for key in sub_tokens:
-            sub_tokens[key] = sub_tokens[key].cpu()
+        torch.cuda.empty_cache()
 
         features.append(sub_feat)
     if len(features) > 0:
