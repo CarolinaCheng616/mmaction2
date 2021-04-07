@@ -128,11 +128,31 @@ def list_possible_invalid_dm_file(file, wfile):
         f.write("\n".join(sorted(files)))
 
 
+def find_duplicated_files(file, dup_file, uniq_file):
+    uniq_files = []
+    duplicated_files = []
+    with open(file, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if line in uniq_files:
+                duplicated_files.append(line)
+            else:
+                uniq_files.append(line)
+    with open(dup_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(sorted(duplicated_files)))
+    with open(uniq_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(sorted(uniq_files)))
+
+
 if __name__ == "__main__":
     # dm_file = "data/bilibili/ori_dm_files.txt"
-    dm_file = "data/bilibili/invalid_dm_files.txt"
-    wfile = "data/bilibili/invalid_dir_dm_files.txt"
-    list_possible_invalid_dm_file(dm_file, wfile)
+    # dm_file = "data/bilibili/invalid_dm_files.txt"
+    # wfile = "data/bilibili/invalid_dir_dm_files.txt"
+    # list_possible_invalid_dm_file(dm_file, wfile)
+    dm_file = "data/bilibili/dm_files.txt"
+    dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
+    dm_uniq_file = "data/bilibili/dm_uniq_files.txt"
+    find_duplicated_files(dm_file, dm_dup_file, dm_uniq_file)
     # find_invalid_dm_file(dm_file, dm_wfile)
     # feature_file = "data/bilibili/text_feature_files.txt"
     # feature_wfile = "data/bilibili/text_feature_files2.txt"
