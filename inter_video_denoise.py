@@ -26,14 +26,14 @@ import argparse
 from mmcv import ProgressBar
 
 
-bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
-# bert_path = "data/bert_model"
+# bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
+bert_path = "work_dirs/bert_model"
 tokenizer = None
 bert = None
-new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-# new_root = "data/bilibili_intra_denoise"
-feature_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise_feature"
-
+# new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+new_root = "data/bilibili_intra_denoise"
+# feature_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise_feature"
+feature_root = "data/bilibili_intra_denoise_feature"
 
 ############################################# init bert ##################################################
 
@@ -388,17 +388,9 @@ if __name__ == "__main__":
     num_per_cat, num_per_video, write_cluster_file = parse_args()
     init_global()
 
-    # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-    # wfile1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
-    # root1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
-    # wfile1 = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    # read_tree_dir_files_to_file(root1, wfile1)
-
     ####################################  load dataset  ######################################
-    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
-    # text_files = (
-    #     "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/intra_denoise_files.txt"
-    # )
+    # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
+    text_files = "data/intra_denoise_files.txt"
     cat_videos = get_cat_videos_dict(text_files)
     text_list, cat_list, time_array, feature_array = collect_by_cat(
         cat_videos, num_per_cat, num_per_video
