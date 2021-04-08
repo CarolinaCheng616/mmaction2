@@ -394,7 +394,7 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    path = "data/bilibili_intra_denoise"
+    path = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
     wfile = "data/intra_denoise_files.txt"
     read_tree_dir_files_to_file(path, wfile)
 
