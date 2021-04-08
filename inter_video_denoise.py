@@ -405,13 +405,8 @@ if __name__ == "__main__":
     )
 
     #################################### cluster ##############################################
-    distance_list = [
-        "edit_distance",
-        "tf_idf_distance",
-        "tgap_distance",
-        "feature_distance",
-    ]
-    distance_weight_list = [0.1, 0.15, 0.15, 0.6]
+    distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
+    distance_weight_list = [0.1, 0.15, 0.75]
     filter = Filter(distance_list, distance_weight_list, num_per_cat, num_per_video)
 
     filter.cluster(text_list, cat_list, write_cluster_file, time_array, feature_array)
