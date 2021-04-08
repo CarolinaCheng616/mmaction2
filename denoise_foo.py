@@ -229,7 +229,13 @@ def get_feature(file):
 
 
 def test_feature_distance():
-    text_list = ["哈哈哈哈哈哈哈哈哈哈哈哈好", "哈哈哈哈哈哈哈哈哈草", "呵呵哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈", "哈哈哈哈嗝哈哈哈哈哈哈哈哈哈"]
+    text_list = [
+        "哈哈哈哈哈哈哈哈哈哈哈哈好",
+        "哈哈哈哈哈哈哈哈哈草",
+        "呵呵哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈",
+        "哈哈哈哈嗝哈哈哈哈哈哈哈哈哈",
+        "读取每个类别下num个视频的弹幕",
+    ]
     bert_path = "work_dirs/bert_model"
     tokenizer = BertTokenizer.from_pretrained(bert_path)
     bert = BERT(bert_path)
