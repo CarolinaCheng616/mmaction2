@@ -148,7 +148,7 @@ def get_feature_and_save(time_array, text_list, dm_path):
         features = np.load(new_path)["features"]
         return features
     os.makedirs(osp.dirname(new_path), exist_ok=True)
-    number_per_iter = 100
+    number_per_iter = 200
     nums = (len(text_list) + number_per_iter - 1) // number_per_iter
     features = []
     for i in range(nums):
