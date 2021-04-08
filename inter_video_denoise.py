@@ -377,6 +377,9 @@ if __name__ == "__main__":
 
     num_per_cat, num_per_video, write_cluster_file = parse_args()
     init_global()
+    import pdb
+
+    pdb.set_trace()
 
     # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
     # wfile1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
