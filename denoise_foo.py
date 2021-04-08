@@ -178,9 +178,13 @@ def get_feature(file):
     bert = BERT(bert_path)
     ori_root = "bilibili_intra_denoise"
     feature_root = "bilibili_intra_denoise_feature"
+    from mmcv import ProgressBar
 
     with open(file, "r", encoding="utf-8") as f:
-        for line in f:
+        lines = f.readlines()
+        pb = ProgressBar(len(lines))
+        pb.start()
+        for line in lines:
             dm_path = line.strip()
             new_path = (
                 osp.splitext(dm_path.replace(ori_root, feature_root, 1))[0] + "_dm.npz"
@@ -221,6 +225,7 @@ def get_feature(file):
             else:
                 features = np.array(features)
             np.savez(new_path, times=time_array, features=features)
+            pb.update()
 
 
 if __name__ == "__main__":
