@@ -259,6 +259,8 @@ def test_feature_distance():
     import pdb
 
     pdb.set_trace()
+    from sklearn.feature_extraction.text import TfidfVectorizer
+
     sim1 = cosine_similarity(features)
     dis1 = 1 - sim1
     sim2 = np.exp(sim1 / 0.1)
@@ -268,6 +270,10 @@ def test_feature_distance():
     elif smin != 0:
         sim2 = sim2 / smin
     dis2 = 1 - sim2
+
+    vectorizer = TfidfVectorizer(stop_words=None)
+    tf_idf = vectorizer.fit_transform(text_list)
+    distance = cosine_distances(tf_idf)
 
 
 if __name__ == "__main__":
