@@ -394,6 +394,9 @@ def parse_args():
 
 
 if __name__ == "__main__":
+    path = "data/bilibili_intra_denoise"
+    wfile = "data/intra_denoise_files.txt"
+    read_tree_dir_files_to_file(path, wfile)
 
     num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples = (
         parse_args()
