@@ -269,6 +269,7 @@ class Filter:
 
     def cluster(
         self,
+        eps,
         text_list,
         cat_list,
         write_cluster_file,
@@ -290,7 +291,7 @@ class Filter:
                 for dis, weight, in zip(distance_list, self.distance_weight_list)
             ]
         )
-        db = DBSCAN(eps=0.4, metric="precomputed", min_samples=1).fit(distance)
+        db = DBSCAN(eps=eps, metric="precomputed", min_samples=1).fit(distance)
 
         end = time.time()
         print(f"cluster time: {end - start}")
@@ -376,16 +377,20 @@ def parse_args():
     )
     parser.add_argument("--num_per_video", type=int, default=10)
     parser.add_argument("--write_cluster_file", type=str, required=True)
+    parser.add_argument("--weight_list", type=float, nargs="+")
+    parser.add_argument("--eps", type=float, default=0.5)
     args = parser.parse_args()
     num_per_cat = args.num_per_category
     num_per_video = args.num_per_video
     write_cluster_file = args.write_cluster_file
-    return num_per_cat, num_per_video, write_cluster_file
+    weight_list = args.weight_list
+    eps = args.eps
+    return num_per_cat, num_per_video, write_cluster_file, weight_list, eps
 
 
 if __name__ == "__main__":
 
-    num_per_cat, num_per_video, write_cluster_file = parse_args()
+    num_per_cat, num_per_video, write_cluster_file, weight_list, eps = parse_args()
     init_global()
 
     ####################################  load dataset  ######################################
@@ -398,7 +403,10 @@ if __name__ == "__main__":
 
     #################################### cluster ##############################################
     distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
-    distance_weight_list = [0.1, 0.15, 0.75]
-    filter = Filter(distance_list, distance_weight_list, num_per_cat, num_per_video)
+    # distance_weight_list = [0.1, 0.15, 0.75]
+    weight_list = np.array(weight_list) / sum(weight_list)
+    filter = Filter(distance_list, weight_list, num_per_cat, num_per_video)
 
-    filter.cluster(text_list, cat_list, write_cluster_file, time_array, feature_array)
+    filter.cluster(
+        eps, text_list, cat_list, write_cluster_file, time_array, feature_array
+    )
