@@ -389,7 +389,8 @@ def parse_args():
     write_cluster_file = args.write_cluster_file
     weight_list = args.weight_list
     eps = args.eps
-    return num_per_cat, num_per_video, write_cluster_file, weight_list, eps
+    num_samples = args.num_samples
+    return num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples
 
 
 if __name__ == "__main__":
