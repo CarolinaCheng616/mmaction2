@@ -281,7 +281,9 @@ class Filter:
     ):
         start = time.time()
         distance_list = []
-        for dis in self.disfunc_list:
+        for i, dis in enumerate(self.disfunc_list):
+            if self.distance_weight_list[i] == 0:
+                continue
             if dis.__name__ == "edit_distance" or dis.__name__ == "tf_idf_distance":
                 distance_list.append(dis(text_list))
             elif dis.__name__ == "tgap_distance":
