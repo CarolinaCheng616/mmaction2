@@ -237,9 +237,6 @@ def test_feature_distance():
     number_per_iter = 200
     nums = (len(text_list) + number_per_iter - 1) // number_per_iter
     features = []
-    import pdb
-
-    pdb.set_trace()
     for i in range(nums):
         sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
         sub_tokens = tokenizer(
@@ -254,6 +251,23 @@ def test_feature_distance():
         features = np.concatenate(features, axis=0)
     else:
         features = np.array(features)
+    from sklearn.metrics.pairwise import (
+        cosine_distances,
+        euclidean_distances,
+        cosine_similarity,
+    )
+    import pdb
+
+    pdb.set_trace()
+    sim1 = cosine_similarity(features)
+    dis1 = 1 - sim1
+    sim2 = np.exp(sim1 / 0.1)
+    smin, smax = np.min(sim2), np.max(sim2)
+    if smin != smax:
+        sim2 = (sim2 - smin) / (smax - smin)
+    elif smin != 0:
+        sim2 = sim2 / smin
+    dis2 = 1 - sim2
 
 
 if __name__ == "__main__":
