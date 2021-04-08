@@ -292,6 +292,9 @@ class Filter:
                 for dis, weight, in zip(distance_list, self.distance_weight_list)
             ]
         )
+        import pdb
+
+        pdb.set_trace()
         db = DBSCAN(eps=eps, metric="precomputed", min_samples=num_samples).fit(
             distance
         )
