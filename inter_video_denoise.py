@@ -287,26 +287,26 @@ class Filter:
                 distance_list.append(dis(time_array))
             elif dis.__name__ == "feature_distance":
                 distance_list.append(dis(feature_array))
-        # distance = sum(
-        #     [
-        #         dis * weight
-        #         for dis, weight, in zip(distance_list, self.distance_weight_list)
-        #     ]
-        # )
+        distance = sum(
+            [
+                dis * weight
+                for dis, weight, in zip(distance_list, self.distance_weight_list)
+            ]
+        )
         import pdb
 
         pdb.set_trace()
-        # db = DBSCAN(eps=eps, metric="precomputed", min_samples=num_samples).fit(
-        #     distance
-        # )
+        clusters = DBSCAN(eps=eps, metric="precomputed", min_samples=num_samples).fit(
+            distance
+        )
 
-        kmeans = KMeans(n_clusters=20, random_state=0).fit(feature_array)
+        # kmeans = KMeans(n_clusters=20, random_state=0).fit(feature_array)
 
         end = time.time()
         print(f"cluster time: {end - start}")
 
         lines = [f"{num_per_cat}#*,{num_per_video}"]
-        for i, label in enumerate(kmeans.labels_):
+        for i, label in enumerate(clusters.labels_):
             lines.append("#*,".join([text_list[i], cat_list[i], str(label)]))
         with open(write_cluster_file, "w", encoding="utf-8") as f:
             f.write("\n".join(lines))
