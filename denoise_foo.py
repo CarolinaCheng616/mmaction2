@@ -260,5 +260,6 @@ if __name__ == "__main__":
     # dm_file = "data/bilibili/dm_files.txt"
     # dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
     # dm_uniq_file = "data/bilibili/dm_uniq_files.txt"
-    file = "/mnt/lustrenew/DATAshare/bilibili/intra_denoise_files.txt"
-    get_feature(file)
+    # file = "/mnt/lustrenew/DATAshare/bilibili/intra_denoise_files.txt"
+    # get_feature(file)
+    test_feature_distance()
