@@ -5,11 +5,11 @@ import numpy as np
 
 # from transformers import BertTokenizer
 #
-# from transformers import BertTokenizer
-# from transformers import AutoModel
-# from transformers import pipeline
-# import torch.nn as nn
-# import torch
+from transformers import BertTokenizer
+from transformers import AutoModel
+from transformers import pipeline
+import torch.nn as nn
+import torch
 
 # import jieba
 # import jieba.posseg as pseg
@@ -144,22 +144,88 @@ def find_duplicated_files(file, dup_file, uniq_file):
         f.write("\n".join(sorted(uniq_files)))
 
 
+class BERT(nn.Module):
+    """BERT backbone.
+    """
+
+    def __init__(self, pretrained=None, freeze=True):
+        super(BERT, self).__init__()
+        self.pretrained = pretrained
+        self.freeze = freeze
+        self.init_weights()
+
+    def init_weights(self):
+        """Initiate the parameters either from existing checkpoint or from
+        scratch."""
+        if isinstance(self.pretrained, str):
+            self.model = AutoModel.from_pretrained(self.pretrained).to("cuda")
+            self.model.train()
+        else:
+            raise TypeError("pretrained must be a str")
+
+    def forward(self, x):
+        if self.freeze:
+            with torch.no_grad():
+                text_out = self.model(**x).pooler_output
+        else:
+            text_out = self.model(**x).pooler_output
+        return text_out
+
+
+def get_feature(file):
+    bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
+    tokenizer = BertTokenizer.from_pretrained(bert_path)
+    bert = BERT(bert_path)
+    ori_root = "bilibili_intra_denoise"
+    feature_root = "bilibili_intra_denoise_feature"
+
+    with open(file, "r", encoding="utf-8") as f:
+        for line in f:
+            dm_path = line.strip()
+            new_path = (
+                osp.splitext(dm_path.replace(ori_root, feature_root, 1))[0] + "_dm.npz"
+            )
+            if osp.exists(new_path):
+                continue
+            os.makedirs(osp.dirname(new_path), exist_ok=True)
+
+            text_list = []
+            time_array = []
+            with open(dm_path, "r", encoding="utf-8") as dm_file:
+                for dm in dm_file:
+                    try:
+                        tokens = dm.strip().split("#*,")
+                        time = float(tokens[0])
+                        text = tokens[1]
+                        time_array.append(time)
+                        text_list.append(text)
+                    except (ValueError, IndexError):
+                        pass
+            time_array = np.array(time_array)
+
+            number_per_iter = 200
+            nums = (len(text_list) + number_per_iter - 1) // number_per_iter
+            features = []
+            for i in range(nums):
+                sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
+                sub_tokens = tokenizer(
+                    sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+                )
+                for key in sub_tokens:
+                    sub_tokens[key] = sub_tokens[key].cuda()
+                sub_feat = bert(sub_tokens).cpu().numpy()
+
+                features.append(sub_feat)
+            if len(features) > 0:
+                features = np.concatenate(features, axis=0)
+            else:
+                features = np.array(features)
+            np.savez(new_path, times=time_array, features=features)
+
+
 if __name__ == "__main__":
-    # dm_file = "data/bilibili/ori_dm_files.txt"
-    # dm_file = "data/bilibili/invalid_dm_files.txt"
-    # wfile = "data/bilibili/invalid_dir_dm_files.txt"
-    # list_possible_invalid_dm_file(dm_file, wfile)
-    dm_file = "data/bilibili/dm_files.txt"
-    dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
-    dm_uniq_file = "data/bilibili/dm_uniq_files.txt"
-    find_duplicated_files(dm_file, dm_dup_file, dm_uniq_file)
-    # find_invalid_dm_file(dm_file, dm_wfile)
-    # feature_file = "data/bilibili/text_feature_files.txt"
-    # feature_wfile = "data/bilibili/text_feature_files2.txt"
-    # remove_invalid_numpy_file(feature_file, feature_wfile)
-    # new_path = "/home/chy/projects/mmaction2/test.txt"
-    # time_array = np.array([])
-    # text_list = []
-    # save_idx = time_array
-    # weight = time_array
-    # save_denoised_file(new_path, time_array, text_list, save_idx, weight)
+    # dm_file = "data/bilibili/dm_files.txt"
+    # dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
+    # dm_uniq_file = "data/bilibili/dm_uniq_files.txt"
+    file = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+    get_feature(file)
