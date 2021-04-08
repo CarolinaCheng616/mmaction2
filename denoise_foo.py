@@ -267,6 +267,7 @@ def test_feature_distance():
     pdb.set_trace()
     from sklearn.feature_extraction.text import TfidfVectorizer
     import Levenshtein as ed
+    import jieba.posseg as pseg
 
     sim1 = cosine_similarity(features)
     dis1 = 1 - sim1
@@ -278,9 +279,14 @@ def test_feature_distance():
         sim2 = sim2 / smin
     dis2 = 1 - sim2
 
-    # vectorizer = TfidfVectorizer(stop_words=None)
-    # tf_idf = vectorizer.fit_transform(text_list)
-    # distance = cosine_distances(tf_idf)
+    token_list = []
+    for text in text_list:
+        words = " ".join([word for word, _ in pseg.cut(text)])
+        token_list.append(words)
+
+    vectorizer = TfidfVectorizer(stop_words=None)
+    tf_idf = vectorizer.fit_transform(token_list)
+    distance = cosine_distances(tf_idf)
 
     length = len(text_list)
     distance = np.zeros((length, length))
