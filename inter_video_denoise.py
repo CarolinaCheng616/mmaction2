@@ -1,6 +1,7 @@
 import os.path as osp
 import os
 import sys
+import time
 
 import Levenshtein as ed
 
@@ -21,6 +22,8 @@ import torch.nn as nn
 import torch
 
 import argparse
+
+from mmcv import ProgressBar
 
 
 bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
@@ -272,6 +275,7 @@ class Filter:
         time_array=None,
         feature_array=None,
     ):
+        start = time.time()
         distance_list = []
         for dis in self.disfunc_list:
             if dis.__name__ == "edit_distance" or dis.__name__ == "tf_idf_distance":
@@ -287,6 +291,9 @@ class Filter:
             ]
         )
         db = DBSCAN(eps=0.4, metric="precomputed", min_samples=1).fit(distance)
+
+        end = time.time()
+        print(f"cluster time: {end - start}")
 
         lines = [f"{num_per_cat}#*,{num_per_video}"]
         for i, label in enumerate(db.labels_):
@@ -336,6 +343,8 @@ def collect_by_cat(cat_videos, num_per_cat, num_per_video):
     text_list = []
     time_array = []
     feature_array = []
+    pb = ProgressBar(len(cat_videos))
+    pb.start()
     for cat in cat_videos:
         paths = cat_videos[cat][:num_per_cat]
         for path in paths:
@@ -354,6 +363,7 @@ def collect_by_cat(cat_videos, num_per_cat, num_per_video):
             cat_list += [cat] * len(idxes)
             time_array.append(time[idxes])
             feature_array.append(feature[idxes])
+        pb.update()
     time_array = np.concatenate(time_array, axis=0)
     feature_array = np.concatenate(feature_array, axis=0)
     return text_list, cat_list, time_array, feature_array
@@ -377,9 +387,6 @@ if __name__ == "__main__":
 
     num_per_cat, num_per_video, write_cluster_file = parse_args()
     init_global()
-    import pdb
-
-    pdb.set_trace()
 
     # root1 = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
     # wfile1 = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
