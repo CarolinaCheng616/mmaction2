@@ -228,6 +228,34 @@ def get_feature(file):
             pb.update()
 
 
+def test_feature_distance():
+    text_list = ["哈哈哈哈哈哈哈哈哈哈哈哈好", "哈哈哈哈哈哈哈哈哈草", "呵呵哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈哈", "哈哈哈哈嗝哈哈哈哈哈哈哈哈哈"]
+    bert_path = "work_dirs/bert_model"
+    tokenizer = BertTokenizer.from_pretrained(bert_path)
+    bert = BERT(bert_path)
+
+    number_per_iter = 200
+    nums = (len(text_list) + number_per_iter - 1) // number_per_iter
+    features = []
+    import pdb
+
+    pdb.set_trace()
+    for i in range(nums):
+        sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
+        sub_tokens = tokenizer(
+            sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+        )
+        for key in sub_tokens:
+            sub_tokens[key] = sub_tokens[key].cuda()
+        sub_feat = bert(sub_tokens).cpu().numpy()
+
+        features.append(sub_feat)
+    if len(features) > 0:
+        features = np.concatenate(features, axis=0)
+    else:
+        features = np.array(features)
+
+
 if __name__ == "__main__":
     # dm_file = "data/bilibili/dm_files.txt"
     # dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
