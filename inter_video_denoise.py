@@ -29,14 +29,14 @@ from mmcv import ProgressBar
 import jieba.posseg as pseg
 
 
-bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
-# bert_path = "work_dirs/bert_model"
+# bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
+bert_path = "work_dirs/bert_model"
 tokenizer = None
 bert = None
-new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-# new_root = "data/bilibili_intra_denoise"
-feature_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise_feature"
-# feature_root = "data/bilibili_intra_denoise_feature"
+# new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+new_root = "data/bilibili_intra_denoise"
+# feature_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise_feature"
+feature_root = "data/bilibili_intra_denoise_feature"
 
 ############################################# init bert ##################################################
 
@@ -402,18 +402,18 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    path = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/bilibili_intra_denoise"
-    wfile = "data/intra_denoise_files.txt"
-    read_tree_dir_files_to_file(path, wfile)
+    # path = "data/bilibili_intra_denoise"
+    # wfile = "data/intra_denoise_files.txt"
+    # read_tree_dir_files_to_file(path, wfile)
 
     num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples = (
         parse_args()
     )
-    init_global()
+    # init_global()
 
     ####################################  load dataset  ######################################
-    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
-    # text_files = "data/intra_denoise_files.txt"
+    # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
+    text_files = "data/intra_denoise_files.txt"
     cat_videos = get_cat_videos_dict(text_files)
     text_list, cat_list, time_array, feature_array = collect_by_cat(
         cat_videos, num_per_cat, num_per_video
