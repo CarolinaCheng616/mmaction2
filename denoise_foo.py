@@ -477,6 +477,8 @@ def analysis_stop_sentenses(file, wfile):
     # dm_prop_weight = 0.2
     # var_weight = 0.3
     # threshold = 0.5
+    num_per_cat = 50
+    num_per_video = 20
     with open(file, "r", encoding="utf-8") as f:
         lines = f.readlines()
         for i, line in enumerate(lines):
