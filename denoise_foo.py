@@ -305,7 +305,7 @@ def test_feature_distance():
     pdb.set_trace()
 
 
-def test_real_exmaple_distance(dm_path, feature_path):
+def test_real_exmaple_distance(dm_path):
     text_list = []
     time_array = []
     with open(dm_path, "r", encoding="utf-8") as f:
@@ -394,4 +394,5 @@ if __name__ == "__main__":
     # dm_uniq_file = "data/bilibili/dm_uniq_files.txt"
     # file = "/mnt/lustrenew/DATAshare/bilibili/intra_denoise_files.txt"
     # get_feature(file)
-    test_feature_distance()
+    dm_path = "data/《出发吧师傅》周深亮嗓惊艳众评委，笑出框笑得直不起腰的深深 (P9. 花絮之小机灵鬼：表情包深深).txt"
+    test_real_exmaple_distance(dm_path)
