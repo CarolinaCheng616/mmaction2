@@ -252,10 +252,11 @@ def tf_idf_distance(text_list):
     :param metric:      e: Euclidean distance  c: Cosine distance
     :return:
     """
-    token_list = []
-    for text in text_list:
-        words = " ".join([word for word, _ in pseg.cut(text)])
-        token_list.append(words)
+    # token_list = []
+    # for text in text_list:
+    #     words = " ".join([word for word, _ in pseg.cut(text)])
+    #     token_list.append(words)
+    token_list = text_list
     vectorizer = TfidfVectorizer(stop_words=None)
     try:
         tf_idf = vectorizer.fit_transform(token_list)
