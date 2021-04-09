@@ -309,11 +309,14 @@ class IntraFilter:
                 raise ValueError(f"no distance function {dis}!")
             self.disfunc_list.append(getattr(sys.modules[__name__], dis))
         self.distance_weight_list = distance_weight_list
+        # self.eps = eps
 
     def change_weight_list(self, distance_weight_list):
         self.distance_weight_list = distance_weight_list
 
-    def _cluster(self, text_list, time_array=None, feature_array=None):
+    def _cluster(
+        self, eps, num_samples, text_list, time_array=None, feature_array=None
+    ):
         distance_list = []
         for dis in self.disfunc_list:
             if dis.__name__ == "edit_distance" or dis.__name__ == "tf_idf_distance":
@@ -328,11 +331,13 @@ class IntraFilter:
                 for dis, weight, in zip(distance_list, self.distance_weight_list)
             ]
         )
-        db = DBSCAN(eps=0.4, metric="precomputed", min_samples=1).fit(distance)
+        db = DBSCAN(eps=eps, metric="precomputed", min_samples=num_samples).fit(
+            distance
+        )
         return db
 
-    def cluster(self, text_list, time_array=None, feature_array=None):
-        db = self._cluster(text_list, time_array, feature_array)
+    def cluster(self, eps, num_samples, text_list, time_array=None, feature_array=None):
+        db = self._cluster(eps, num_samples, text_list, time_array, feature_array)
 
         dic = defaultdict(list)
         for i, label in enumerate(db.labels_):
@@ -350,8 +355,10 @@ class IntraFilter:
         center_weight = center_weight[idxes]
         return centers, center_weight
 
-    def get_cluster_info(self, text_list, time_array=None, feature_array=None):
-        db = self._cluster(text_list, time_array, feature_array)
+    def get_cluster_info(
+        self, eps, num_samples, text_list, time_array=None, feature_array=None
+    ):
+        db = self._cluster(eps, num_samples, text_list, time_array, feature_array)
         dic = defaultdict(list)
         for i, label in enumerate(db.labels_):
             if label != -1:
@@ -372,7 +379,7 @@ class IntraFilter:
 ############################################## main ###########################################################
 
 
-def multi_cluster(dataset, idxes):
+def multi_cluster(dataset, idxes, eps, num_samples):
     pb = ProgressBar(len(idxes))
     pb.start()
     for idx in idxes:
@@ -417,11 +424,25 @@ def multi_cluster(dataset, idxes):
 
             # cluster_info
             cluster_dict, centers, center_weight = filter.get_cluster_info(
-                text_list, time_array, feature_array
+                eps, num_samples, text_list, time_array, feature_array
             )
             save_cluster_file(new_path1, time_array, text_list, cluster_dict)
             save_denoised_file(new_path2, time_array, text_list, centers, center_weight)
         pb.update()
+
+
+def parse_args():
+    import argparse
+
+    parser = argparse.ArgumentParser("")
+    parser.add_argument("--weight_list", type=float, nargs="+")
+    parser.add_argument("--eps", type=float, default=0.5)
+    parser.add_argument("--num_samples", type=int, required=True)
+    args = parser.parse_args()
+    weight_list = args.weight_list
+    eps = args.eps
+    num_samples = args.num_samples
+    return weight_list, eps, num_samples
 
 
 if __name__ == "__main__":
@@ -441,6 +462,8 @@ if __name__ == "__main__":
     # proc1.join()
     # proc2.join()
 
+    weight_list, eps, num_samples = parse_args()
+
     ####################################  load dataset  ######################################
     # feature_files = "/mnt/lustre/chenghaoyue/text_feature_files.txt"
     # text_files = "/mnt/lustre/chenghaoyue/dm_files.txt"
@@ -459,8 +482,8 @@ if __name__ == "__main__":
         "tgap_distance",
         "feature_distance",
     ]
-    distance_weight_list = [0.1, 0.15, 0.15, 0.6]
-    filter = IntraFilter(distance_list, distance_weight_list)
+    # distance_weight_list = [0.05, 0.05, 0.2, 0.7]
+    filter = IntraFilter(distance_list, weight_list)
 
     proc_num = 10
     procs = []
@@ -470,7 +493,12 @@ if __name__ == "__main__":
     for i in range(proc_num):
         proc = Process(
             target=multi_cluster,
-            args=(dataset, idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc]),
+            args=(
+                dataset,
+                idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc],
+                eps,
+                num_samples,
+            ),
         )
         proc.start()
         procs.append(proc)
