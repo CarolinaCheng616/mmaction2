@@ -122,6 +122,7 @@ def save_cluster_file(new_path, time_array, text_list, cluster_dict):
         idxes = cluster_dict[cluster]
         for idx in idxes:
             lines.append("#*,".join([str(time_array[idx]), text_list[idx]]))
+        lines.append("\n")
     with open(new_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
