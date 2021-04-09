@@ -254,10 +254,9 @@ def tf_idf_distance(text_list):
     """
     token_list = []
     for text in text_list:
-        words = " ".join([word for word, _ in pseg.cut(text)]) + " "
+        words = " ".join([word for word, _ in pseg.cut(text)])
         token_list.append(words)
-    # token_list = text_list
-    vectorizer = TfidfVectorizer(stop_words=None)
+    vectorizer = TfidfVectorizer(token_pattern=r"(?u)\b\w+\b")
     try:
         tf_idf = vectorizer.fit_transform(token_list)
         distance = cosine_distances(tf_idf)
@@ -407,11 +406,6 @@ def multi_cluster(dataset, idxes, eps, num_samples):
         text_list, time_array, feature_array = filter_meaningless_text(
             text_list, time_array, feature_array
         )
-
-        if "《 新 二 十 四 孝 图 》 (P1. final_1)" in base_name:
-            import pdb
-
-            pdb.set_trace()
 
         if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
             # cluster

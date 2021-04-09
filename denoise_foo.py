@@ -388,11 +388,36 @@ def test_real_exmaple_distance(dm_path):
         distance = distance / dmin
 
 
+def tf_idf_distance(text_list):
+    """
+    :param text_list:
+    :param metric:      e: Euclidean distance  c: Cosine distance
+    :return:
+    """
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    from sklearn.metrics.pairwise import cosine_distances
+    import jieba.posseg as pseg
+
+    token_list = []
+    for text in text_list:
+        words = " ".join([word for word, _ in pseg.cut(text)]) + " "
+        token_list.append(words)
+    # token_list = text_list
+    vectorizer = TfidfVectorizer(stop_words=None)
+    try:
+        tf_idf = vectorizer.fit_transform(token_list)
+        distance = cosine_distances(tf_idf)
+    except ValueError:
+        distance = np.ones((len(text_list), len(text_list)))
+    return distance
+
+
 if __name__ == "__main__":
     # dm_file = "data/bilibili/dm_files.txt"
     # dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
     # dm_uniq_file = "data/bilibili/dm_uniq_files.txt"
     # file = "/mnt/lustrenew/DATAshare/bilibili/intra_denoise_files.txt"
     # get_feature(file)
-    dm_path = "data/《出发吧师傅》周深亮嗓惊艳众评委，笑出框笑得直不起腰的深深 (P9. 花絮之小机灵鬼：表情包深深).txt"
-    test_real_exmaple_distance(dm_path)
+    # dm_path = "data/《出发吧师傅》周深亮嗓惊艳众评委，笑出框笑得直不起腰的深深 (P9. 花絮之小机灵鬼：表情包深深).txt"
+    # test_real_exmaple_distance(dm_path)
+    tf_idf_distance("草", "草", "笑出强益达")
