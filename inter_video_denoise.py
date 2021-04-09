@@ -319,7 +319,13 @@ class Filter:
 
 
 def evaluate_cluster(
-    cover_cat_num, total_cat_num, dm_num, total_dm_num, cat_distribute
+    cover_cat_num,
+    total_cat_num,
+    dm_num,
+    total_dm_num,
+    cat_distribute,
+    num_per_cat,
+    num_per_video,
 ):
     # global num_per_cat
     # 覆盖的类别个数，弹幕总个数，每个类别弹幕数的方差
@@ -393,7 +399,13 @@ def analysis_stop_sentenses(file, wfile):
         dm_num = len(label2dm_idxes[label])
         cat_distribute = cat_distribute_dict[label]
         valid_cat_num, valid_dm_num = evaluate_cluster(
-            cover_cat_num, total_cat_number, dm_num, total_dm_number, cat_distribute
+            cover_cat_num,
+            total_cat_number,
+            dm_num,
+            total_dm_number,
+            cat_distribute,
+            num_per_cat,
+            num_per_video,
         )
         if valid_cat_num >= 19:
             label_value_dict[label] = valid_cat_num * valid_dm_num
