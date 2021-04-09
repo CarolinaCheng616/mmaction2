@@ -32,6 +32,8 @@ bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
 tokenizer = None
 bert = None
 new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
+new_root1 = "data/bilibili/cluster_example"
+new_root2 = "data/bilibili/cluster_sample_example"
 # new_root = "data/bilibili_intra_denoise"
 
 forbidden_list = ["e", "m", "o", "x", "y", "z"]
@@ -110,6 +112,16 @@ def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
         lines.append(
             str(time_array[idx]) + "#*," + text_list[idx] + "#*," + str(weight[i])
         )
+    with open(new_path, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+
+def save_cluster_file(new_path, time_array, text_list, cluster_dict):
+    lines = []
+    for cluster in cluster_dict:
+        idxes = cluster_dict[cluster]
+        for idx in idxes:
+            lines.append("#*,".join([str(time_array[idx]), text_list[idx]]))
     with open(new_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
@@ -299,7 +311,7 @@ class IntraFilter:
     def change_weight_list(self, distance_weight_list):
         self.distance_weight_list = distance_weight_list
 
-    def cluster(self, text_list, time_array=None, feature_array=None):
+    def _cluster(self, text_list, time_array=None, feature_array=None):
         distance_list = []
         for dis in self.disfunc_list:
             if dis.__name__ == "edit_distance" or dis.__name__ == "tf_idf_distance":
@@ -315,6 +327,10 @@ class IntraFilter:
             ]
         )
         db = DBSCAN(eps=0.4, metric="precomputed", min_samples=1).fit(distance)
+        return db
+
+    def cluster(self, text_list, time_array=None, feature_array=None):
+        db = self._cluster(text_list, time_array, feature_array)
 
         dic = defaultdict(list)
         for i, label in enumerate(db.labels_):
@@ -332,6 +348,24 @@ class IntraFilter:
         center_weight = center_weight[idxes]
         return centers, center_weight
 
+    def get_cluster_info(self, text_list, time_array=None, feature_array=None):
+        db = self._cluster(text_list, time_array, feature_array)
+        dic = defaultdict(list)
+        for i, label in enumerate(db.labels_):
+            if label != -1:
+                dic[label].append(i)
+        centers = []
+        center_weight = []
+        for cluster in dic.keys():
+            centers.append(*np.random.choice(dic[cluster], 1))
+            center_weight.append(len(dic[cluster]))
+        centers = np.array(centers)
+        center_weight = np.array(center_weight)
+        idxes = np.argsort(centers)
+        centers = centers[idxes]
+        center_weight = center_weight[idxes]
+        return dic, centers, center_weight
+
 
 ############################################## main ###########################################################
 
@@ -343,12 +377,21 @@ def multi_cluster(dataset, idxes):
         dm_path, feature_path = dataset[idx]
 
         base_name = osp.splitext(osp.basename(dm_path))[0] + ".txt"
-        new_name = "/".join(
-            [*dm_path[dm_path.find("bilibili") :].split("/")[1:-1], base_name]
-        )
-        new_path = osp.join(new_root, new_name)
-        if osp.exists(new_path):
-            continue
+
+        # cluster
+        # new_name = "/".join(
+        #     [*dm_path[dm_path.find("bilibili_dm") :].split("/")[1:-1], base_name]
+        # )
+        # new_path = osp.join(new_root, new_name)
+        # if osp.exists(new_path):
+        #     continue
+
+        # get cluster info
+        new_name = base_name
+        new_path1 = osp.join(new_root1, new_name)
+        new_path2 = osp.join(new_root2, new_name)
+        os.makedirs(new_root1, exist_ok=True)
+        os.makedirs(new_root2, exist_ok=True)
 
         time_array, text_list = read_dm_file(dm_path)
         feature_array = get_feature(feature_path, text_list)
@@ -356,14 +399,26 @@ def multi_cluster(dataset, idxes):
             text_list, time_array, feature_array
         )
         if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
-            save_denoised_file(
-                new_path, np.array([]), np.array([]), np.array([]), np.array([])
-            )
+            # cluster
+            # save_denoised_file(
+            #     new_path, np.array([]), np.array([]), np.array([]), np.array([])
+            # )
+
+            # cluster info
+            pass
         else:
-            centers, center_weight = filter.cluster(
+            # cluster
+            # centers, center_weight = filter.cluster(
+            #     text_list, time_array, feature_array
+            # )
+            # save_denoised_file(new_path, time_array, text_list, centers, center_weight)
+
+            # cluster_info
+            cluster_dict, centers, center_weight = filter.get_cluster_info(
                 text_list, time_array, feature_array
             )
-            save_denoised_file(new_path, time_array, text_list, centers, center_weight)
+            save_cluster_file(new_path1, time_array, text_list, cluster_dict)
+            save_denoised_file(new_path2, time_array, text_list, centers, center_weight)
         pb.update()
 
 
@@ -405,7 +460,7 @@ if __name__ == "__main__":
     distance_weight_list = [0.1, 0.15, 0.15, 0.6]
     filter = IntraFilter(distance_list, distance_weight_list)
 
-    proc_num = 16
+    proc_num = 10
     procs = []
     data_num_per_proc = (len(dataset) + proc_num - 1) // proc_num
     idxes = list(range(len(dataset)))
