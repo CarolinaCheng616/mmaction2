@@ -496,17 +496,18 @@ if __name__ == "__main__":
     data_num_per_proc = (len(dataset) + proc_num - 1) // proc_num
     idxes = list(range(len(dataset)))
 
-    for i in range(proc_num):
-        proc = Process(
-            target=multi_cluster,
-            args=(
-                dataset,
-                idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc],
-                eps,
-                num_samples,
-            ),
-        )
-        proc.start()
-        procs.append(proc)
-    for proc in procs:
-        proc.join()
+    # for i in range(proc_num):
+    #     proc = Process(
+    #         target=multi_cluster,
+    #         args=(
+    #             dataset,
+    #             idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc],
+    #             eps,
+    #             num_samples,
+    #         ),
+    #     )
+    #     proc.start()
+    #     procs.append(proc)
+    # for proc in procs:
+    #     proc.join()
+    multi_cluster(dataset, idxes, eps, num_samples)

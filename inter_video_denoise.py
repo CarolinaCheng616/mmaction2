@@ -484,40 +484,40 @@ def parse_args():
 
 
 if __name__ == "__main__":
-    # path = "data/bilibili_intra_denoise"
-    # wfile = "data/intra_denoise_files.txt"
-    # read_tree_dir_files_to_file(path, wfile)
-
-    num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples = (
-        parse_args()
-    )
-    # init_global()
-
-    ####################################  load dataset  ######################################
-    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
-    # text_files = "data/intra_denoise_files.txt"
-    cat_videos = get_cat_videos_dict(text_files)
-    text_list, cat_list, time_array, feature_array = collect_by_cat(
-        cat_videos, num_per_cat, num_per_video
-    )
-
-    #################################### cluster ##############################################
-    distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
-    # distance_weight_list = [0.1, 0.15, 0.75]
-    weight_list = np.array(weight_list) / sum(weight_list)
-    filter = Filter(distance_list, weight_list, num_per_cat, num_per_video)
-
-    filter.cluster(
-        eps,
-        num_samples,
-        text_list,
-        cat_list,
-        write_cluster_file,
-        time_array,
-        feature_array,
-    )
-
-    # #################################### analysis inter noise sentences ##################################
-    # analysis_stop_sentenses(
-    #     "data/dbscan_clusters2.txt", "data/inter_stop_sentences.txt"
+    # # path = "data/bilibili_intra_denoise"
+    # # wfile = "data/intra_denoise_files.txt"
+    # # read_tree_dir_files_to_file(path, wfile)
+    #
+    # num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples = (
+    #     parse_args()
     # )
+    # # init_global()
+    #
+    # ####################################  load dataset  ######################################
+    # text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
+    # # text_files = "data/intra_denoise_files.txt"
+    # cat_videos = get_cat_videos_dict(text_files)
+    # text_list, cat_list, time_array, feature_array = collect_by_cat(
+    #     cat_videos, num_per_cat, num_per_video
+    # )
+    #
+    # #################################### cluster ##############################################
+    # distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
+    # # distance_weight_list = [0.1, 0.15, 0.75]
+    # weight_list = np.array(weight_list) / sum(weight_list)
+    # filter = Filter(distance_list, weight_list, num_per_cat, num_per_video)
+    #
+    # filter.cluster(
+    #     eps,
+    #     num_samples,
+    #     text_list,
+    #     cat_list,
+    #     write_cluster_file,
+    #     time_array,
+    #     feature_array,
+    # )
+
+    #################################### analysis inter noise sentences ##################################
+    analysis_stop_sentenses(
+        "data/dbscan_clusters2.txt", "data/inter_stop_sentences2.txt"
+    )
