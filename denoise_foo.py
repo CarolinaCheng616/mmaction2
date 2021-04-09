@@ -1,18 +1,34 @@
 import os.path as osp
 import os
+import sys
+import time
+
+import Levenshtein as ed
 
 import numpy as np
 
-# from transformers import BertTokenizer
-#
-from transformers import BertTokenizer
-from transformers import AutoModel
-from transformers import pipeline
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import (
+    cosine_distances,
+    euclidean_distances,
+    cosine_similarity,
+)
+from sklearn.cluster import DBSCAN
+from sklearn.cluster import KMeans
+
+from collections import defaultdict
+
+from transformers import BertTokenizer, AutoModel
 import torch.nn as nn
 import torch
 
-# import jieba
-# import jieba.posseg as pseg
+import argparse
+
+from mmcv import ProgressBar
+
+# from collections import defaultdict
+
+import jieba.posseg as pseg
 
 
 forbidden_list = ["e", "m", "o", "x", "y", "z"]
@@ -412,6 +428,116 @@ def tf_idf_distance(text_list):
     return distance
 
 
+def evaluate_cluster(
+    cover_cat_num,
+    total_cat_num,
+    dm_num,
+    total_dm_num,
+    cat_distribute,
+    num_per_cat,
+    num_per_video,
+):
+    # global num_per_cat
+    # 覆盖的类别个数，弹幕总个数，每个类别弹幕数的方差
+    # maxnum = 5
+    # value1 = np.exp(cover_cat_num / total_cat_num * maxnum)
+    # value2 = dm_num
+    # dm_num_per_cat = []
+    # for cat in cat_distribute:
+    #     dm_num_per_cat.append(cat_distribute[cat])
+    # dm_num_per_cat = np.array(dm_num_per_cat)
+    # var = np.std(dm_num_per_cat)
+    # if var < 10:
+    #     var = 10
+    # value3 = 1 / var
+    # # value3 = 1 / (np.std(dm_num_per_cat) + 10) * np.mean(dm_num_per_cat)
+    # import pdb
+    # pdb.set_trace()
+    # return value1 * value2 * value3
+
+    # 直接按照个数来
+    dm_num_per_cat = []
+    for cat in cat_distribute:
+        dm_num_per_cat.append(cat_distribute[cat])
+    # dm_num_per_cat = np.array(dm_num_per_cat)
+    boderline = num_per_cat * num_per_video // 50
+    valid_dm_num_per_cat = []
+    for num in dm_num_per_cat:
+        if num >= boderline:
+            valid_dm_num_per_cat.append(num)
+    # return len(valid_dm_num_per_cat) * sum(valid_dm_num_per_cat)
+    return len(valid_dm_num_per_cat), sum(valid_dm_num_per_cat)
+
+
+def analysis_stop_sentenses(file, wfile):
+    text_cat_label_list = []
+    unique_cats_dict = dict()
+    unique_labels_dict = dict()
+    # cover_weight = 0.5
+    # dm_prop_weight = 0.2
+    # var_weight = 0.3
+    # threshold = 0.5
+    with open(file, "r", encoding="utf-8") as f:
+        lines = f.readlines()
+        for i, line in enumerate(lines):
+            tokens = line.strip().split("#*,")
+            if i == 0:
+                num_per_cat, num_per_video = int(tokens[0]), int(tokens[1])
+            else:
+                text, cat, label = tokens[0], tokens[1], int(tokens[2])
+                text_cat_label_list.append((text, cat, label))
+                unique_cats_dict[cat] = True
+                if label != -1:
+                    unique_labels_dict[label] = True
+
+    total_dm_number = len(text_cat_label_list)
+    total_cat_number = len(unique_cats_dict.keys())
+    total_label_number = len(unique_labels_dict.keys())
+
+    label2dm_idxes = defaultdict(list)
+    cat_distribute_dict = defaultdict(dict)
+    label_value_dict = defaultdict(float)
+
+    for i, (text, cat, label) in enumerate(text_cat_label_list):
+        if label != -1:
+            label2dm_idxes[label].append(i)
+            if cat not in cat_distribute_dict[label]:
+                cat_distribute_dict[label][cat] = 0
+            cat_distribute_dict[label][cat] += 1
+    for label in cat_distribute_dict.keys():
+        cover_cat_num = len(cat_distribute_dict[label])
+        dm_num = len(label2dm_idxes[label])
+        cat_distribute = cat_distribute_dict[label]
+        valid_cat_num, valid_dm_num = evaluate_cluster(
+            cover_cat_num,
+            total_cat_number,
+            dm_num,
+            total_dm_number,
+            cat_distribute,
+            num_per_cat,
+            num_per_video,
+        )
+        if valid_cat_num >= 10:
+            label_value_dict[label] = valid_cat_num * valid_dm_num
+    label_value = [(label, value) for label, value in label_value_dict.items()]
+    labels = np.array([item[0] for item in label_value])
+    values = np.array([item[1] for item in label_value])
+    idxes = np.argsort(values)[::-1]
+    labels = labels[idxes]
+    values = values[idxes]
+    final_text_list = []
+    for i, label in enumerate(labels):
+        final_text_list.append(str(values[i]))
+        dm_num_per_cluster = len(label2dm_idxes[label])
+        sample_num = min(dm_num_per_cluster, 10)
+        sample_idxes = np.random.choice(dm_num_per_cluster, sample_num, replace=False)
+        for idx in sample_idxes:
+            final_text_list.append(text_cat_label_list[label2dm_idxes[label][idx]][0])
+        final_text_list.append("\n")
+    with open(wfile, "w", encoding="utf-8") as f:
+        f.write("\n".join(final_text_list))
+
+
 if __name__ == "__main__":
     # dm_file = "data/bilibili/dm_files.txt"
     # dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
@@ -420,4 +546,11 @@ if __name__ == "__main__":
     # get_feature(file)
     # dm_path = "data/《出发吧师傅》周深亮嗓惊艳众评委，笑出框笑得直不起腰的深深 (P9. 花絮之小机灵鬼：表情包深深).txt"
     # test_real_exmaple_distance(dm_path)
-    tf_idf_distance("草", "草", "笑出强益达")
+    # tf_idf_distance("草", "草", "笑出强益达")
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--file", type=str, required=True)
+    parser.add_argument("--wfile", type=str, required=True)
+    args = parser.parse_args()
+    file = args.file
+    wfile = args.wfile
+    analysis_stop_sentenses(file, wfile)

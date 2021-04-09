@@ -269,7 +269,7 @@ class Filter:
     def change_weight_list(self, distance_weight_list):
         self.distance_weight_list = distance_weight_list
 
-    def cluster(
+    def _cluster(
         self,
         eps,
         num_samples,
@@ -296,23 +296,50 @@ class Filter:
                 for dis, weight, in zip(distance_list, self.distance_weight_list)
             ]
         )
-        # import pdb
-        #
-        # pdb.set_trace()
         clusters = DBSCAN(eps=eps, metric="precomputed", min_samples=num_samples).fit(
             distance
         )
 
-        # kmeans = KMeans(n_clusters=20, random_state=0).fit(feature_array)
-
         end = time.time()
         print(f"cluster time: {end - start}")
 
-        lines = [f"{num_per_cat}#*,{num_per_video}"]
+        return clusters
+
+    def cluster(
+        self,
+        eps,
+        num_samples,
+        text_list,
+        cat_list,
+        write_cluster_file,
+        time_array=None,
+        feature_array=None,
+    ):
+        clusters = self._cluster(
+            eps,
+            num_samples,
+            text_list,
+            cat_list,
+            write_cluster_file,
+            time_array,
+            feature_array,
+        )
+
+        # lines = [f"{num_per_cat}#*,{num_per_video}"]
+        # for i, label in enumerate(clusters.labels_):
+        #     lines.append("#*,".join([text_list[i], cat_list[i], str(label)]))
+        # with open(write_cluster_file, "w", encoding="utf-8") as f:
+        #     f.write("\n".join(lines))
+        lines = []
+        dic = defaultdict(list)
         for i, label in enumerate(clusters.labels_):
-            lines.append("#*,".join([text_list[i], cat_list[i], str(label)]))
-        with open(write_cluster_file, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
+            dic[label].append(i)
+        labels = sorted(list(dic.keys()))
+        for label in labels:
+            idx_list = dic[label]
+            for idx in idx_list:
+                lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
+            # lines.append("#*,".join([text_list[dic[key]]]))
 
 
 ############################################# evaluation ###################################################
