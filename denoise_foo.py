@@ -305,6 +305,89 @@ def test_feature_distance():
     pdb.set_trace()
 
 
+def test_real_exmaple_distance(dm_path, feature_path):
+    text_list = []
+    time_array = []
+    with open(dm_path, "r", encoding="utf-8") as f:
+        for line in f:
+            try:
+                tokens = line.strip().split("#*,")
+                time = float(tokens[0])
+                text = tokens[1]
+                text_list.append(text)
+                time_array.append(time)
+            except (ValueError, IndexError):
+                pass
+    time_array = np.array(time_array)
+
+    bert_path = "work_dirs/bert_model"
+    tokenizer = BertTokenizer.from_pretrained(bert_path)
+    bert = BERT(bert_path)
+
+    number_per_iter = 200
+    nums = (len(text_list) + number_per_iter - 1) // number_per_iter
+    features = []
+    for i in range(nums):
+        sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
+        sub_tokens = tokenizer(
+            sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+        )
+        for key in sub_tokens:
+            sub_tokens[key] = sub_tokens[key].cuda()
+        sub_feat = bert(sub_tokens).cpu().numpy()
+
+        features.append(sub_feat)
+    if len(features) > 0:
+        features = np.concatenate(features, axis=0)
+    else:
+        features = np.array(features)
+
+    from sklearn.feature_extraction.text import TfidfVectorizer
+    import Levenshtein as ed
+    import jieba.posseg as pseg
+    from sklearn.metrics.pairwise import (
+        cosine_distances,
+        euclidean_distances,
+        cosine_similarity,
+    )
+
+    import pdb
+
+    pdb.set_trace()
+
+    sim1 = cosine_similarity(features)
+    dis1 = 1 - sim1
+    sim2 = np.exp(sim1 / 0.1)
+    smin, smax = np.min(sim2), np.max(sim2)
+    if smin != smax:
+        sim2 = (sim2 - smin) / (smax - smin)
+    elif smin != 0:
+        sim2 = sim2 / smin
+    dis2 = 1 - sim2
+
+    token_list = []
+    for text in text_list:
+        words = " ".join([word for word, _ in pseg.cut(text)])
+        token_list.append(words)
+
+    vectorizer = TfidfVectorizer(stop_words=None)
+    tf_idf = vectorizer.fit_transform(token_list)
+    distance = cosine_distances(tf_idf)
+
+    length = len(text_list)
+    distance = np.zeros((length, length))
+    for i in range(length):
+        texti = text_list[i]
+        for j in range(i + 1, length):
+            distance[i][j] = ed.distance(texti, text_list[j])
+    distance = distance + distance.T
+    dmin, dmax = np.min(distance), np.max(distance)
+    if dmin != dmax:
+        distance = (distance - dmin) / (dmax - dmin)
+    elif dmin != 0:
+        distance = distance / dmin
+
+
 if __name__ == "__main__":
     # dm_file = "data/bilibili/dm_files.txt"
     # dm_dup_file = "data/bilibili/dm_duplicated_files.txt"
