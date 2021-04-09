@@ -407,6 +407,12 @@ def multi_cluster(dataset, idxes, eps, num_samples):
         text_list, time_array, feature_array = filter_meaningless_text(
             text_list, time_array, feature_array
         )
+
+        if "《 新 二 十 四 孝 图 》 (P1. final_1)" in base_name:
+            import pdb
+
+            pdb.set_trace()
+
         if len(text_list) == 0 or len(time_array) == 0 or len(feature_array) == 0:
             # cluster
             # save_denoised_file(
