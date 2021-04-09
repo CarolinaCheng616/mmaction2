@@ -497,7 +497,7 @@ if __name__ == "__main__":
     num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples = (
         parse_args()
     )
-    init_global()
+    # init_global()
 
     ####################################  load dataset  ######################################
     text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
@@ -523,7 +523,7 @@ if __name__ == "__main__":
         feature_array,
     )
 
-    # #################################### analysis inter noise sentences ##################################
+    # # #################################### analysis inter noise sentences ##################################
     # analysis_stop_sentenses(
     #     "data/dbscan_clusters2.txt", "data/inter_stop_sentences2.txt"
     # )
