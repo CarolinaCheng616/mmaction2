@@ -460,7 +460,7 @@ def evaluate_cluster(
     for cat in cat_distribute:
         dm_num_per_cat.append(cat_distribute[cat])
     # dm_num_per_cat = np.array(dm_num_per_cat)
-    boderline = num_per_cat * num_per_video // 50
+    boderline = num_per_cat * num_per_video // 100
     valid_dm_num_per_cat = []
     for num in dm_num_per_cat:
         if num >= boderline:
