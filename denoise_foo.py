@@ -481,14 +481,14 @@ def analysis_stop_sentenses(file, wfile):
         lines = f.readlines()
         for i, line in enumerate(lines):
             tokens = line.strip().split("#*,")
-            if i == 0:
-                num_per_cat, num_per_video = int(tokens[0]), int(tokens[1])
-            else:
-                text, cat, label = tokens[0], tokens[1], int(tokens[2])
-                text_cat_label_list.append((text, cat, label))
-                unique_cats_dict[cat] = True
-                if label != -1:
-                    unique_labels_dict[label] = True
+            # if i == 0:
+            #     num_per_cat, num_per_video = int(tokens[0]), int(tokens[1])
+            # else:
+            text, cat, label = tokens[0], tokens[1], int(tokens[2])
+            text_cat_label_list.append((text, cat, label))
+            unique_cats_dict[cat] = True
+            if label != -1:
+                unique_labels_dict[label] = True
 
     total_dm_number = len(text_cat_label_list)
     total_cat_number = len(unique_cats_dict.keys())
