@@ -339,7 +339,8 @@ class Filter:
             idx_list = dic[label]
             for idx in idx_list:
                 lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
-            # lines.append("#*,".join([text_list[dic[key]]]))
+        with open(write_cluster_file, "w", encoding="utf-8") as f:
+            f.write("\n".join(lines))
 
 
 ############################################# evaluation ###################################################
