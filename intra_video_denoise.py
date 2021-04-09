@@ -115,7 +115,7 @@ def save_denoised_file(new_path, time_array, text_list, save_idx, weight):
 
 
 class DataSet:
-    def __init__(self, dm_file, feature_file):
+    def __init__(self, dm_file, feature_file, number):
         with open(dm_file, "r", encoding="utf-8") as f:
             self.dm_paths = [line.strip() for line in f]
         with open(feature_file, "r", encoding="utf-8") as f:
@@ -130,8 +130,10 @@ class DataSet:
         for name in names:
             if len(self.path_idx[name]) != 2:
                 del self.path_idx[name]
-        self.keys = sorted(list(self.path_idx.keys()))
-        self.length = len(self.path_idx.keys())
+        self.keys = sorted(list(self.path_idx.keys())[:number])
+        self.length = len(self.keys)
+        # self.keys = sorted(list(self.path_idx.keys()))
+        # self.length = len(self.path_idx.keys())
 
     def __len__(self):
         return self.length
@@ -391,7 +393,7 @@ if __name__ == "__main__":
     # text_files = "/home/chenghaoyue/chenghaoyue/code/mmaction2/data/dm_files.txt"
     feature_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/text_feature_files.txt"
     text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/dm_files.txt"
-    dataset = DataSet(text_files, feature_files)
+    dataset = DataSet(text_files, feature_files, 100)
 
     #################################### cluster ##############################################
     distance_list = [

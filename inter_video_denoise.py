@@ -407,7 +407,7 @@ def analysis_stop_sentenses(file, wfile):
             num_per_cat,
             num_per_video,
         )
-        if valid_cat_num >= 19:
+        if valid_cat_num >= 10:
             label_value_dict[label] = valid_cat_num * valid_dm_num
     label_value = [(label, value) for label, value in label_value_dict.items()]
     labels = np.array([item[0] for item in label_value])
