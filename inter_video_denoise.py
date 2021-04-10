@@ -56,7 +56,7 @@ class BERT(nn.Module):
         scratch."""
         if isinstance(self.pretrained, str):
             self.model = AutoModel.from_pretrained(self.pretrained).to("cuda")
-            self.model.train()
+            # self.model.train()
         else:
             raise TypeError("pretrained must be a str")
 
