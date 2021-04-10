@@ -346,37 +346,39 @@ def multi_cluster(
             wrong_list.append(new_name)
             continue
 
-        # cluster
+        # # cluster
+        # if len(text_list) != 0:
+        #     labels, dic = cluster.cluster(
+        #         eps, min_samples, text_list, time_array, feature_array
+        #     )
+        #     os.makedirs(osp.dirname(intra_denoise_path), exist_ok=True)
+        #     with open(intra_denoise_path, "w", encoding="utf-8") as f:
+        #         for label in dic:
+        #             label_list = dic[label]
+        #             for idx in label_list:
+        #                 f.write(str(time_array[idx]) + "#*," + text_list[idx] + "\n")
+        #             f.write("\n")
+
+        # filter
+        centers = []
+        centers_weight = []
         if len(text_list) != 0:
             labels, dic = cluster.cluster(
                 eps, min_samples, text_list, time_array, feature_array
             )
-            os.makedirs(osp.dirname(intra_denoise_path), exist_ok=True)
-            with open(intra_denoise_path, "w", encoding="utf-8") as f:
-                for label in dic:
-                    label_list = dic[label]
-                    for idx in label_list:
-                        f.write(str(time_array[idx]) + "#*," + text_list[idx] + "\n")
-                    f.write("\n")
-
-        # filter
-        # centers = []
-        # centers_weight = []
-        # if len(text_list) != 0:
-        #     labels, dic = cluster.cluster(eps, min_samples, text_list, time_array, feature_array)
-        #     for label in dic:
-        #         if label != -1:
-        #             centers.append(*np.random.choice(dic[label], 1))
-        #             centers_weight.append(len(dic[label]))
-        #     centers = np.array(centers)
-        #     filtered_text_list = []
-        #     for center in centers:
-        #         filtered_text_list.append(text_list[center])
-        #     text_list = filtered_text_list
-        #     time_array = time_array[centers]
-        #     feature_array = feature_array[centers]
-        # save_denoised_file(intra_denoise_path, text_list, time_array, centers_weight)
-        # save_denoised_feature(intra_denoise_feature_path, time_array, feature_array)
+            for label in dic:
+                if label != -1:
+                    centers.append(*np.random.choice(dic[label], 1))
+                    centers_weight.append(len(dic[label]))
+            centers = np.array(centers)
+            filtered_text_list = []
+            for center in centers:
+                filtered_text_list.append(text_list[center])
+            text_list = filtered_text_list
+            time_array = time_array[centers]
+            feature_array = feature_array[centers]
+        save_denoised_file(intra_denoise_path, text_list, time_array, centers_weight)
+        save_denoised_feature(intra_denoise_feature_path, time_array, feature_array)
         pb.update()
 
 
