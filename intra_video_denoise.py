@@ -105,16 +105,16 @@ def save_denoised_feature(new_path, time_array, feature_array):
 
 
 class DataSet:
-    # def __init__(self, dm_file, start=0, end=-1):
-    def __init__(self, dm_file, number=-1):
+    def __init__(self, dm_file, start=0, end=-1):
+        # def __init__(self, dm_file, number=-1):
         with open(dm_file, "r", encoding="utf-8") as f:
             self.dm_paths = [line.strip() for line in f]
-        # if end != -1:
-        #     self.dm_paths = self.dm_paths[start: end]
-        # else:
-        #     self.dm_paths = self.dm_paths[start:]
-        if number != -1:
-            self.dm_paths = self.dm_paths[:number]
+        if end != -1:
+            self.dm_paths = self.dm_paths[start:end]
+        else:
+            self.dm_paths = self.dm_paths[start:]
+        # if number != -1:
+        #     self.dm_paths = self.dm_paths[:number]
 
         self.length = len(self.dm_paths)
 
@@ -386,9 +386,9 @@ def parse_args():
     import argparse
 
     parser = argparse.ArgumentParser()
-    # parser.add_argument("--start_idx", type=int, default=0)
-    # parser.add_argument("--end_idx", type=int, default=-1)
-    parser.add_argument("--dataset_length", type=str, default=-1)
+    parser.add_argument("--start_idx", type=int, default=0)
+    parser.add_argument("--end_idx", type=int, default=-1)
+    # parser.add_argument("--dataset_length", type=str, default=-1)
     parser.add_argument("--distance_weight_list", nargs="+", type=float, required=True)
     parser.add_argument("--intra_denoise_root", type=str, required=True)
     parser.add_argument("--intra_denoise_feature_root", type=str, required=True)
@@ -407,9 +407,9 @@ def parse_args():
 if __name__ == "__main__":
     ################################### parse args ###########################################
     args = parse_args()
-    # start_idx = args.start_idx
-    # end_idx = args.end_idx
-    dataset_length = args.dataset_length
+    start_idx = args.start_idx
+    end_idx = args.end_idx
+    # dataset_length = args.dataset_length
     distance_weight_list = args.distance_weight_list
     distance_weight_list = np.array(distance_weight_list) / sum(distance_weight_list)
     intra_denoise_root = args.intra_denoise_root
@@ -426,9 +426,9 @@ if __name__ == "__main__":
 
     ####################################  load dataset  ######################################
     text_files = "data/bilibili/dm_files.txt"
-    # dataset = DataSet(text_files, start_idx, end_idx)
+    dataset = DataSet(text_files, start_idx, end_idx)
     # dataset_length = len(dataset)
-    dataset = DataSet(text_files, dataset_length)
+    # dataset = DataSet(text_files, dataset_length)
 
     #################################### cluster ##############################################
     distance_list = [
