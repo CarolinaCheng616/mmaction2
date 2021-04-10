@@ -357,6 +357,7 @@ def multi_cluster(
                     label_list = dic[label]
                     for idx in label_list:
                         f.write(str(time_array[idx]) + "#*," + text_list[idx] + "\n")
+                    f.write("\n")
 
         # filter
         # centers = []
