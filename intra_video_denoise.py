@@ -91,7 +91,7 @@ def save_denoised_file(new_path, text_list, time_array, weight):
     os.makedirs(osp.dirname(new_path), exist_ok=True)
     lines = []
     for i, text in enumerate(text_list):
-        lines.append("#*,".join([time_array[i], text, weight[i]]))
+        lines.append("#*,".join([str(time_array[i]), text, str(weight[i])]))
     with open(new_path, "w", encoding="utf-8") as f:
         f.write("\n".join(lines))
 
@@ -356,7 +356,7 @@ def multi_cluster(
                 for label in dic:
                     label_list = dic[label]
                     for idx in label_list:
-                        f.write(time_array[idx] + "#*," + text_list[idx] + "\n")
+                        f.write(str(time_array[idx]) + "#*," + text_list[idx] + "\n")
 
         # filter
         # centers = []
@@ -374,7 +374,7 @@ def multi_cluster(
         #     text_list = filtered_text_list
         #     time_array = time_array[centers]
         #     feature_array = feature_array[centers]
-        # save_denoised_file(intra_denoise_path, text_list, time_array, centers_weight)
+        save_denoised_file(intra_denoise_path, text_list, time_array, centers_weight)
         # save_denoised_feature(intra_denoise_feature_path, time_array, feature_array)
         pb.update()
 
