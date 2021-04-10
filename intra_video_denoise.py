@@ -320,6 +320,8 @@ def multi_cluster(
     intra_denoise_root,
     intra_denoise_feature_root,
     cluster,
+    eps,
+    min_samples,
     wrong_list,
 ):
     pb = ProgressBar(len(idxes))
@@ -346,7 +348,9 @@ def multi_cluster(
 
         # cluster
         if len(text_list) != 0:
-            labels, dic = cluster.cluster()
+            labels, dic = cluster.cluster(
+                eps, min_samples, text_list, time_array, feature_array
+            )
             with open(intra_denoise_path, "w", encoding="utf-8") as f:
                 for label in dic:
                     label_list = dic[label]
@@ -357,7 +361,7 @@ def multi_cluster(
         # centers = []
         # centers_weight = []
         # if len(text_list) != 0:
-        #     labels, dic = cluster.cluster()
+        #     labels, dic = cluster.cluster(eps, min_samples, text_list, time_array, feature_array)
         #     for label in dic:
         #         if label != -1:
         #             centers.append(*np.random.choice(dic[label], 1))
@@ -384,6 +388,8 @@ def parse_args():
     parser.add_argument("--distance_weight_list", nargs="+", type=float, required=True)
     parser.add_argument("--intra_denoise_root", type=str, required=True)
     parser.add_argument("--intra_denoise_feature_root", type=str, required=True)
+    parser.add_argument("--eps", type=float, required=True)
+    parser.add_argument("--min_samples", type=int, required=True)
     parser.add_argument("--process_number", type=int, default=8)
     parser.add_argument(
         "--wrong_log_file",
@@ -403,6 +409,8 @@ if __name__ == "__main__":
     distance_weight_list = args.distance_weight_list
     intra_denoise_root = args.intra_denoise_root
     intra_denoise_feature_root = args.intra_denoise_feature_root
+    eps = args.eps
+    min_samples = args.min_samples
     process_number = args.process_number
     wrong_log_file = args.wrong_log_file
 
@@ -449,6 +457,8 @@ if __name__ == "__main__":
                 intra_denoise_root,
                 intra_denoise_feature_root,
                 cluster,
+                eps,
+                min_samples,
                 wrong_list,
             ),
         )
