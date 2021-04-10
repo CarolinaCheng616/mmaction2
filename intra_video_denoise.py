@@ -374,7 +374,7 @@ def multi_cluster(
         #     text_list = filtered_text_list
         #     time_array = time_array[centers]
         #     feature_array = feature_array[centers]
-        save_denoised_file(intra_denoise_path, text_list, time_array, centers_weight)
+        # save_denoised_file(intra_denoise_path, text_list, time_array, centers_weight)
         # save_denoised_feature(intra_denoise_feature_path, time_array, feature_array)
         pb.update()
 
