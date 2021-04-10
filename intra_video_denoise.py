@@ -408,6 +408,7 @@ if __name__ == "__main__":
     # end_idx = args.end_idx
     dataset_length = args.dataset_length
     distance_weight_list = args.distance_weight_list
+    distance_weight_list = np.array(distance_weight_list) / sum(distance_weight_list)
     intra_denoise_root = args.intra_denoise_root
     intra_denoise_feature_root = args.intra_denoise_feature_root
     eps = args.eps
