@@ -351,6 +351,7 @@ def multi_cluster(
             labels, dic = cluster.cluster(
                 eps, min_samples, text_list, time_array, feature_array
             )
+            os.makedirs(osp.dirname(intra_denoise_path), exist_ok=True)
             with open(intra_denoise_path, "w", encoding="utf-8") as f:
                 for label in dic:
                     label_list = dic[label]
