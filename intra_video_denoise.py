@@ -335,6 +335,7 @@ def multi_cluster(
             intra_denoise_feature_root, new_name + "_dm.npz"
         )
         if osp.exists(intra_denoise_path) and osp.exists(intra_denoise_feature_path):
+            pb.update()
             continue
 
         time_array, text_list = read_dm_file(dm_path)
@@ -342,6 +343,7 @@ def multi_cluster(
         feature_array = get_feature(text_list)
         if len(text_list) != len(time_array) or len(text_list) != len(feature_array):
             wrong_list.append(new_name)
+            pb.update()
             continue
 
         # # cluster
