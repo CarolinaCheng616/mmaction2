@@ -21,7 +21,7 @@ import torch.nn as nn
 import torch
 
 # from multiprocessing import Process, Manager
-from torch.multiprocessing import Process, Manager, set_start_method
+# from torch.multiprocessing import Process, Manager, set_start_method
 
 import jieba.posseg as pseg
 
@@ -29,8 +29,8 @@ from mmcv import ProgressBar
 
 
 bert_path = "work_dirs/bert_model"
-# tokenizer = None
-# bert = None
+tokenizer = None
+bert = None
 forbidden_list = ["e", "m", "o", "x", "y", "z"]
 
 
@@ -147,8 +147,8 @@ def read_dm_file(file_name):
 
 
 # read feature file
-def get_feature(tokenizer, bert, text_list):
-    # global tokenizer, bert
+def get_feature(text_list):
+    global tokenizer, bert
     if len(text_list) == 0:
         return np.array([])
     number_per_iter = 100
@@ -313,8 +313,6 @@ class Cluster:
 
 
 def multi_cluster(
-    tokenizer,
-    bert,
     dataset,
     idxes,
     intra_denoise_root,
@@ -341,7 +339,7 @@ def multi_cluster(
 
         time_array, text_list = read_dm_file(dm_path)
         text_list, time_array = filter_meaningless_text(text_list, time_array)
-        feature_array = get_feature(tokenizer, bert, text_list)
+        feature_array = get_feature(text_list)
         if len(text_list) != len(time_array) or len(text_list) != len(feature_array):
             wrong_list.append(new_name)
             continue
@@ -394,7 +392,7 @@ def parse_args():
     parser.add_argument("--intra_denoise_feature_root", type=str, required=True)
     parser.add_argument("--eps", type=float, required=True)
     parser.add_argument("--min_samples", type=int, required=True)
-    parser.add_argument("--process_number", type=int, default=8)
+    # parser.add_argument("--process_number", type=int, default=8)
     parser.add_argument(
         "--wrong_log_file",
         type=str,
@@ -416,13 +414,13 @@ if __name__ == "__main__":
     intra_denoise_feature_root = args.intra_denoise_feature_root
     eps = args.eps
     min_samples = args.min_samples
-    process_number = args.process_number
+    # process_number = args.process_number
     wrong_log_file = args.wrong_log_file
 
     ############################### generate paths file #######################################
-    root2 = "data/bilibili/bilibili_dm"
-    wfile2 = "data/bilibili/dm_files.txt"
-    read_tree_dir_files_to_file(root2, wfile2)
+    # root2 = "data/bilibili/bilibili_dm"
+    # wfile2 = "data/bilibili/dm_files.txt"
+    # read_tree_dir_files_to_file(root2, wfile2)
 
     ####################################  load dataset  ######################################
     text_files = "data/bilibili/dm_files.txt"
@@ -440,39 +438,46 @@ if __name__ == "__main__":
     cluster = Cluster(distance_list, distance_weight_list)
 
     #################################### init bert ###########################################
-    set_start_method("spawn")
-    tokenizer = BertTokenizer.from_pretrained(bert_path)
-    bert = BERT(bert_path)
-    bert.share_memory()
-    # init_global()
+    # set_start_method("spawn")
+    # tokenizer = BertTokenizer.from_pretrained(bert_path)
+    # bert = BERT(bert_path)
+    # bert.share_memory()
+    init_global()
 
     #################################### multiprocess run ##########################################
-    procs = []
-    data_num_per_proc = (len(dataset) + process_number - 1) // process_number
-    idxes = list(range(len(dataset)))
-    wrong_list = Manager().list()
-    for i in range(process_number):
-        proc = Process(
-            target=multi_cluster,
-            args=(
-                tokenizer,
-                bert,
-                dataset,
-                idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc],
-                intra_denoise_root,
-                intra_denoise_feature_root,
-                cluster,
-                eps,
-                min_samples,
-                wrong_list,
-            ),
-        )
-        proc.start()
-        procs.append(proc)
-    for proc in procs:
-        proc.join()
-    # wrong_list = []
-    # multi_cluster(dataset, list(range(dataset_length)), intra_denoise_root, intra_denoise_feature_root, cluster, wrong_list)
+    # procs = []
+    # data_num_per_proc = (len(dataset) + process_number - 1) // process_number
+    # idxes = list(range(len(dataset)))
+    # wrong_list = Manager().list()
+    # for i in range(process_number):
+    #     proc = Process(
+    #         target=multi_cluster,
+    #         args=(
+    #             dataset,
+    #             idxes[i * data_num_per_proc : (i + 1) * data_num_per_proc],
+    #             intra_denoise_root,
+    #             intra_denoise_feature_root,
+    #             cluster,
+    #             eps,
+    #             min_samples,
+    #             wrong_list,
+    #         ),
+    #     )
+    #     proc.start()
+    #     procs.append(proc)
+    # for proc in procs:
+    #     proc.join()
+    wrong_list = []
+    multi_cluster(
+        dataset,
+        list(range(len(dataset))),
+        intra_denoise_root,
+        intra_denoise_feature_root,
+        cluster,
+        eps,
+        min_samples,
+        wrong_list,
+    )
 
     if len(wrong_list) > 0:
         with open(wrong_log_file, "w", encoding="utf-8") as f:
