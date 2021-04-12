@@ -123,8 +123,11 @@ def get_video_infos(dm_file, video_per_cat, dm_per_video):
     pdb.set_trace()
     for i, path in enumerate(path_list):
         dm_path = path
-        feature_path = dm_path.replace(
-            intra_denoise_root, intra_denoise_feature_root, 1
+        feature_path = (
+            osp.splitext(
+                dm_path.replace(intra_denoise_root, intra_denoise_feature_root, 1)
+            )[0]
+            + "_dm.npz"
         )
         cat = cat_list[i]
         tmp_text_list = []
@@ -503,7 +506,7 @@ def parse_args():
     parser.add_argument("--write_cluster_file", type=str, required=True)
     parser.add_argument("--weight_list", type=float, nargs="+")
     parser.add_argument("--eps", type=float, default=0.5)
-    parser.add_argument("--num_samples", type=int, required=True)
+    parser.add_argument("--min_samples", type=int, required=True)
     # parser.add_argument("--temperature", type=float, default=0.1)
     args = parser.parse_args()
     return args
@@ -521,7 +524,7 @@ if __name__ == "__main__":
     write_cluster_file = args.write_cluster_file
     weight_list = args.weight_list
     eps = args.eps
-    num_samples = args.num_samples
+    min_samples = args.min_samples
 
     ####################################  load video infos  ###################################
     cat_list, text_list, feature_array = get_video_infos(
@@ -533,7 +536,7 @@ if __name__ == "__main__":
     weight_list = np.array(weight_list) / sum(weight_list)
     filter = Filter(distance_list, weight_list, video_per_cat, dm_per_video)
 
-    labels, label_idxes_dic = filter.cluster(eps, num_samples, text_list, feature_array)
+    labels, label_idxes_dic = filter.cluster(eps, min_samples, text_list, feature_array)
 
     lines = []
     label_keys = sorted(list(label_idxes_dic.keys()))
