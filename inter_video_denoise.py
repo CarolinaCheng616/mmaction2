@@ -118,6 +118,9 @@ def get_video_infos(dm_file, video_per_cat, dm_per_video):
     text_list = []  # ["text", "text", ...]
     feature_array_list = []  # [np.array, np.array]
     dm_cat_list = []
+    import pdb
+
+    pdb.set_trace()
     for i, path in enumerate(path_list):
         dm_path = path
         feature_path = dm_path.replace(
