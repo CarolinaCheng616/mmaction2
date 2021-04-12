@@ -420,9 +420,9 @@ if __name__ == "__main__":
     wrong_log_file = args.wrong_log_file
 
     ############################### generate paths file #######################################
-    # root2 = "data/bilibili/bilibili_dm"
-    # wfile2 = "data/bilibili/dm_files.txt"
-    # read_tree_dir_files_to_file(root2, wfile2)
+    root2 = "data/bilibili/bilibili_dm"
+    wfile2 = "data/bilibili/dm_files.txt"
+    read_tree_dir_files_to_file(root2, wfile2)
 
     ####################################  load dataset  ######################################
     text_files = "data/bilibili/dm_files.txt"
