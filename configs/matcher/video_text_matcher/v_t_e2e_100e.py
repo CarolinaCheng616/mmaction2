@@ -1,4 +1,4 @@
-bert_path = '~/bert_model'
+bert_path = 'work_dirs/bert_model'
 
 model = dict(
     type='VideoTextMatcherE2E',
