@@ -147,9 +147,9 @@ def get_video_infos(dm_file, video_per_cat, dm_per_video):
             text_list += tmp_text_list
             feature_array_list.append(feature_array)
             dm_cat_list += [cat] * len(real_idxes)
-    import pdb
-
-    pdb.set_trace()
+    # import pdb
+    #
+    # pdb.set_trace()
     if len(feature_array_list) != 0:
         feature_array_list = np.concatenate(feature_array_list, axis=0)
     return dm_cat_list, text_list, feature_array_list
@@ -519,34 +519,34 @@ if __name__ == "__main__":
     read_tree_dir_files_to_file(intra_denoise_root, intra_denoise_paths_file)
     #################################### parse args ###########################################
 
-    args = parse_args()
-    video_per_cat = args.video_per_cat
-    dm_per_video = args.dm_per_video
-    write_cluster_file = args.write_cluster_file
-    weight_list = args.weight_list
-    eps = args.eps
-    min_samples = args.min_samples
-
-    ####################################  load video infos  ###################################
-    cat_list, text_list, feature_array = get_video_infos(
-        intra_denoise_paths_file, video_per_cat, dm_per_video
-    )
-
-    #################################### cluster ##############################################
-    distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
-    weight_list = np.array(weight_list) / sum(weight_list)
-    filter = Filter(distance_list, weight_list, video_per_cat, dm_per_video)
-
-    labels, label_idxes_dic = filter.cluster(eps, min_samples, text_list, feature_array)
-
-    lines = []
-    label_keys = sorted(list(label_idxes_dic.keys()))
-    for label in label_keys:
-        idx_list = label_idxes_dic[label]
-        for idx in idx_list:
-            lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
-    with open(write_cluster_file, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
+    # args = parse_args()
+    # video_per_cat = args.video_per_cat
+    # dm_per_video = args.dm_per_video
+    # write_cluster_file = args.write_cluster_file
+    # weight_list = args.weight_list
+    # eps = args.eps
+    # min_samples = args.min_samples
+    #
+    # ####################################  load video infos  ###################################
+    # cat_list, text_list, feature_array = get_video_infos(
+    #     intra_denoise_paths_file, video_per_cat, dm_per_video
+    # )
+    #
+    # #################################### cluster ##############################################
+    # distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
+    # weight_list = np.array(weight_list) / sum(weight_list)
+    # filter = Filter(distance_list, weight_list, video_per_cat, dm_per_video)
+    #
+    # labels, label_idxes_dic = filter.cluster(eps, min_samples, text_list, feature_array=feature_array)
+    #
+    # lines = []
+    # label_keys = sorted(list(label_idxes_dic.keys()))
+    # for label in label_keys:
+    #     idx_list = label_idxes_dic[label]
+    #     for idx in idx_list:
+    #         lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
+    # with open(write_cluster_file, "w", encoding="utf-8") as f:
+    #     f.write("\n".join(lines))
 
     # ###################################### analysis inter noise sentences ##################################
     # analysis_stop_sentenses(
