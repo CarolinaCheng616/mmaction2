@@ -10,69 +10,54 @@ import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import (
     cosine_distances,
-    euclidean_distances,
+    # euclidean_distances,
     cosine_similarity,
 )
 from sklearn.cluster import DBSCAN
-from sklearn.cluster import KMeans
+
+# from sklearn.cluster import KMeans
 
 from collections import defaultdict
 
-from transformers import BertTokenizer, AutoModel
-import torch.nn as nn
-import torch
+#
+# from transformers import BertTokenizer, AutoModel
+# import torch.nn as nn
+# import torch
 
 import argparse
 
-from mmcv import ProgressBar
+# from mmcv import ProgressBar
 
 import jieba.posseg as pseg
 
 
-bert_path = "/mnt/lustre/chenghaoyue/projects/mmaction2/work_dirs/bert_model"
-# bert_path = "work_dirs/bert_model"
-tokenizer = None
-bert = None
-new_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise"
-# new_root = "data/bilibili_intra_denoise"
-feature_root = "/mnt/lustrenew/DATAshare/bilibili/bilibili_intra_denoise_feature"
-# feature_root = "data/bilibili_intra_denoise_feature"
+bert_path = "work_dirs/bert_model"
+# tokenizer = None
+# bert = None
+intra_denoise_root = "data/bilibili/bilibili_intra_denoise"
+intra_denoise_feature_root = "data/bilibili/bilibili_intra_denoise_feature"
+intra_denoise_paths_file = "data/bilibili/intra_denoise_files.txt"
 
 ############################################# init bert ##################################################
 
-
-class BERT(nn.Module):
-    """BERT backbone.
-    """
-
-    def __init__(self, pretrained=None, freeze=True):
-        super(BERT, self).__init__()
-        self.pretrained = pretrained
-        self.freeze = freeze
-        self.init_weights()
-
-    def init_weights(self):
-        """Initiate the parameters either from existing checkpoint or from
-        scratch."""
-        if isinstance(self.pretrained, str):
-            self.model = AutoModel.from_pretrained(self.pretrained).to("cuda")
-            # self.model.train()
-        else:
-            raise TypeError("pretrained must be a str")
-
-    def forward(self, x):
-        if self.freeze:
-            with torch.no_grad():
-                text_out = self.model(**x).pooler_output
-        else:
-            text_out = self.model(**x).pooler_output
-        return text_out
-
-
-def init_global():
-    global tokenizer, bert
-    tokenizer = BertTokenizer.from_pretrained(bert_path)
-    bert = BERT(bert_path)
+# class BERT(nn.Module):
+#     """BERT backbone.
+#     """
+#     def __init__(self, pretrained):
+#         super(BERT, self).__init__()
+#         self.model = AutoModel.from_pretrained(pretrained).to("cuda")
+#         self.model.eval()
+#
+#     def forward(self, x):
+#         with torch.no_grad():
+#             text_out = self.model(**x).pooler_output
+#         return text_out
+#
+#
+# def init_global():
+#     global tokenizer, bert
+#     tokenizer = BertTokenizer.from_pretrained(bert_path)
+#     bert = BERT(bert_path)
 
 
 ############################################# get file directory ##########################################
@@ -115,7 +100,7 @@ def read_tree_dir_files_to_file(path, wfile, depth=4):
 #         f.write("\n".join(lines))
 
 
-def get_cat_videos_dict(dm_file):
+def get_video_infos(dm_file, video_per_cat, dm_per_video):
     cat_videos = defaultdict(list)
     with open(dm_file, "r", encoding="utf-8") as f:
         for line in f:
@@ -124,57 +109,93 @@ def get_cat_videos_dict(dm_file):
                 path.find("bilibili_intra_denoise/") + len("bilibili_intra_denoise/") :
             ].split("/")[0]
             cat_videos[cat].append(path)
-    return cat_videos
+    path_list = []  # [path1, path2, ...]
+    cat_list = []
+    for cat in cat_videos:
+        sample_num = min(len(cat_videos[cat]), video_per_cat)
+        path_list += list(np.random.choice(cat_videos[cat], sample_num, replace=False))
+        cat_list += [cat] * sample_num
+    text_list = []  # ["text", "text", ...]
+    feature_array_list = []  # [np.array, np.array]
+    dm_cat_list = []
+    for i, path in enumerate(path_list):
+        dm_path = path
+        feature_path = dm_path.replace(
+            intra_denoise_root, intra_denoise_feature_root, 1
+        )
+        cat = cat_list[i]
+        tmp_text_list = []
+        real_idxes = []
+        with open(dm_path, "r", encoding="utf-8") as f:
+            lines = list(f.readlines())
+            line_number = len(lines)
+            dm_sample_number = min(line_number, dm_per_video)
+            text_idxes = np.random.choice(line_number, dm_sample_number, replace=False)
+            for idx in text_idxes:
+                line = lines[idx]
+                try:
+                    tmp_text_list.append(line.strip().split("#*,")[1])
+                    real_idxes.append(idx)
+                except:
+                    pass
+        real_idxes = np.array(real_idxes)
+        feature_array = np.load(feature_path)["features"][real_idxes]
+        text_list += tmp_text_list
+        feature_array_list.append(feature_array)
+        dm_cat_list += [cat] * len(real_idxes)
+    if len(feature_array_list) != 0:
+        feature_array_list = np.concatenate(feature_array_list, axis=0)
+    return dm_cat_list, text_list, feature_array_list
 
 
 ############################################# read file ###################################################
 
 
 # read dm file
-def read_dm_file(file_name):
-    time_list = []
-    text_list = []
-    with open(file_name, "r", encoding="utf-8") as f:
-        for line in f:
-            tokens = line.strip().split("#*,")
-            try:
-                time = float(tokens[0])
-                text = tokens[1]
-                time_list.append(time)
-                text_list.append(text)
-            except (ValueError, IndexError):
-                pass
-    return np.array(time_list), text_list
+# def read_dm_file(file_name):
+#     time_list = []
+#     text_list = []
+#     with open(file_name, "r", encoding="utf-8") as f:
+#         for line in f:
+#             tokens = line.strip().split("#*,")
+#             try:
+#                 time = float(tokens[0])
+#                 text = tokens[1]
+#                 time_list.append(time)
+#                 text_list.append(text)
+#             except (ValueError, IndexError):
+#                 pass
+#     return np.array(time_list), text_list
 
 
 # read feature file
-def get_feature_and_save(time_array, text_list, dm_path):
-    new_path = osp.splitext(dm_path.replace(new_root, feature_root, 1))[0] + "_dm.npz"
-    if osp.exists(new_path):
-        features = np.load(new_path)["features"]
-        return features
-    os.makedirs(osp.dirname(new_path), exist_ok=True)
-    number_per_iter = 200
-    nums = (len(text_list) + number_per_iter - 1) // number_per_iter
-    features = []
-    for i in range(nums):
-        sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
-        sub_tokens = tokenizer(
-            sub_dm, truncation=True, padding="max_length", return_tensors="pt"
-        )
-        for key in sub_tokens:
-            sub_tokens[key] = sub_tokens[key].cuda()
-        sub_feat = bert(sub_tokens).cpu().numpy()
-        print("using bert")
-        # torch.cuda.empty_cache()
-
-        features.append(sub_feat)
-    if len(features) > 0:
-        features = np.concatenate(features, axis=0)
-    else:
-        features = np.array(features)
-    np.savez(new_path, times=time_array, features=features)
-    return features
+# def get_feature_and_save(time_array, text_list, dm_path):
+#     new_path = osp.splitext(dm_path.replace(new_root, feature_root, 1))[0] + "_dm.npz"
+#     if osp.exists(new_path):
+#         features = np.load(new_path)["features"]
+#         return features
+#     os.makedirs(osp.dirname(new_path), exist_ok=True)
+#     number_per_iter = 200
+#     nums = (len(text_list) + number_per_iter - 1) // number_per_iter
+#     features = []
+#     for i in range(nums):
+#         sub_dm = text_list[i * number_per_iter : (i + 1) * number_per_iter]
+#         sub_tokens = tokenizer(
+#             sub_dm, truncation=True, padding="max_length", return_tensors="pt"
+#         )
+#         for key in sub_tokens:
+#             sub_tokens[key] = sub_tokens[key].cuda()
+#         sub_feat = bert(sub_tokens).cpu().numpy()
+#         print("using bert")
+#         # torch.cuda.empty_cache()
+#
+#         features.append(sub_feat)
+#     if len(features) > 0:
+#         features = np.concatenate(features, axis=0)
+#     else:
+#         features = np.array(features)
+#     np.savez(new_path, times=time_array, features=features)
+#     return features
 
 
 ############################################# compute distance #############################################
@@ -220,18 +241,18 @@ def tf_idf_distance(text_list):
     return distance
 
 
-def tgap_distance(time_array):
-    """
-    given text time stamp numpy array, return pairwise distance
-    :param time_list(float numpy.array):  sorted time stamp list
-    :return:
-    """
-    time_array_copy = time_array - time_array[0]
-    distance = abs(time_array_copy.reshape(-1, 1) - time_array_copy.reshape(1, -1))
-    tmax = time_array_copy[-1]
-    if tmax != 0:
-        distance = distance / tmax
-    return distance
+# def tgap_distance(time_array):
+#     """
+#     given text time stamp numpy array, return pairwise distance
+#     :param time_list(float numpy.array):  sorted time stamp list
+#     :return:
+#     """
+#     time_array_copy = time_array - time_array[0]
+#     distance = abs(time_array_copy.reshape(-1, 1) - time_array_copy.reshape(1, -1))
+#     tmax = time_array_copy[-1]
+#     if tmax != 0:
+#         distance = distance / tmax
+#     return distance
 
 
 def feature_distance(feature_array, temperature=0.1):
@@ -256,28 +277,23 @@ def feature_distance(feature_array, temperature=0.1):
 
 
 class Filter:
-    def __init__(self, distance_list, distance_weight_list, num_per_cat, num_per_video):
+    def __init__(
+        self, distance_list, distance_weight_list, video_per_cat, dm_per_video
+    ):
         self.disfunc_list = []
         for dis in distance_list:
             if not hasattr(sys.modules[__name__], dis):
                 raise ValueError(f"no distance function {dis}!")
             self.disfunc_list.append(getattr(sys.modules[__name__], dis))
         self.distance_weight_list = distance_weight_list
-        self.num_per_cat = num_per_cat
-        self.num_per_video = num_per_video
+        self.video_per_cat = video_per_cat
+        self.dm_per_video = dm_per_video
 
     def change_weight_list(self, distance_weight_list):
         self.distance_weight_list = distance_weight_list
 
     def _cluster(
-        self,
-        eps,
-        num_samples,
-        text_list,
-        cat_list,
-        write_cluster_file,
-        time_array=None,
-        feature_array=None,
+        self, eps, num_samples, text_list, time_array=None, feature_array=None
     ):
         start = time.time()
         distance_list = []
@@ -305,42 +321,21 @@ class Filter:
 
         return clusters
 
-    def cluster(
-        self,
-        eps,
-        num_samples,
-        text_list,
-        cat_list,
-        write_cluster_file,
-        time_array=None,
-        feature_array=None,
-    ):
-        clusters = self._cluster(
-            eps,
-            num_samples,
-            text_list,
-            cat_list,
-            write_cluster_file,
-            time_array,
-            feature_array,
-        )
+    def cluster(self, eps, num_samples, text_list, time_array=None, feature_array=None):
+        clusters = self._cluster(eps, num_samples, text_list, time_array, feature_array)
 
-        # lines = [f"{num_per_cat}#*,{num_per_video}"]
-        # for i, label in enumerate(clusters.labels_):
-        #     lines.append("#*,".join([text_list[i], cat_list[i], str(label)]))
-        # with open(write_cluster_file, "w", encoding="utf-8") as f:
-        #     f.write("\n".join(lines))
-        lines = []
+        # lines = []
         dic = defaultdict(list)
         for i, label in enumerate(clusters.labels_):
             dic[label].append(i)
-        labels = sorted(list(dic.keys()))
-        for label in labels:
-            idx_list = dic[label]
-            for idx in idx_list:
-                lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
-        with open(write_cluster_file, "w", encoding="utf-8") as f:
-            f.write("\n".join(lines))
+        return clusters.labels_, dic
+        # labels = sorted(list(dic.keys()))
+        # for label in labels:
+        #     idx_list = dic[label]
+        #     for idx in idx_list:
+        #         lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
+        # with open(write_cluster_file, "w", encoding="utf-8") as f:
+        #     f.write("\n".join(lines))
 
 
 ############################################# evaluation ###################################################
@@ -459,99 +454,94 @@ def analysis_stop_sentenses(file, wfile):
 ############################################## main ###########################################################
 
 
-def collect_by_cat(cat_videos, num_per_cat, num_per_video):
-    cat_list = []
-    text_list = []
-    time_array = []
-    feature_array = []
-    pb = ProgressBar(len(cat_videos))
-    pb.start()
-    for cat in cat_videos:
-        # paths = cat_videos[cat][:num_per_cat]
-        sample_num = min(len(cat_videos[cat]), num_per_cat)
-        sample_idxes = np.random.choice(len(cat_videos[cat]), sample_num, replace=False)
-        paths = []
-        for sample_idx in sample_idxes:
-            paths.append(cat_videos[cat][sample_idx])
-        for path in paths:
-            time, text = read_dm_file(path)
-            # feature = get_feature_and_save(time, text, path)
-            feature = np.zeros((len(text), 768))
-            if len(time) == 0 or len(text) == 0 or len(feature) == 0:
-                continue
-            assert len(time) == len(text) and len(time) == len(
-                feature
-            ), f"not match for {path}"
-            idxes = np.random.choice(
-                len(text), min(num_per_video, len(text)), replace=False
-            )
-            for idx in idxes:
-                text_list.append(text[idx])
-            cat_list += [cat] * len(idxes)
-            time_array.append(time[idxes])
-            feature_array.append(feature[idxes])
-        pb.update()
-    time_array = np.concatenate(time_array, axis=0)
-    feature_array = np.concatenate(feature_array, axis=0)
-    return text_list, cat_list, time_array, feature_array
+# def collect_by_cat(cat_videos, num_per_cat, num_per_video):
+#     cat_list = []
+#     text_list = []
+#     time_array = []
+#     feature_array = []
+#     pb = ProgressBar(len(cat_videos))
+#     pb.start()
+#     for cat in cat_videos:
+#         # paths = cat_videos[cat][:num_per_cat]
+#         sample_num = min(len(cat_videos[cat]), num_per_cat)
+#         sample_idxes = np.random.choice(len(cat_videos[cat]), sample_num, replace=False)
+#         paths = []
+#         for sample_idx in sample_idxes:
+#             paths.append(cat_videos[cat][sample_idx])
+#         for path in paths:
+#             time, text = read_dm_file(path)
+#             # feature = get_feature_and_save(time, text, path)
+#             feature = np.zeros((len(text), 768))
+#             if len(time) == 0 or len(text) == 0 or len(feature) == 0:
+#                 continue
+#             assert len(time) == len(text) and len(time) == len(
+#                 feature
+#             ), f"not match for {path}"
+#             idxes = np.random.choice(
+#                 len(text), min(num_per_video, len(text)), replace=False
+#             )
+#             for idx in idxes:
+#                 text_list.append(text[idx])
+#             cat_list += [cat] * len(idxes)
+#             time_array.append(time[idxes])
+#             feature_array.append(feature[idxes])
+#         pb.update()
+#     time_array = np.concatenate(time_array, axis=0)
+#     feature_array = np.concatenate(feature_array, axis=0)
+#     return text_list, cat_list, time_array, feature_array
 
 
 def parse_args():
     parser = argparse.ArgumentParser("")
     parser.add_argument(
-        "--num_per_category", type=int, default=50, help="number of videos per category"
+        "--video_per_cat", type=int, default=50, help="number of videos per category"
     )
-    parser.add_argument("--num_per_video", type=int, default=10)
+    parser.add_argument("--dm_per_video", type=int, default=20)
     parser.add_argument("--write_cluster_file", type=str, required=True)
     parser.add_argument("--weight_list", type=float, nargs="+")
     parser.add_argument("--eps", type=float, default=0.5)
     parser.add_argument("--num_samples", type=int, required=True)
-    parser.add_argument("--temperature", type=float, default=0.1)
+    # parser.add_argument("--temperature", type=float, default=0.1)
     args = parser.parse_args()
-    num_per_cat = args.num_per_category
-    num_per_video = args.num_per_video
+    return args
+
+
+if __name__ == "__main__":
+
+    #################################### get paths file #####################################
+    read_tree_dir_files_to_file(intra_denoise_root, intra_denoise_paths_file)
+    #################################### parse args ###########################################
+
+    args = parse_args()
+    video_per_cat = args.video_per_cat
+    dm_per_video = args.dm_per_video
     write_cluster_file = args.write_cluster_file
     weight_list = args.weight_list
     eps = args.eps
     num_samples = args.num_samples
-    return num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples
 
-
-if __name__ == "__main__":
-    # path = "data/bilibili_intra_denoise"
-    # wfile = "data/intra_denoise_files.txt"
-    # read_tree_dir_files_to_file(path, wfile)
-
-    num_per_cat, num_per_video, write_cluster_file, weight_list, eps, num_samples = (
-        parse_args()
-    )
-    # init_global()
-
-    ####################################  load dataset  ######################################
-    text_files = "/mnt/lustre/chenghaoyue/projects/mmaction2/data/bilibili/intra_denoise_files.txt"
-    # text_files = "data/intra_denoise_files.txt"
-    cat_videos = get_cat_videos_dict(text_files)
-    text_list, cat_list, time_array, feature_array = collect_by_cat(
-        cat_videos, num_per_cat, num_per_video
+    ####################################  load video infos  ###################################
+    cat_list, text_list, feature_array = get_video_infos(
+        intra_denoise_paths_file, video_per_cat, dm_per_video
     )
 
     #################################### cluster ##############################################
     distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
-    # distance_weight_list = [0.1, 0.15, 0.75]
     weight_list = np.array(weight_list) / sum(weight_list)
-    filter = Filter(distance_list, weight_list, num_per_cat, num_per_video)
+    filter = Filter(distance_list, weight_list, video_per_cat, dm_per_video)
 
-    filter.cluster(
-        eps,
-        num_samples,
-        text_list,
-        cat_list,
-        write_cluster_file,
-        time_array,
-        feature_array,
-    )
+    labels, label_idxes_dic = filter.cluster(eps, num_samples, text_list, feature_array)
 
-    # # #################################### analysis inter noise sentences ##################################
+    lines = []
+    label_keys = sorted(list(label_idxes_dic.keys()))
+    for label in label_keys:
+        idx_list = label_idxes_dic[label]
+        for idx in idx_list:
+            lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
+    with open(write_cluster_file, "w", encoding="utf-8") as f:
+        f.write("\n".join(lines))
+
+    # ###################################### analysis inter noise sentences ##################################
     # analysis_stop_sentenses(
     #     "data/dbscan_clusters2.txt", "data/inter_stop_sentences2.txt"
     # )
