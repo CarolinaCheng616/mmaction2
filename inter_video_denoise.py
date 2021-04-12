@@ -118,9 +118,6 @@ def get_video_infos(dm_file, video_per_cat, dm_per_video):
     text_list = []  # ["text", "text", ...]
     feature_array_list = []  # [np.array, np.array]
     dm_cat_list = []
-    import pdb
-
-    pdb.set_trace()
     for i, path in enumerate(path_list):
         dm_path = path
         feature_path = (
@@ -144,11 +141,15 @@ def get_video_infos(dm_file, video_per_cat, dm_per_video):
                     real_idxes.append(idx)
                 except:
                     pass
-        real_idxes = np.array(real_idxes)
-        feature_array = np.load(feature_path)["features"][real_idxes]
-        text_list += tmp_text_list
-        feature_array_list.append(feature_array)
-        dm_cat_list += [cat] * len(real_idxes)
+        if len(real_idxes) > 0:
+            real_idxes = np.array(real_idxes)
+            feature_array = np.load(feature_path)["features"][real_idxes]
+            text_list += tmp_text_list
+            feature_array_list.append(feature_array)
+            dm_cat_list += [cat] * len(real_idxes)
+    import pdb
+
+    pdb.set_trace()
     if len(feature_array_list) != 0:
         feature_array_list = np.concatenate(feature_array_list, axis=0)
     return dm_cat_list, text_list, feature_array_list
