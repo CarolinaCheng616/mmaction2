@@ -380,7 +380,7 @@ def evaluate_cluster(
     for cat in cat_distribute:
         dm_num_per_cat.append(cat_distribute[cat])
     # dm_num_per_cat = np.array(dm_num_per_cat)
-    boderline = num_per_cat * num_per_video // 50
+    boderline = num_per_cat * num_per_video // 100
     valid_dm_num_per_cat = []
     for num in dm_num_per_cat:
         if num >= boderline:
@@ -389,26 +389,19 @@ def evaluate_cluster(
     return len(valid_dm_num_per_cat), sum(valid_dm_num_per_cat)
 
 
-def analysis_stop_sentenses(file, wfile):
+def analysis_stop_sentenses(file, wfile, video_per_cat, dm_per_video):
     text_cat_label_list = []
     unique_cats_dict = dict()
     unique_labels_dict = dict()
-    # cover_weight = 0.5
-    # dm_prop_weight = 0.2
-    # var_weight = 0.3
-    # threshold = 0.5
     with open(file, "r", encoding="utf-8") as f:
         lines = f.readlines()
         for i, line in enumerate(lines):
             tokens = line.strip().split("#*,")
-            if i == 0:
-                num_per_cat, num_per_video = int(tokens[0]), int(tokens[1])
-            else:
-                text, cat, label = tokens[0], tokens[1], int(tokens[2])
-                text_cat_label_list.append((text, cat, label))
-                unique_cats_dict[cat] = True
-                if label != -1:
-                    unique_labels_dict[label] = True
+            text, cat, label = tokens[0], tokens[1], int(tokens[2])
+            text_cat_label_list.append((text, cat, label))
+            unique_cats_dict[cat] = True
+            if label != -1:
+                unique_labels_dict[label] = True
 
     total_dm_number = len(text_cat_label_list)
     total_cat_number = len(unique_cats_dict.keys())
@@ -434,8 +427,8 @@ def analysis_stop_sentenses(file, wfile):
             dm_num,
             total_dm_number,
             cat_distribute,
-            num_per_cat,
-            num_per_video,
+            video_per_cat,
+            dm_per_video,
         )
         if valid_cat_num >= 10:
             label_value_dict[label] = valid_cat_num * valid_dm_num
@@ -505,6 +498,7 @@ def parse_args():
     )
     parser.add_argument("--dm_per_video", type=int, default=20)
     parser.add_argument("--write_cluster_file", type=str, required=True)
+    parser.add_argument("--inter_stop_sentences_file", type=str, required=True)
     parser.add_argument("--weight_list", type=float, nargs="+")
     parser.add_argument("--eps", type=float, default=0.5)
     parser.add_argument("--min_samples", type=int, required=True)
@@ -526,31 +520,32 @@ if __name__ == "__main__":
     weight_list = args.weight_list
     eps = args.eps
     min_samples = args.min_samples
+    inter_stop_sentences_file = args.inter_stop_sentences_file
 
-    ####################################  load video infos  ###################################
-    cat_list, text_list, feature_array = get_video_infos(
-        intra_denoise_paths_file, video_per_cat, dm_per_video
-    )
-
-    #################################### cluster ##############################################
-    distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
-    weight_list = np.array(weight_list) / sum(weight_list)
-    filter = Filter(distance_list, weight_list, video_per_cat, dm_per_video)
-
-    labels, label_idxes_dic = filter.cluster(
-        eps, min_samples, text_list, feature_array=feature_array
-    )
-
-    lines = []
-    label_keys = sorted(list(label_idxes_dic.keys()))
-    for label in label_keys:
-        idx_list = label_idxes_dic[label]
-        for idx in idx_list:
-            lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
-    with open(write_cluster_file, "w", encoding="utf-8") as f:
-        f.write("\n".join(lines))
-
-    # ###################################### analysis inter noise sentences ##################################
-    # analysis_stop_sentenses(
-    #     "data/dbscan_clusters2.txt", "data/inter_stop_sentences2.txt"
+    # ####################################  load video infos  ###################################
+    # cat_list, text_list, feature_array = get_video_infos(
+    #     intra_denoise_paths_file, video_per_cat, dm_per_video
     # )
+    #
+    # #################################### cluster ##############################################
+    # distance_list = ["edit_distance", "tf_idf_distance", "feature_distance"]
+    # weight_list = np.array(weight_list) / sum(weight_list)
+    # filter = Filter(distance_list, weight_list, video_per_cat, dm_per_video)
+    #
+    # labels, label_idxes_dic = filter.cluster(
+    #     eps, min_samples, text_list, feature_array=feature_array
+    # )
+    #
+    # lines = []
+    # label_keys = sorted(list(label_idxes_dic.keys()))
+    # for label in label_keys:
+    #     idx_list = label_idxes_dic[label]
+    #     for idx in idx_list:
+    #         lines.append("#*,".join([text_list[idx], cat_list[idx], str(label)]))
+    # with open(write_cluster_file, "w", encoding="utf-8") as f:
+    #     f.write("\n".join(lines))
+
+    ###################################### analysis inter noise sentences ##################################
+    analysis_stop_sentenses(
+        write_cluster_file, inter_stop_sentences_file, video_per_cat, dm_per_video
+    )
