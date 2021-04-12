@@ -4,6 +4,8 @@ import torch.distributed as dist
 import torch.nn.functional as F
 from ..registry import HEADS
 import numpy as np
+
+
 @HEADS.register_module
 class NegSimHead(nn.Module):
     """Head for RankingLoss.
@@ -36,7 +38,6 @@ class NegSimHead(nn.Module):
 
         losses = dict()
         losses['neg_sim_loss'] = -0.5*(p_v * t_feat).sum(dim=1).mean() -0.5*(p_t * v_feat).sum(dim=1).mean()
-
 
         with torch.no_grad():
 

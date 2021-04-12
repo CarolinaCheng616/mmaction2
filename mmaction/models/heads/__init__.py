@@ -16,5 +16,6 @@ from .neg_sim_head import NegSimHead
 
 __all__ = [
     'TSNHead', 'I3DHead', 'BaseHead', 'TSMHead', 'SlowFastHead', 'SSNHead',
-    'TPNHead', 'AudioTSNHead', 'X3DHead', 'BBoxHeadAVA', 'AVARoIHead', 'ContrastiveHead' ,'MILNCEHead', 'RankingHead', 'NegSimHead'
+    'TPNHead', 'AudioTSNHead', 'X3DHead', 'BBoxHeadAVA', 'AVARoIHead', 'ContrastiveHead', 'MILNCEHead', 'RankingHead',
+    'NegSimHead'
 ]
