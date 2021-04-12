@@ -1,8 +1,9 @@
-import torch.nn as nn
 import torch
-import torch.distributed as dist
+# import torch.distributed as dist
+import torch.nn as nn
 
 from ..registry import HEADS
+
 
 @HEADS.register_module
 class MILNCEHead(nn.Module):
@@ -14,11 +15,9 @@ class MILNCEHead(nn.Module):
             Default: 0.1.
     """
 
-    def __init__(self,
-        temperature=0.1):
+    def __init__(self, temperature=0.1):
         super(MILNCEHead, self).__init__()
         self.temperature = temperature
-
 
     def init_weights(self):
         """Initiate the parameters from scratch."""
@@ -34,23 +33,24 @@ class MILNCEHead(nn.Module):
             dict[str, Tensor]: A dictionary of loss components.
         """
 
-        s = torch.matmul(v_feat, t_feat.permute(1, 0)) # [N , N * T]
+        s = torch.matmul(v_feat, t_feat.permute(1, 0))  # [N , N * T]
         s = torch.true_divide(s, self.temperature)
-        s = s.view(v_feat.shape[0], v_feat.shape[0], -1) # [N , N , T]
+        s = s.view(v_feat.shape[0], v_feat.shape[0], -1)  # [N , N , T]
 
         # MIL-NCE loss
         nominator = s * torch.eye(s.shape[0])[:, :, None].cuda()
-        nominator = nominator.sum(dim=1)
-        nominator = torch.logsumexp(nominator, dim=1)
-        denominator = torch.cat((s, s.permute(1, 0, 2)), dim=1).view(s.shape[0], -1)
+        nominator = nominator.sum(dim=1)  # [N, T]
+        nominator = torch.logsumexp(nominator, dim=1)  # (N, )
+        denominator = torch.cat((s, s.permute(1, 0, 2)),
+                                dim=1).view(s.shape[0], -1)
         denominator = torch.logsumexp(denominator, dim=1)
 
         losses = dict()
         losses['mil_nce_loss'] = torch.mean(denominator - nominator)
 
-        s = torch.matmul(v_feat, t_feat.permute(1, 0))  # [N , N * T]
-        s = torch.true_divide(s, self.temperature)
-        s = s.view(v_feat.shape[0], v_feat.shape[0], -1)  # [N , N , T]
+        # s = torch.matmul(v_feat, t_feat.permute(1, 0))  # [N , N * T]
+        # s = torch.true_divide(s, self.temperature)
+        # s = s.view(v_feat.shape[0], v_feat.shape[0], -1)  # [N , N , T]
 
         with torch.no_grad():
             N = s.shape[0]
@@ -65,7 +65,7 @@ class MILNCEHead(nn.Module):
             mean_rk = torch.zeros(N).cuda()
             for i in range(N):
                 for j in range(N * T):
-                    if rank[i][j].item() >= T * i and rank[i][j].item() < T * (i + 1):
+                    if T * i <= rank[i][j].item() < T * (i + 1):
                         mean_rk[i] += j
                         if j < 10:
                             recall10[i] += 1
@@ -84,6 +84,5 @@ class MILNCEHead(nn.Module):
             metric['recall5'] = torch.mean(recall5)
             metric['recall10'] = torch.mean(recall10)
             metric['mean_rk'] = torch.mean(mean_rk)
-
 
         return losses, metric

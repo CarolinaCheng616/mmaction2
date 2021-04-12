@@ -1,36 +1,47 @@
+import torch
+import torch.distributed as dist
+import torch.nn as nn
+from mmcv.cnn import normal_init
+
+# from .. import builder
 from ..registry import MATCHERS
 from .base import BaseMatcher
-import torch.nn as nn
-from .. import builder
-from mmcv.cnn import normal_init
-import torch.distributed as dist
-import torch
+
 
 @MATCHERS.register_module()
 class VideoTextMatcherE2E(BaseMatcher):
     """VideoTextMatcher model framework."""
+
     def __init__(self,
-        backbone1,
-        backbone2,
-        head,
-        neck=None,
-        train_cfg=None,
-        test_cfg=None,
-        fp16_enabled=False,
-        img_feat_dim = 2048,
-        text_feat_dim = 768,
-        feature_dim = 256,
-        init_std = 0.01,
-        use_text_mlp = True):
-        super(VideoTextMatcherE2E, self).__init__(backbone1,backbone2,head,train_cfg,test_cfg,fp16_enabled)
+                 backbone1,
+                 backbone2,
+                 head,
+                 neck=None,
+                 train_cfg=None,
+                 test_cfg=None,
+                 fp16_enabled=False,
+                 img_feat_dim=2048,
+                 text_feat_dim=768,
+                 feature_dim=256,
+                 init_std=0.01,
+                 use_text_mlp=True):
+        super(VideoTextMatcherE2E,
+              self).__init__(backbone1, backbone2, head, train_cfg, test_cfg,
+                             fp16_enabled)
 
         self.img_feat_dim = img_feat_dim
         self.text_feat_dim = text_feat_dim
         self.feature_dim = feature_dim
         self.init_std = init_std
 
-        self.img_mlp = nn.Sequential(nn.Linear(img_feat_dim, self.feature_dim * 2), nn.BatchNorm1d(self.feature_dim * 2), nn.ReLU(), nn.Linear(self.feature_dim * 2, self.feature_dim))
-        self.text_mlp = nn.Sequential(nn.Linear(text_feat_dim, self.feature_dim * 2), nn.BatchNorm1d(self.feature_dim * 2), nn.ReLU(), nn.Linear(self.feature_dim * 2, self.feature_dim))
+        self.img_mlp = nn.Sequential(
+            nn.Linear(img_feat_dim, self.feature_dim * 2),
+            nn.BatchNorm1d(self.feature_dim * 2), nn.ReLU(),
+            nn.Linear(self.feature_dim * 2, self.feature_dim))
+        self.text_mlp = nn.Sequential(
+            nn.Linear(text_feat_dim, self.feature_dim * 2),
+            nn.BatchNorm1d(self.feature_dim * 2), nn.ReLU(),
+            nn.Linear(self.feature_dim * 2, self.feature_dim))
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.init_mlp_weights()
@@ -71,15 +82,19 @@ class VideoTextMatcherE2E(BaseMatcher):
         return self.forward_test(imgs, texts_item)
 
     def forward_train(self, imgs, texts_item):
-
+        # BNCHW
         N = imgs.shape[0]
-        imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        v_feat = nn.functional.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
+        imgs = imgs.reshape((-1, ) + imgs.shape[2:])
+        v_feat = nn.functional.normalize(
+            self.encoder_v(imgs, N), dim=1)  # [N , C]
         for key in texts_item:
-            texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
-        t_feat = nn.functional.normalize(self.encoder_t(texts_item), dim=1) # [N * text_num_per_video (T), C]
+            texts_item[key] = texts_item[key].reshape(
+                (-1, ) + texts_item[key].shape[2:])
+        t_feat = nn.functional.normalize(
+            self.encoder_t(texts_item),
+            dim=1)  # [N * text_num_per_video (T), C]
 
-        v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0) # (2N) x d
+        v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)  # (2N) x d
         t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
         # print(v_feat.shape)
         if self.neck is not None:
@@ -89,17 +104,22 @@ class VideoTextMatcherE2E(BaseMatcher):
 
     def forward_test(self, imgs, texts_item):
         N = imgs.shape[0]
-        imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        v_feat = nn.functional.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
+        imgs = imgs.reshape((-1, ) + imgs.shape[2:])
+        v_feat = nn.functional.normalize(
+            self.encoder_v(imgs, N), dim=1)  # [N , C]
         for key in texts_item:
-            texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
-        t_feat = nn.functional.normalize(self.encoder_t(texts_item), dim=1)  # [N * text_num_per_video (T), C]
+            texts_item[key] = texts_item[key].reshape(
+                (-1, ) + texts_item[key].shape[2:])
+        t_feat = nn.functional.normalize(
+            self.encoder_t(texts_item),
+            dim=1)  # [N * text_num_per_video (T), C]
         t_feat = t_feat.view(N, -1)  # [N , T * C]
 
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
-        return zip(v_feat.cpu().numpy(),t_feat.view(N, -1, v_feat.shape[1]).cpu().numpy())
+        return zip(v_feat.cpu().numpy(),
+                   t_feat.view(N, -1, v_feat.shape[1]).cpu().numpy())
 
     def forward_gradcam(self, audios):
         raise NotImplementedError
@@ -154,14 +174,14 @@ class VideoTextMatcherE2E(BaseMatcher):
 
 
 class GatherLayer(torch.autograd.Function):
-    """Gather tensors from all process, supporting backward propagation.
-    """
+    """Gather tensors from all process, supporting backward propagation."""
 
     @staticmethod
     def forward(ctx, input):
         ctx.save_for_backward(input)
-        output = [torch.zeros_like(input) \
-            for _ in range(dist.get_world_size())]
+        output = [
+            torch.zeros_like(input) for _ in range(dist.get_world_size())
+        ]
         dist.all_gather(output, input)
         return tuple(output)
 
