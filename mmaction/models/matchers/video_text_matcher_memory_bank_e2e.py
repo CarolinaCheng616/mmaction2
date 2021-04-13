@@ -138,9 +138,11 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
-        slct_idx = torch.multinomial(
-            self.probs, batch_size * (self.bank_size + 1), replacement=False
-        ).view(batch_size, -1)
+        slct_idx = torch.zeros(batch_size, self.bank_size + 1)
+        for i in range(batch_size):
+            slct_idx.select(0, i).copy_(
+                torch.multinomial(self.probs, self.bank_size + 1, replacement=False)
+            )
         slct_idx.select(1, 0).copy_(idxes.data)
 
         v_feat_bank = (
