@@ -103,7 +103,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)
         t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
         idx = torch.cat(GatherLayer.apply(idx), dim=0).view(-1)
-        with torch.no_grad:
+        with torch.no_grad():
             v_feat_bank = torch.index_select(self.video_bank, 0, idx)
             t_feat_bank = torch.index_select(self.text_bank, 0, idx)
             v_feat_bank.mul_(self.bank_update_ratio).add_(
@@ -124,7 +124,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
         return self.forward_test(imgs, texts_item)
 
-    def forward_train(self, imgs, texts_item, idx):
+    def forward_train(self, imgs, texts_item, idxes):
         # BNCHW
         batch_size = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
@@ -133,17 +133,15 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
         t_feat = F.normalize(
             self.encoder_t(texts_item), dim=1
-        )  # [N * text_num_per_video (T), C]
+        )  # [N * text_num_per_video (T), C] noqa
 
-        # v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)  # (2N) x d
-        # t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
         slct_idx = torch.multinomial(
-            self.probs, batch_size * (self.bank_size + 1), replacement=True
+            self.probs, batch_size * (self.bank_size + 1), replacement=False
         ).view(batch_size, -1)
-        slct_idx.select(1, 0).copy_(idx.data)
+        slct_idx.select(1, 0).copy_(idxes.data)
 
         v_feat_bank = (
             torch.index_select(self.video_bank, 0, slct_idx.view(-1))
@@ -157,35 +155,30 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             .view(batch_size, self.bank_size + 1, self.feature_dim)
         )  # [batch_size, bank_size+1, feature_dim]
 
-        self.update_bank(v_feat, t_feat, idx)
+        self.update_bank(v_feat, t_feat, idxes)
 
-        # video_out = torch.bmm(t_feat_out,
-        #                       v_feat.view(batch_size, self.feature_dim,
-        #                                   1))  # [batch_size, bank_size + 1, 1]
-        # video_out = torch.exp(torch.div(video_out, self.T))
-
-        # text_out = torch.bmm(v_feat_out,
-        #                      t_feat.view(batch_size, self.emb_dim, 1))
-        # text_out = torch.exp(torch.div(text_out, self.T))
-
-        return self.head(v_feat, t_feat)
+        return self.head(v_feat, t_feat, v_feat_bank, t_feat_bank)
 
     def forward_test(self, imgs, texts_item):
-        N = imgs.shape[0]
+        batch_size = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        v_feat = F.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
+        v_feat = F.normalize(self.encoder_v(imgs, batch_size), dim=1)  # [N , C]
         for key in texts_item:
             texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
         t_feat = F.normalize(
             self.encoder_t(texts_item), dim=1
         )  # [N * text_num_per_video (T), C]
-        t_feat = t_feat.view(N, -1)  # [N , T * C]
+        t_feat = t_feat.view(batch_size, -1)  # [N , T * C]
+
+        v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)
+        t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
 
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
         return zip(
-            v_feat.cpu().numpy(), t_feat.view(N, -1, v_feat.shape[1]).cpu().numpy()
+            v_feat.cpu().numpy(),
+            t_feat.view(batch_size, -1, v_feat.shape[1]).cpu().numpy(),
         )
 
     def forward_gradcam(self, audios):
@@ -219,7 +212,8 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         """
         imgs = data_batch["imgs"]
         texts_item = data_batch["texts_item"]
-        losses, metric = self(imgs, texts_item)
+        idxes = data_batch["idxes"]
+        losses, metric = self(imgs, texts_item, idxes)
 
         loss, log_vars = self._parse_losses(losses)
 
