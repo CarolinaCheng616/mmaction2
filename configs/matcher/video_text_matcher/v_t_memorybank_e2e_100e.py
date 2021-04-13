@@ -22,8 +22,8 @@ model = dict(
     feature_dim=256,
     init_std=0.01,
 )
-# train_cfg = None
-# test_cfg = None
+train_cfg = None
+test_cfg = None
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
