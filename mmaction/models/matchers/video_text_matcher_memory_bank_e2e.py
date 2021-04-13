@@ -14,48 +14,58 @@ from .base import BaseMatcher
 class VideoTextMatcherBankE2E(BaseMatcher):
     """VideoTextMatcher model framework."""
 
-    def __init__(self,
-                 backbone1,
-                 backbone2,
-                 head,
-                 neck=None,
-                 train_cfg=None,
-                 test_cfg=None,
-                 fp16_enabled=False,
-                 dataset_size=20000,
-                 bank_size=4096,
-                 img_feat_dim=2048,
-                 text_feat_dim=768,
-                 feature_dim=256,
-                 init_std=0.01,
-                 use_text_mlp=True):
-        super(VideoTextMatcherBankE2E,
-              self).__init__(backbone1, backbone2, head, train_cfg, test_cfg,
-                             fp16_enabled)
+    def __init__(
+        self,
+        backbone1,
+        backbone2,
+        head,
+        neck=None,
+        train_cfg=None,
+        test_cfg=None,
+        fp16_enabled=False,
+        dataset_size=20000,
+        bank_size=4096,
+        img_feat_dim=2048,
+        text_feat_dim=768,
+        feature_dim=256,
+        init_std=0.01,
+        bank_update_ratio=0.5,
+        use_text_mlp=True,
+    ):
+        super(VideoTextMatcherBankE2E, self).__init__(
+            backbone1, backbone2, head, train_cfg, test_cfg, fp16_enabled
+        )
         self.neck = neck
         self.dataset_size = dataset_size
         self.bank_size = bank_size
-        stdv = 1. / np.sqrt(feature_dim / 3)
-        self.register_buffer('video_bank',
-                             torch.rand(dataset_size, feature_dim).mul_(
-                                 2 * stdv).add_(-stdv))  # [-stdv, stdv]
-        self.register_buffer('text_bank',
-                             torch.rand(dataset_size, feature_dim).mul_(
-                                 2 * stdv).add_(-stdv))  # [-stdv, stdv]
+        stdv = 1.0 / np.sqrt(feature_dim / 3)
+        self.register_buffer(
+            "video_bank",
+            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv),
+        )  # [-stdv, stdv]
+        self.register_buffer(
+            "text_bank",
+            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv),
+        )  # [-stdv, stdv]
         self.probs = torch.ones(self.dataset_size)
         self.img_feat_dim = img_feat_dim
         self.text_feat_dim = text_feat_dim
         self.feature_dim = feature_dim
         self.init_std = init_std
+        self.bank_update_ratio = bank_update_ratio
 
         self.img_mlp = nn.Sequential(
             nn.Linear(img_feat_dim, self.feature_dim * 2),
-            nn.BatchNorm1d(self.feature_dim * 2), nn.ReLU(),
-            nn.Linear(self.feature_dim * 2, self.feature_dim))
+            nn.BatchNorm1d(self.feature_dim * 2),
+            nn.ReLU(),
+            nn.Linear(self.feature_dim * 2, self.feature_dim),
+        )
         self.text_mlp = nn.Sequential(
             nn.Linear(text_feat_dim, self.feature_dim * 2),
-            nn.BatchNorm1d(self.feature_dim * 2), nn.ReLU(),
-            nn.Linear(self.feature_dim * 2, self.feature_dim))
+            nn.BatchNorm1d(self.feature_dim * 2),
+            nn.ReLU(),
+            nn.Linear(self.feature_dim * 2, self.feature_dim),
+        )
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
         self.init_mlp_weights()
@@ -88,6 +98,25 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             x = self.text_mlp(x)
         return x
 
+    def update_bank(self, v_feat, t_feat, idx):
+        # gather
+        v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)
+        t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
+        idx = torch.cat(GatherLayer.apply(idx), dim=0).view(-1)
+        with torch.no_grad:
+            v_feat_bank = torch.index_select(self.video_bank, 0, idx)
+            t_feat_bank = torch.index_select(self.text_bank, 0, idx)
+            v_feat_bank.mul_(self.bank_update_ratio).add_(
+                torch.mul(v_feat, 1 - self.bank_update_ratio)
+            )
+            t_feat_bank.mul_(self.bank_update_ratio).add_(
+                torch.mul(t_feat, 1 - self.bank_update_ratio)
+            )
+            v_feat_bank = F.normalize(v_feat_bank, dim=1)
+            t_feat_bank = F.normalize(t_feat_bank, dim=1)
+            self.video_bank.index_copy_(0, idx, v_feat_bank)
+            self.text_bank.index_copy_(0, idx, t_feat_bank)
+
     def forward(self, imgs, texts_item, idx=None, return_loss=True):
         """Define the computation performed at every call."""
         if return_loss:
@@ -98,15 +127,13 @@ class VideoTextMatcherBankE2E(BaseMatcher):
     def forward_train(self, imgs, texts_item, idx):
         # BNCHW
         batch_size = imgs.shape[0]
-        imgs = imgs.reshape((-1, ) + imgs.shape[2:])
-        v_feat = F.normalize(
-            self.encoder_v(imgs, batch_size), dim=1)  # [N , C]
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])
+        v_feat = F.normalize(self.encoder_v(imgs, batch_size), dim=1)  # [N , C]
         for key in texts_item:
-            texts_item[key] = texts_item[key].reshape(
-                (-1, ) + texts_item[key].shape[2:])
+            texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
         t_feat = F.normalize(
-            self.encoder_t(texts_item),
-            dim=1)  # [N * text_num_per_video (T), C]
+            self.encoder_t(texts_item), dim=1
+        )  # [N * text_num_per_video (T), C]
 
         # v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)  # (2N) x d
         # t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
@@ -114,45 +141,52 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
         slct_idx = torch.multinomial(
-            self.probs, batch_size * (self.bank_size + 1),
-            replacement=True).view(batch_size, -1)
+            self.probs, batch_size * (self.bank_size + 1), replacement=True
+        ).view(batch_size, -1)
         slct_idx.select(1, 0).copy_(idx.data)
 
-        t_feat = torch.index_select(self.text_bank, 0,
-                                    slct_idx.view(-1)).detach().view(
-                                        batch_size, self.bank_size + 1,
-                                        self.feature_dim)
-        vis_out = torch.bmm(t_feat,
-                            v_feat.view(batch_size, self.feature_dim,
-                                        1))  # [batch_size, bank_size + 1, 1]
-        vis_out = torch.exp(torch.div(vis_out, self.T))
+        v_feat_bank = (
+            torch.index_select(self.video_bank, 0, slct_idx.view(-1))
+            .detach()
+            .view(batch_size, self.bank_size + 1, self.feature_dim)
+        )  # [batch_size, bank_size+1, feature_dim]
 
-        vis_feats = torch.index_select(self.video_bank, 0,
-                                       slct_idx.view(-1)).detach()
-        vis_feats = vis_feats.view(batch_size, self.K + 1, self.emb_dim)
-        # text_out = torch.bmm(vis_feats,
-        #                      text_base_out.view(batch_size, self.emb_dim, 1))
+        t_feat_bank = (
+            torch.index_select(self.text_bank, 0, slct_idx.view(-1))
+            .detach()
+            .view(batch_size, self.bank_size + 1, self.feature_dim)
+        )  # [batch_size, bank_size+1, feature_dim]
+
+        self.update_bank(v_feat, t_feat, idx)
+
+        # video_out = torch.bmm(t_feat_out,
+        #                       v_feat.view(batch_size, self.feature_dim,
+        #                                   1))  # [batch_size, bank_size + 1, 1]
+        # video_out = torch.exp(torch.div(video_out, self.T))
+
+        # text_out = torch.bmm(v_feat_out,
+        #                      t_feat.view(batch_size, self.emb_dim, 1))
         # text_out = torch.exp(torch.div(text_out, self.T))
 
         return self.head(v_feat, t_feat)
 
     def forward_test(self, imgs, texts_item):
         N = imgs.shape[0]
-        imgs = imgs.reshape((-1, ) + imgs.shape[2:])
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])
         v_feat = F.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
         for key in texts_item:
-            texts_item[key] = texts_item[key].reshape(
-                (-1, ) + texts_item[key].shape[2:])
+            texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
         t_feat = F.normalize(
-            self.encoder_t(texts_item),
-            dim=1)  # [N * text_num_per_video (T), C]
+            self.encoder_t(texts_item), dim=1
+        )  # [N * text_num_per_video (T), C]
         t_feat = t_feat.view(N, -1)  # [N , T * C]
 
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
-        return zip(v_feat.cpu().numpy(),
-                   t_feat.view(N, -1, v_feat.shape[1]).cpu().numpy())
+        return zip(
+            v_feat.cpu().numpy(), t_feat.view(N, -1, v_feat.shape[1]).cpu().numpy()
+        )
 
     def forward_gradcam(self, audios):
         raise NotImplementedError
@@ -183,8 +217,8 @@ class VideoTextMatcherBankE2E(BaseMatcher):
                 DDP, it means the batch size on each GPU), which is used for
                 averaging the logs.
         """
-        imgs = data_batch['imgs']
-        texts_item = data_batch['texts_item']
+        imgs = data_batch["imgs"]
+        texts_item = data_batch["texts_item"]
         losses, metric = self(imgs, texts_item)
 
         loss, log_vars = self._parse_losses(losses)
@@ -198,7 +232,8 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         outputs = dict(
             loss=loss,
             log_vars=log_vars,
-            num_samples=len(next(iter(data_batch.values()))))
+            num_samples=len(next(iter(data_batch.values()))),
+        )
 
         return outputs
 
@@ -212,9 +247,7 @@ class GatherLayer(torch.autograd.Function):
     @staticmethod
     def forward(ctx, input):
         ctx.save_for_backward(input)
-        output = [
-            torch.zeros_like(input) for _ in range(dist.get_world_size())
-        ]
+        output = [torch.zeros_like(input) for _ in range(dist.get_world_size())]
         dist.all_gather(output, input)
         return tuple(output)
 
