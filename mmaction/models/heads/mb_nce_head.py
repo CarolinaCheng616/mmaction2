@@ -35,6 +35,7 @@ class MBNCEHead(nn.Module):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
+        device = v_feat.device()
         batch_size, feature_dim = v_feat.shape
         bank_size_plus_1 = v_feat_bank.shape[1]
         video_out = torch.bmm(
@@ -65,10 +66,10 @@ class MBNCEHead(nn.Module):
             _, rank = torch.sort(
                 video_sim, dim=1, descending=True
             )  # [batch_size, bank_size + 1]
-            recall1 = torch.zeros(batch_size).cuda()
-            recall5 = torch.zeros(batch_size).cuda()
-            recall10 = torch.zeros(batch_size).cuda()
-            mean_rk = torch.zeros(batch_size).cuda()
+            recall1 = torch.zeros(batch_size).to(device)
+            recall5 = torch.zeros(batch_size).to(device)
+            recall10 = torch.zeros(batch_size).to(device)
+            mean_rk = torch.zeros(batch_size).to(device)
             for i in range(batch_size):
                 for j in range(bank_size_plus_1):
                     if rank[i][j].item() == 0:
@@ -87,10 +88,10 @@ class MBNCEHead(nn.Module):
             _, rank = torch.sort(
                 text_sim, dim=1, descending=True
             )  # [batch_size, bank_size + 1]
-            recall1 = torch.zeros(batch_size).cuda()
-            recall5 = torch.zeros(batch_size).cuda()
-            recall10 = torch.zeros(batch_size).cuda()
-            mean_rk = torch.zeros(batch_size).cuda()
+            recall1 = torch.zeros(batch_size).to(device)
+            recall5 = torch.zeros(batch_size).to(device)
+            recall10 = torch.zeros(batch_size).to(device)
+            mean_rk = torch.zeros(batch_size).to(device)
             for i in range(batch_size):
                 for j in range(bank_size_plus_1):
                     if rank[i][j].item() == 0:
