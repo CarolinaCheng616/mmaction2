@@ -35,7 +35,7 @@ class MBNCEHead(nn.Module):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
-        device = v_feat.device()
+        device = v_feat.device
         batch_size, feature_dim = v_feat.shape
         bank_size_plus_1 = v_feat_bank.shape[1]
         video_out = torch.bmm(
