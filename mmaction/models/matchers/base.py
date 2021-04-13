@@ -9,10 +9,18 @@ from mmcv.runner import auto_fp16
 
 from .. import builder
 
+
 class BaseMatcher(nn.Module, metaclass=ABCMeta):
-
-
-    def __init__(self, backbone1, backbone2, head, neck=None, train_cfg=None, test_cfg=None, fp16_enabled=False):
+    def __init__(
+        self,
+        backbone1,
+        backbone2,
+        head,
+        neck=None,
+        train_cfg=None,
+        test_cfg=None,
+        fp16_enabled=False,
+    ):
         super().__init__()
         self.backbone1 = builder.build_backbone(backbone1)
         self.backbone2 = builder.build_backbone(backbone2)
@@ -29,8 +37,8 @@ class BaseMatcher(nn.Module, metaclass=ABCMeta):
         # will be used in train_step and val_step, data_batch should contain
         # these tensors
         self.aux_info = []
-        if train_cfg is not None and 'aux_info' in train_cfg:
-            self.aux_info = train_cfg['aux_info']
+        if train_cfg is not None and "aux_info" in train_cfg:
+            self.aux_info = train_cfg["aux_info"]
 
         self.init_weights()
         self.fp16_enabled = fp16_enabled
@@ -40,7 +48,6 @@ class BaseMatcher(nn.Module, metaclass=ABCMeta):
             if neck is not None:
                 self.neck = self.neck.half()
             self.head = self.head.half()
-
 
     def init_weights(self):
         """Initialize the model network weights."""
@@ -59,7 +66,7 @@ class BaseMatcher(nn.Module, metaclass=ABCMeta):
         """Defines the computation performed at every call when training."""
 
     @abstractmethod
-    def forward_test(self, imgs, texts,  **kwargs):
+    def forward_test(self, imgs, texts, **kwargs):
         """Defines the computation performed at every call when evaluation and
         testing."""
 
@@ -83,13 +90,11 @@ class BaseMatcher(nn.Module, metaclass=ABCMeta):
             elif isinstance(loss_value, list):
                 log_vars[loss_name] = sum(_loss.mean() for _loss in loss_value)
             else:
-                raise TypeError(
-                    f'{loss_name} is not a tensor or list of tensors')
+                raise TypeError(f"{loss_name} is not a tensor or list of tensors")
 
-        loss = sum(_value for _key, _value in log_vars.items()
-                   if 'loss' in _key)
+        loss = sum(_value for _key, _value in log_vars.items() if "loss" in _key)
 
-        log_vars['loss'] = loss
+        log_vars["loss"] = loss
         for loss_name, loss_value in log_vars.items():
             # reduce loss when distributed training
             if dist.is_available() and dist.is_initialized():

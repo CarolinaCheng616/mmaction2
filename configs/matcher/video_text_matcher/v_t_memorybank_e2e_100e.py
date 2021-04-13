@@ -51,7 +51,7 @@ train_pipeline = [
     dict(type="FormatShape", input_format="NCHW"),
     dict(type="LoadTexts", sample_mode="number", sample_number=1),
     dict(type="TextTokenize", tokenizer_dir=bert_path),
-    dict(type="Collect", keys=["imgs", "texts_item"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "texts_item", "idxes"], meta_keys=[]),
     dict(type="ToTensor", keys=["imgs"]),
 ]
 val_pipeline = [

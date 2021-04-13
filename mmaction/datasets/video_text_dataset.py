@@ -9,6 +9,7 @@ from .registry import DATASETS
 import warnings
 from mmcv.utils import print_log
 
+
 @DATASETS.register_module()
 class VideoTextDataset(BaseDataset):
     """VideoText dataset for matcher.
@@ -58,19 +59,21 @@ class VideoTextDataset(BaseDataset):
             Default: None.
     """
 
-    def __init__(self,
-                 ann_file,
-                 pipeline,
-                 data_prefix=None,
-                 test_mode=False,
-                 filename_tmpl='img_{:05}.jpg',
-                 with_offset=False,
-                 multi_class=False,
-                 num_classes=None,
-                 start_index=1,
-                 modality='RGB',
-                 sample_by_class=False,
-                 power=None):
+    def __init__(
+        self,
+        ann_file,
+        pipeline,
+        data_prefix=None,
+        test_mode=False,
+        filename_tmpl="img_{:05}.jpg",
+        with_offset=False,
+        multi_class=False,
+        num_classes=None,
+        start_index=1,
+        modality="RGB",
+        sample_by_class=False,
+        power=None,
+    ):
         self.filename_tmpl = filename_tmpl
         self.with_offset = with_offset
         super().__init__(
@@ -83,14 +86,15 @@ class VideoTextDataset(BaseDataset):
             start_index,
             modality,
             sample_by_class=sample_by_class,
-            power=power)
+            power=power,
+        )
 
     def load_annotations(self):
         """Load annotation file to get video and text information."""
-        if self.ann_file.endswith('.json'):
+        if self.ann_file.endswith(".json"):
             return self.load_json_annotations()
         video_infos = []
-        with open(self.ann_file, 'r') as fin:
+        with open(self.ann_file, "r") as fin:
             for line in fin:
                 line_split = line.strip().split()
                 video_info = {}
@@ -99,29 +103,31 @@ class VideoTextDataset(BaseDataset):
                 frame_dir = line_split[idx]
                 if self.data_prefix is not None:
                     frame_dir = osp.join(self.data_prefix, frame_dir)
-                video_info['frame_dir'] = frame_dir
+                video_info["frame_dir"] = frame_dir
                 idx += 1
                 if self.with_offset:
                     # idx for offset and total_frames
-                    video_info['offset'] = int(line_split[idx])
-                    video_info['total_frames'] = int(line_split[idx + 1])
+                    video_info["offset"] = int(line_split[idx])
+                    video_info["total_frames"] = int(line_split[idx + 1])
                     idx += 2
                 else:
                     # idx for total_frames
-                    video_info['total_frames'] = int(line_split[idx])
+                    video_info["total_frames"] = int(line_split[idx])
                     idx += 1
                 # idx for text annotation path
-                video_info['text_path'] = line_split[idx]
+                video_info["text_path"] = line_split[idx]
                 idx += 1
                 video_infos.append(video_info)
 
         return video_infos
 
-    def evaluate(self,
-                 results,
-                 metrics=['vt_retrieval_metrics_full', 'tv_retrieval_metrics_full'],
-                 logger=None,
-                 **deprecated_kwargs):
+    def evaluate(
+        self,
+        results,
+        metrics=["vt_retrieval_metrics_full", "tv_retrieval_metrics_full"],
+        logger=None,
+        **deprecated_kwargs,
+    ):
         """Perform evaluation for common datasets.
 
         Args:
@@ -140,25 +146,27 @@ class VideoTextDataset(BaseDataset):
             dict: Evaluation results dict.
         """
         # Protect ``metric_options`` since it uses mutable value as default
-
+        print("evaluate\n")
         if deprecated_kwargs != {}:
             warnings.warn(
-                'Option arguments for metrics has been changed to '
+                "Option arguments for metrics has been changed to "
                 "`metric_options`, See 'https://github.com/open-mmlab/mmaction2/pull/286' "  # noqa: E501
-                'for more details')
+                "for more details"
+            )
 
         if not isinstance(results, list):
-            raise TypeError(f'results must be a list, but got {type(results)}')
+            raise TypeError(f"results must be a list, but got {type(results)}")
         assert len(results) == len(self), (
-            f'The length of results is not equal to the dataset len: '
-            f'{len(results)} != {len(self)}')
+            f"The length of results is not equal to the dataset len: "
+            f"{len(results)} != {len(self)}"
+        )
 
         metrics = metrics if isinstance(metrics, (list, tuple)) else [metrics]
-        allowed_metrics = ['vt_retrieval_metrics_full', 'tv_retrieval_metrics_full']
+        allowed_metrics = ["vt_retrieval_metrics_full", "tv_retrieval_metrics_full"]
 
         for metric in metrics:
             if metric not in allowed_metrics:
-                raise KeyError(f'metric {metric} is not supported')
+                raise KeyError(f"metric {metric} is not supported")
 
         eval_results = {}
         # for metric in metrics:
@@ -166,7 +174,7 @@ class VideoTextDataset(BaseDataset):
         #     if logger is None:
         #         msg = '\n' + msg
         #     print_log(msg, logger=logger)
-        #vt_recall5_full\t{recall5:.4f}\nvt_recall10_full\t{recall10:.4f}'
+        # vt_recall5_full\t{recall5:.4f}\nvt_recall10_full\t{recall10:.4f}'
         #     if metric == 'vt_retrieval_metrics_full':
         #         v_feat = np.array([result[0] for result in results])
         #         t_feat = np.array([result[1] for result in results])
@@ -207,16 +215,16 @@ class VideoTextDataset(BaseDataset):
             results = copy.deepcopy(np.random.choice(samples))
         else:
             results = copy.deepcopy(self.video_infos[idx])
-        results['filename_tmpl'] = self.filename_tmpl
-        results['modality'] = self.modality
-        results['start_index'] = self.start_index
-
+        results["filename_tmpl"] = self.filename_tmpl
+        results["modality"] = self.modality
+        results["start_index"] = self.start_index
+        results["idxes"] = idx
 
         # prepare tensor in getitem
         if self.multi_class:
             onehot = torch.zeros(self.num_classes)
-            onehot[results['label']] = 1.
-            results['label'] = onehot
+            onehot[results["label"]] = 1.0
+            results["label"] = onehot
 
         return self.pipeline(results)
 
@@ -228,22 +236,23 @@ class VideoTextDataset(BaseDataset):
             results = copy.deepcopy(np.random.choice(samples))
         else:
             results = copy.deepcopy(self.video_infos[idx])
-        results['filename_tmpl'] = self.filename_tmpl
-        results['modality'] = self.modality
-        results['start_index'] = self.start_index
+        results["filename_tmpl"] = self.filename_tmpl
+        results["modality"] = self.modality
+        results["start_index"] = self.start_index
 
         # prepare tensor in getitem
         if self.multi_class:
             onehot = torch.zeros(self.num_classes)
-            onehot[results['label']] = 1.
-            results['label'] = onehot
+            onehot[results["label"]] = 1.0
+            results["label"] = onehot
 
         return self.pipeline(results)
 
+
 def eval_retrieval_metrics(q_feat, k_feat):
-    s = np.matmul(q_feat, np.transpose(k_feat)) # [N , N]
+    s = np.matmul(q_feat, np.transpose(k_feat))  # [N , N]
     N = s.shape[0]
-    rank = np.argsort(s)[:,::-1]
+    rank = np.argsort(s)[:, ::-1]
     mask = np.repeat(np.arange(N).reshape(N, 1), axis=1, repeats=N)
     gt_rank = np.argsort(rank == mask)[:, ::-1][:, :1].reshape(N)
     mean_rk = np.mean(gt_rank)
