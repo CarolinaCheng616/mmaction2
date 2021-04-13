@@ -126,6 +126,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
     def forward_train(self, imgs, texts_item, idxes):
         # BNCHW
+        device = imgs.device()
         batch_size = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         v_feat = F.normalize(self.encoder_v(imgs, batch_size), dim=1)  # [N , C]
@@ -138,12 +139,11 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
-        slct_idx = torch.zeros(batch_size, self.bank_size + 1)
-        for i in range(batch_size):
-            slct_idx.select(0, i).copy_(
-                torch.multinomial(self.probs, self.bank_size + 1, replacement=False)
-            )
-        slct_idx.select(1, 0).copy_(idxes.data)
+        slct_idx = (
+            torch.multinomial(self.probs, self.bank_size * (self.bank_size + 1))
+            .view(self.bank_size, -1)
+            .to(device)
+        )  # [batch_size, bank_size + 1]
 
         v_feat_bank = (
             torch.index_select(self.video_bank, 0, slct_idx.view(-1))
