@@ -126,7 +126,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
     def forward_train(self, imgs, texts_item, idxes):
         # BNCHW
-        device = imgs.device()
+        device = imgs.device
         batch_size = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         v_feat = F.normalize(self.encoder_v(imgs, batch_size), dim=1)  # [N , C]
