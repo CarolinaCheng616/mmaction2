@@ -42,7 +42,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         self.register_buffer('text_bank',
                              torch.rand(dataset_size, feature_dim).mul_(
                                  2 * stdv).add_(-stdv))  # [-stdv, stdv]
-
+        self.probs = torch.ones(self.dataset_size)
         self.img_feat_dim = img_feat_dim
         self.text_feat_dim = text_feat_dim
         self.feature_dim = feature_dim
@@ -97,9 +97,10 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
     def forward_train(self, imgs, texts_item, idx):
         # BNCHW
-        N = imgs.shape[0]
+        batch_size = imgs.shape[0]
         imgs = imgs.reshape((-1, ) + imgs.shape[2:])
-        v_feat = F.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
+        v_feat = F.normalize(
+            self.encoder_v(imgs, batch_size), dim=1)  # [N , C]
         for key in texts_item:
             texts_item[key] = texts_item[key].reshape(
                 (-1, ) + texts_item[key].shape[2:])
@@ -107,11 +108,31 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             self.encoder_t(texts_item),
             dim=1)  # [N * text_num_per_video (T), C]
 
-        v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)  # (2N) x d
-        t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
-        # print(v_feat.shape)
+        # v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)  # (2N) x d
+        # t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
+
+        slct_idx = torch.multinomial(
+            self.probs, batch_size * (self.bank_size + 1),
+            replacement=True).view(batch_size, -1)
+        slct_idx.select(1, 0).copy_(idx.data)
+
+        t_feat = torch.index_select(self.text_bank, 0,
+                                    slct_idx.view(-1)).detach().view(
+                                        batch_size, self.bank_size + 1,
+                                        self.feature_dim)
+        vis_out = torch.bmm(t_feat,
+                            v_feat.view(batch_size, self.feature_dim,
+                                        1))  # [batch_size, bank_size + 1, 1]
+        vis_out = torch.exp(torch.div(vis_out, self.T))
+
+        vis_feats = torch.index_select(self.video_bank, 0,
+                                       slct_idx.view(-1)).detach()
+        vis_feats = vis_feats.view(batch_size, self.K + 1, self.emb_dim)
+        # text_out = torch.bmm(vis_feats,
+        #                      text_base_out.view(batch_size, self.emb_dim, 1))
+        # text_out = torch.exp(torch.div(text_out, self.T))
 
         return self.head(v_feat, t_feat)
 
