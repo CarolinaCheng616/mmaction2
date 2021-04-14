@@ -47,6 +47,9 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             "text_bank",
             torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv).detach(),
         )  # [-stdv, stdv]
+        print(f"video_bank: {np.prod(list(self.video_bank.size())) * 4 / 1000 / 1000}M")
+        print(f"text_bank: {np.prod(list(self.text_bank.size())) * 4 / 1000 / 1000}M")
+        print(self.text_bank.shape)
         self.probs = torch.ones(self.dataset_size)
         self.img_feat_dim = img_feat_dim
         self.text_feat_dim = text_feat_dim
@@ -147,7 +150,9 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             .to(device)
             .detach()
         )  # [batch_size, bank_size + 1]
-
+        print(
+            f"sclt_idx size: {np.prod(list(self.slct_idx.size())) * 4 / 1000 / 1000}M"
+        )
         v_feat_bank = (
             torch.index_select(self.video_bank, 0, slct_idx.view(-1))
             .detach()
