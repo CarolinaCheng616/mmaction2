@@ -38,20 +38,20 @@ class MBNCEHead(nn.Module):
         device = v_feat.device
         batch_size, feature_dim = v_feat.shape
         bank_size_plus_1 = v_feat_bank.shape[1]
-        video_out = torch.bmm(
+        video_sim = torch.bmm(
             t_feat_bank, v_feat.view(batch_size, feature_dim, 1)
         ).view(
             batch_size, -1
         )  # [batch_size, bank_size + 1]
         video_sim = torch.exp(
-            torch.true_divide(video_out, self.temperature)
+            torch.true_divide(video_sim, self.temperature)
         )  # exp^(f(x)g(y)/T)
 
-        text_out = torch.bmm(v_feat_bank, t_feat.view(batch_size, feature_dim, 1)).view(
+        text_sim = torch.bmm(v_feat_bank, t_feat.view(batch_size, feature_dim, 1)).view(
             batch_size, -1
         )  # [batch_size, bank_size + 1]
         text_sim = torch.exp(
-            torch.true_divide(text_out, self.temperature)
+            torch.true_divide(text_sim, self.temperature)
         )  # exp^(f(x)g(y)/T)
 
         sim = torch.add(video_sim, text_sim)  # [batch_size, bank_size + 1]
