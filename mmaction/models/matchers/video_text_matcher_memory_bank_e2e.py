@@ -41,11 +41,11 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         stdv = 1.0 / np.sqrt(feature_dim / 3)
         self.register_buffer(
             "video_bank",
-            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv),
+            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv).detach(),
         )  # [-stdv, stdv]
         self.register_buffer(
             "text_bank",
-            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv),
+            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv).detach(),
         )  # [-stdv, stdv]
         self.probs = torch.ones(self.dataset_size)
         self.img_feat_dim = img_feat_dim
@@ -104,8 +104,8 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
         idx = torch.cat(GatherLayer.apply(idx), dim=0).view(-1)
         with torch.no_grad():
-            v_feat_bank = torch.index_select(self.video_bank, 0, idx)
-            t_feat_bank = torch.index_select(self.text_bank, 0, idx)
+            v_feat_bank = torch.index_select(self.video_bank, 0, idx).detach()
+            t_feat_bank = torch.index_select(self.text_bank, 0, idx).detach()
             v_feat_bank.mul_(self.bank_update_ratio).add_(
                 torch.mul(v_feat, 1 - self.bank_update_ratio)
             )
