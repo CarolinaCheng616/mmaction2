@@ -5,7 +5,7 @@ data_root_val = "data/usv/videos"
 ann_file_train = "data/usv/usv_train_list_frame_text_title"
 ann_file_val = "data/usv/usv_val_list_frame_text_title"
 ann_file_test = "data/usv/usv_val_list_frame_text_title"
-train_dataset_size = 20000
+train_dataset_size = 200000
 val_dataset_size = 24472
 train = True
 
