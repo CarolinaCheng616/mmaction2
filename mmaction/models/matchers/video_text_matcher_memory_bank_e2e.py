@@ -140,7 +140,9 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
         slct_idx = (
-            torch.multinomial(self.probs, self.bank_size * (self.bank_size + 1))
+            torch.multinomial(
+                self.probs, self.bank_size * (self.bank_size + 1), replacement=True
+            )
             .view(self.bank_size, -1)
             .to(device)
         )  # [batch_size, bank_size + 1]
