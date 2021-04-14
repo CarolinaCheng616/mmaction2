@@ -23,7 +23,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         train_cfg=None,
         test_cfg=None,
         fp16_enabled=False,
-        dataset_size=20000,
+        dataset_size=200000,
         bank_size=4096,
         img_feat_dim=2048,
         text_feat_dim=768,
@@ -50,7 +50,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         print(f"video_bank: {np.prod(list(self.video_bank.size())) * 4 / 1000 / 1000}M")
         print(f"text_bank: {np.prod(list(self.text_bank.size())) * 4 / 1000 / 1000}M")
         print(self.text_bank.shape)
-        self.probs = torch.ones(self.dataset_size).detach()
+        self.probs = torch.ones(dataset_size).detach()
         self.img_feat_dim = img_feat_dim
         self.text_feat_dim = text_feat_dim
         self.feature_dim = feature_dim
