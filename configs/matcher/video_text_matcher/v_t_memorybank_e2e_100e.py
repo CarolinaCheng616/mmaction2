@@ -16,7 +16,7 @@ model = dict(
     head=dict(type="MBNCEHead", temperature=0.05),
     fp16_enabled=False,
     dataset_size=train_dataset_size if train else val_dataset_size,
-    bank_size=4096,
+    bank_size=2048,
     img_feat_dim=2048,
     text_feat_dim=768,
     feature_dim=256,
