@@ -50,7 +50,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         print(f"video_bank: {np.prod(list(self.video_bank.size())) * 4 / 1000 / 1000}M")
         print(f"text_bank: {np.prod(list(self.text_bank.size())) * 4 / 1000 / 1000}M")
         print(self.text_bank.shape)
-        self.probs = torch.ones(self.dataset_size)
+        self.probs = torch.ones(self.dataset_size).detach()
         self.img_feat_dim = img_feat_dim
         self.text_feat_dim = text_feat_dim
         self.feature_dim = feature_dim
@@ -142,9 +142,10 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
 
+        slct_idx = torch.zeros()
         slct_idx = (
             torch.multinomial(
-                self.probs, self.bank_size * (self.bank_size + 1), replacement=True
+                self.probs, batch_size * (self.bank_size + 1), replacement=True
             )
             .view(self.bank_size, -1)
             .to(device)
