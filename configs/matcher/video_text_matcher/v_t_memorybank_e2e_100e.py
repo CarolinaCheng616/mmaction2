@@ -44,7 +44,7 @@ train_pipeline = [
         max_wh_scale_gap=1,
         lazy=True,
     ),
-    dict(type="Resize", scale=(224, 224), keep_ratio=False, lazy=True),
+    dict(type="Resize", scale=(112, 112), keep_ratio=False, lazy=True),
     dict(type="Flip", flip_ratio=0.5, lazy=True),
     dict(type="Fuse"),
     dict(type="Normalize", **img_norm_cfg),
@@ -66,7 +66,7 @@ val_pipeline = [
         max_wh_scale_gap=1,
         lazy=True,
     ),
-    dict(type="Resize", scale=(224, 224), keep_ratio=False, lazy=True),
+    dict(type="Resize", scale=(112, 112), keep_ratio=False, lazy=True),
     dict(type="Flip", flip_ratio=0.5, lazy=True),
     dict(type="Fuse"),
     dict(type="Normalize", **img_norm_cfg),
@@ -88,7 +88,7 @@ test_pipeline = [
         max_wh_scale_gap=1,
         lazy=True,
     ),
-    dict(type="Resize", scale=(224, 224), keep_ratio=False, lazy=True),
+    dict(type="Resize", scale=(112, 112), keep_ratio=False, lazy=True),
     dict(type="Flip", flip_ratio=0.5, lazy=True),
     dict(type="Fuse"),
     dict(type="Normalize", **img_norm_cfg),
@@ -99,7 +99,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=16,
+    videos_per_gpu=8,
     workers_per_gpu=5,
     train=dict(
         type=dataset_type,
