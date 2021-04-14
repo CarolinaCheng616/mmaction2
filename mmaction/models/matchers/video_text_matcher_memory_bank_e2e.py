@@ -145,6 +145,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             )
             .view(self.bank_size, -1)
             .to(device)
+            .detach()
         )  # [batch_size, bank_size + 1]
 
         v_feat_bank = (
