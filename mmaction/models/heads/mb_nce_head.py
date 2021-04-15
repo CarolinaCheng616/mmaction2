@@ -56,7 +56,7 @@ class MBNCEHead(nn.Module):
 
         sim = torch.add(video_sim, text_sim)  # [batch_size, bank_size + 1]
         loss = (
-            torch.div(sim[:, 0], torch.sum(sim, dim=1)).log_().mean(0)
+            -torch.div(sim[:, 0], torch.sum(sim, dim=1)).log_().mean(0)
         )  # log(exp(fg)/sum(exp(fg)))
         losses = dict()
         losses["memory_bank_nce_loss"] = loss
