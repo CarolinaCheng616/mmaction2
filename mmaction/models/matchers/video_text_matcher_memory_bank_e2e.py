@@ -159,9 +159,6 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             ).detach()
             self.probs[idx] = 1.0
 
-        import pdb
-
-        pdb.set_trace()
         slct_idx.select(1, 0).copy_(idxes.data)
 
         v_feat_bank = (
