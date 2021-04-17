@@ -35,9 +35,9 @@ class MBNCEHead(nn.Module):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
-        import pdb
-
-        pdb.set_trace()
+        # import pdb
+        #
+        # pdb.set_trace()
         device = v_feat.device
         batch_size, feature_dim = v_feat.shape
         bank_size_plus_1 = v_feat_bank.shape[1]
