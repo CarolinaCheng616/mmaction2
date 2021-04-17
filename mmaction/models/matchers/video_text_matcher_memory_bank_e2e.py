@@ -8,6 +8,7 @@ from mmcv.cnn import normal_init
 # from .. import builder
 from ..registry import MATCHERS
 from .base import BaseMatcher
+import pdb
 
 
 @MATCHERS.register_module()
@@ -81,6 +82,8 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         self.init_mlp_weights()
         self.use_text_mlp = use_text_mlp
 
+        self.iters = 0
+
     def init_mlp_weights(self):
         """Initialize the model network weights."""
         for layer in self.img_mlp:
@@ -136,9 +139,12 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
     def forward_train(self, imgs, texts_item, idxes):
         # BNCHW
-        import pdb
-
-        pdb.set_trace()
+        # import pdb
+        #
+        # pdb.set_trace()
+        self.iters += 1
+        if self.iters == 12000:
+            pdb.set_trace()
         device = imgs.device
         batch_size = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])  # [N'CHW]
