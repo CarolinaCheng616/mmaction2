@@ -96,12 +96,12 @@ class MBNCEHead(nn.Module):
                 for j in range(bank_size_plus_1):
                     if rank[i][j].item() == 0:
                         mean_rk[i] += j + 1
-                        if j < 1:
-                            recall1[i] += 1
-                        elif j < 5:
-                            recall5[i] += 1
-                        elif j < 10:
+                        if j < 10:
                             recall10[i] += 1
+                            if j < 5:
+                                recall5[i] += 1
+                                if j < 1:
+                                    recall1[i] += 1
             metric["tv_recall1"] = torch.mean(recall1)
             metric["tv_recall5"] = torch.mean(recall5)
             metric["tv_recall10"] = torch.mean(recall10)
