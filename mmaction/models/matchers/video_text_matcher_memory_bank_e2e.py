@@ -41,11 +41,21 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         stdv = 1.0 / np.sqrt(feature_dim / 3)
         self.register_buffer(
             "video_bank",
-            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv).detach(),
+            F.normalize(
+                torch.rand(dataset_size, feature_dim)
+                .mul_(2 * stdv)
+                .add_(-stdv)
+                .detach()
+            ),
         )  # [-stdv, stdv]
         self.register_buffer(
             "text_bank",
-            torch.rand(dataset_size, feature_dim).mul_(2 * stdv).add_(-stdv).detach(),
+            F.normalize(
+                torch.rand(dataset_size, feature_dim)
+                .mul_(2 * stdv)
+                .add_(-stdv)
+                .detach()
+            ),
         )  # [-stdv, stdv]
         self.probs = torch.ones(dataset_size).detach()
         self.img_feat_dim = img_feat_dim
@@ -128,13 +138,11 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         # BNCHW
         device = imgs.device
         batch_size = imgs.shape[0]
-        imgs = imgs.reshape((-1,) + imgs.shape[2:])
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])  # [N'CHW]
         v_feat = F.normalize(self.encoder_v(imgs, batch_size), dim=1)  # [N , C]
         for key in texts_item:
             texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
-        t_feat = F.normalize(
-            self.encoder_t(texts_item), dim=1
-        )  # [N * text_num_per_video (T), C] noqa
+        t_feat = F.normalize(self.encoder_t(texts_item), dim=1)  # [N, C] noqa
 
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
@@ -150,6 +158,12 @@ class VideoTextMatcherBankE2E(BaseMatcher):
                 self.probs, self.bank_size + 1, replacement=True
             ).detach()
             self.probs[idx] = 1.0
+
+        import pdb
+
+        pdb.set_trace()
+        slct_idx.select(1, 0).copy_(idxes.data)
+
         v_feat_bank = (
             torch.index_select(self.video_bank, 0, slct_idx.view(-1))
             .detach()
