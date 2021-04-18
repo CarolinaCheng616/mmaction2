@@ -139,12 +139,12 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
     def forward_train(self, imgs, texts_item, idxes):
         # BNCHW
-        # import pdb
-        #
-        # pdb.set_trace()
-        self.iters += 1
-        if self.iters == 12000:
-            pdb.set_trace()
+        import pdb
+
+        pdb.set_trace()
+        # self.iters += 1
+        # if self.iters == 12000:
+        #     pdb.set_trace()
         device = imgs.device
         batch_size = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])  # [N'CHW]
