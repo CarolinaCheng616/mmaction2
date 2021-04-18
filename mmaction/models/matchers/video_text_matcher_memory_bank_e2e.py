@@ -139,9 +139,9 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
     def forward_train(self, imgs, texts_item, idxes):
         # BNCHW
-        import pdb
-
-        pdb.set_trace()
+        # import pdb
+        #
+        # pdb.set_trace()
         # self.iters += 1
         # if self.iters == 12000:
         #     pdb.set_trace()
@@ -155,6 +155,8 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
         if self.neck is not None:
             v_feat, t_feat = self.neck(v_feat, t_feat)
+
+        self.update_bank(v_feat, t_feat, idxes)
 
         slct_idx = (
             torch.zeros(batch_size, self.bank_size + 1, dtype=torch.long)
@@ -182,7 +184,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
             .view(batch_size, self.bank_size + 1, self.feature_dim)
         )  # [batch_size, bank_size+1, feature_dim]
 
-        self.update_bank(v_feat, t_feat, idxes)
+        # self.update_bank(v_feat, t_feat, idxes)
 
         return self.head(v_feat, t_feat, v_feat_bank, t_feat_bank)
 
