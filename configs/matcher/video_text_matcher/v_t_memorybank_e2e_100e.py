@@ -21,6 +21,7 @@ model = dict(
     text_feat_dim=768,
     feature_dim=256,
     init_std=0.01,
+    bank_update_ratio=0.5,
 )
 train_cfg = None
 test_cfg = None
