@@ -43,9 +43,9 @@ class MyDataset(BaseDataset):
         files = ann_file.split(" ")
         self.train_ann_file = files[0]
         self.val_ann_file = files[1]
-        super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
         self.feature_prefix = feature_prefix
         self.feature_suffix = feature_suffix
+        super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
 
     def load_annotations(self):
         """Load annotation file to get video information."""
