@@ -182,8 +182,6 @@ data = dict(
 
 optimizer = dict(type="SGD", lr=0.03, momentum=0.9, weight_decay=0.0001)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
-# optimizer = None
-# optimizer_config = None
 lr_config = dict(
     policy="CosineAnnealing",
     min_lr=0,
@@ -193,12 +191,7 @@ lr_config = dict(
 )
 total_epochs = 1
 checkpoint_config = dict(interval=5)
-# evaluation = dict(
-#     interval=1,
-#     key_indicator="vt_mean_rk_full",
-#     metrics=["vt_retrieval_metrics_full", "tv_retrieval_metrics_full"],
-# )
-evaluation = dict(interval=1000000)
+eval_config = dict(metrics=None, metric_options=None, logger=None)
 log_config = dict(interval=100000000, hooks=[dict(type="TextLoggerHook")])
 dist_params = dict(backend="nccl")
 log_level = "INFO"
