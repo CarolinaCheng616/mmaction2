@@ -43,14 +43,16 @@ class MyDataset(BaseDataset):
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
         # self.train_file, self.val_file = ann_file.split(" ")
         files = ann_file.split(" ")
-        self.train_file = files[0]
-        self.val_file = files[1]
+        self.train_ann_file = files[0]
+        self.val_ann_file = files[1]
         self.feature_prefix = feature_prefix
         self.feature_suffix = feature_suffix
+        print(self.train_ann_file)
+        print(self.val_ann_file)
 
     def load_annotations(self):
         """Load annotation file to get video information."""
-        with open(self.train_file, "r", encoding="utf-8") as f:
+        with open(self.train_ann_file, "r", encoding="utf-8") as f:
             video_infos = [
                 dict(
                     filename=osp.join(self.data_prefix, video_info["videoID"]) + ".mp4",
@@ -59,7 +61,7 @@ class MyDataset(BaseDataset):
                 )
                 for video_info in json.load(f)
             ]
-        with open(self.val_file, "r", encoding="utf-8") as f:
+        with open(self.val_ann_file, "r", encoding="utf-8") as f:
             video_infos += [
                 dict(
                     filename=osp.join(self.data_prefix, video_info["videoID"]) + ".mp4",
