@@ -40,15 +40,12 @@ class MyDataset(BaseDataset):
         feature_suffix=".npy",
         **kwargs
     ):
-        super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
-        # self.train_file, self.val_file = ann_file.split(" ")
         files = ann_file.split(" ")
         self.train_ann_file = files[0]
         self.val_ann_file = files[1]
+        super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
         self.feature_prefix = feature_prefix
         self.feature_suffix = feature_suffix
-        print(self.train_ann_file)
-        print(self.val_ann_file)
 
     def load_annotations(self):
         """Load annotation file to get video information."""
