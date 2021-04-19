@@ -89,6 +89,8 @@ def build_model(cfg, train_cfg=None, test_cfg=None):
         return build_detector(cfg, train_cfg, test_cfg)
     if obj_type in MATCHERS:
         return build_matcher(cfg)
+    if obj_type in EXTRACTORS:
+        return build_extractor(cfg)
     raise ValueError(
         f"{obj_type} is not registered in "
         "LOCALIZERS, RECOGNIZERS, DETECTORS or MATCHERS"
