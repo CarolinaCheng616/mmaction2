@@ -100,7 +100,7 @@ class VideoTextMatcherBankE2E(BaseMatcher):
         x = self.backbone1(imgs)
         if self.avg_pool is not None:
             x = self.avg_pool(x)
-        x = x.reshape((N, -1) + x.shape[1:])
+        x = x.reshape((N, -1) + x.shape[1:])  # BN*2048*1*1
         x = x.mean(dim=1, keepdim=True)
         x = x.squeeze(1)
         # dropout
