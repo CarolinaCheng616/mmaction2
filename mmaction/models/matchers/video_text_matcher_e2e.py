@@ -3,7 +3,6 @@ import torch.distributed as dist
 import torch.nn as nn
 from mmcv.cnn import normal_init
 
-# from .. import builder
 from ..registry import MATCHERS
 from .base import BaseMatcher
 
@@ -93,7 +92,7 @@ class VideoTextMatcherE2E(BaseMatcher):
     def forward_train(self, imgs, texts_item):
         # BNCHW
         N = imgs.shape[0]
-        imgs = imgs.reshape((-1,) + imgs.shape[2:])
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])  # BN * CHW
         v_feat = nn.functional.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
         for key in texts_item:
             texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
