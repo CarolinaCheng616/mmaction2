@@ -41,7 +41,10 @@ class MyDataset(BaseDataset):
         **kwargs
     ):
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
-        self.train_file, self.val_file = ann_file.split(" ")
+        # self.train_file, self.val_file = ann_file.split(" ")
+        files = ann_file.split(" ")
+        self.train_file = files[0]
+        self.val_file = files[1]
         self.feature_prefix = feature_prefix
         self.feature_suffix = feature_suffix
 
