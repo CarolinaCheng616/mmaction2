@@ -5,8 +5,10 @@ import sys
 
 from .. import builder
 from .base import FeatureExtractor
+from ..registry import EXTRACTORS
 
 
+@EXTRACTORS.register_module()
 class VideoExtractor(FeatureExtractor):
     def __init__(self, backbone, train_cfg=None, test_cfg=None):
         super(VideoExtractor, self).__init__(backbone, train_cfg, test_cfg)
