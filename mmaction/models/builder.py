@@ -8,10 +8,10 @@ from .registry import BACKBONES, HEADS, LOCALIZERS, LOSSES, NECKS, RECOGNIZERS, 
 try:
     from mmdet.models.builder import DETECTORS, build_detector
 except (ImportError, ModuleNotFoundError):
-    warnings.warn('Please install mmdet to use DETECTORS, build_detector')
+    warnings.warn("Please install mmdet to use DETECTORS, build_detector")
 
     # Define an empty registry and building func, so that can import
-    DETECTORS = Registry('detector')
+    DETECTORS = Registry("detector")
 
     def build_detector(cfg, train_cfg, test_cfg):
         pass
@@ -32,9 +32,7 @@ def build(cfg, registry, default_args=None):
     """
 
     if isinstance(cfg, list):
-        modules = [
-            build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg
-        ]
+        modules = [build_from_cfg(cfg_, registry, default_args) for cfg_ in cfg]
         return nn.Sequential(*modules)
 
     return build_from_cfg(cfg, registry, default_args)
@@ -52,8 +50,7 @@ def build_head(cfg):
 
 def build_recognizer(cfg, train_cfg=None, test_cfg=None):
     """Build recognizer."""
-    return build(cfg, RECOGNIZERS,
-                 dict(train_cfg=train_cfg, test_cfg=test_cfg))
+    return build(cfg, RECOGNIZERS, dict(train_cfg=train_cfg, test_cfg=test_cfg))
 
 
 def build_loss(cfg):
@@ -65,14 +62,16 @@ def build_localizer(cfg):
     """Build localizer."""
     return build(cfg, LOCALIZERS)
 
+
 def build_matcher(cfg):
     """Build matcher."""
     return build(cfg, MATCHERS)
 
+
 def build_model(cfg, train_cfg=None, test_cfg=None):
     """Build model."""
     args = cfg.copy()
-    obj_type = args.pop('type')
+    obj_type = args.pop("type")
     if obj_type in LOCALIZERS:
         return build_localizer(cfg)
     if obj_type in RECOGNIZERS:
@@ -81,8 +80,10 @@ def build_model(cfg, train_cfg=None, test_cfg=None):
         return build_detector(cfg, train_cfg, test_cfg)
     if obj_type in MATCHERS:
         return build_matcher(cfg)
-    raise ValueError(f'{obj_type} is not registered in '
-                     'LOCALIZERS, RECOGNIZERS, DETECTORS or MATCHERS')
+    raise ValueError(
+        f"{obj_type} is not registered in "
+        "LOCALIZERS, RECOGNIZERS, DETECTORS or MATCHERS"
+    )
 
 
 def build_neck(cfg):
