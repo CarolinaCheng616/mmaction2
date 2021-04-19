@@ -20,6 +20,7 @@ class VideoExtractor(FeatureExtractor):
 
     def forward_test(self, x, img_metas=None):
         # x.shape = BNCHW
+        print(x.shape)
         with torch.no_grad():
             batch, frames = x.shape[:2]
             x = x.reshape((-1,) + x.shape[2:])  # BN * CHW
