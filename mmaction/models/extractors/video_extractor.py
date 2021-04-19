@@ -34,6 +34,6 @@ class VideoExtractor(FeatureExtractor):
                     np.save(feature_path, feature)
         sys.exit(0)
 
-    def forward(self, x, return_loss=False, video_meta=None):
-        self.forward_test(x, video_meta)
+    def forward(self, imgs, return_loss=False, video_meta=None):
+        self.forward_test(imgs, video_meta)
         return 0
