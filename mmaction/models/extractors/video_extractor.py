@@ -18,7 +18,7 @@ class VideoExtractor(FeatureExtractor):
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
 
-    def forward_test(self, x, video_meta=None):
+    def forward_test(self, x, img_metas=None):
         # x.shape = BNCHW
         with torch.no_grad():
             batch, frames = x.shape[:2]
@@ -29,11 +29,11 @@ class VideoExtractor(FeatureExtractor):
             x = x.reshape(batch, frames, -1)  # B * N * 2048
             for i in range(batch):
                 feature = x[i].unsqueeze(0).cpu().detach().numpy()  # 1, 32, 2048
-                feature_path = video_meta[i]["featurepath"]
+                feature_path = img_metas[i]["featurepath"]
                 if feature_path.enswith(".npy"):
                     np.save(feature_path, feature)
         sys.exit(0)
 
-    def forward(self, imgs, return_loss=False, video_meta=None):
-        self.forward_test(imgs, video_meta)
+    def forward(self, imgs, return_loss=False, img_metas=None):
+        self.forward_test(imgs, img_metas)
         return 0
