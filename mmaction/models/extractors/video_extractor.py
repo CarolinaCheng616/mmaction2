@@ -1,7 +1,6 @@
 import torch.nn as nn
 import torch
 import numpy as np
-import sys
 
 from .. import builder
 from .base import FeatureExtractor
@@ -31,7 +30,6 @@ class VideoExtractor(FeatureExtractor):
                 feature_path = img_metas[i]["featurepath"]
                 if feature_path.endswith(".npy"):
                     np.save(feature_path, feature)
-        sys.exit(0)
 
     def forward(self, imgs, return_loss=False, img_metas=None):
         self.forward_test(imgs, img_metas)
