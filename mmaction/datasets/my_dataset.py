@@ -1,4 +1,5 @@
 import os.path as osp
+import os
 
 from .base import BaseDataset
 from .registry import DATASETS
@@ -45,6 +46,7 @@ class MyDataset(BaseDataset):
         self.val_ann_file = files[1]
         self.feature_prefix = feature_prefix
         self.feature_suffix = feature_suffix
+        os.makedirs(self.feature_prefix, exist_ok=True)
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
 
     def load_annotations(self):
