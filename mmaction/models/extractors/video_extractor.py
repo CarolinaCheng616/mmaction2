@@ -33,4 +33,4 @@ class VideoExtractor(FeatureExtractor):
 
     def forward(self, imgs, return_loss=False, img_metas=None):
         self.forward_test(imgs, img_metas)
-        return 0
+        return []
