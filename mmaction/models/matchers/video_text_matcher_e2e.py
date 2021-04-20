@@ -62,9 +62,9 @@ class VideoTextMatcherE2E(BaseMatcher):
                 normal_init(layer, std=self.init_std)
 
     def encoder_v(self, imgs, N):
-        import pdb
-
-        pdb.set_trace()
+        # import pdb
+        #
+        # pdb.set_trace()
         x = self.backbone1(imgs)
         if self.avg_pool is not None:
             x = self.avg_pool(x)
