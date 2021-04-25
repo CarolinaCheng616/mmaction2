@@ -4,7 +4,7 @@ model = dict(
 )
 train_cfg = None
 test_cfg = None
-dataset_type = "MyDataset"
+dataset_type = "VATEXDataset"
 data_root = "/mnt/lustre/share_data/vatex"
 data_root_val = data_root
 feature_prefix = "/mnt/lustre/share_data/vatex/vatex_features_random_backbone"

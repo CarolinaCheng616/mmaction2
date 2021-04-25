@@ -4,12 +4,12 @@ model = dict(
 )
 train_cfg = None
 test_cfg = None
-dataset_type = "VATEXDataset"
-data_root = "/mnt/lustre/share_data/vatex"
+dataset_type = "MSRVTTDataset"
+data_root = "/mnt/lustre/share_data/msrvtt/videos"
 data_root_val = data_root
-feature_prefix = "/mnt/lustre/share_data/vatex/vatex_features_bili_partial_split_dm_15e"
+feature_prefix = "/mnt/lustre/share_data/msrvtt/features/msrvtt_features_usv_300e"
 feature_prefix_val = feature_prefix
-ann_file_train = "/mnt/lustre/chenghaoyue/partial_vatex_training_v1.0.json /mnt/lustre/chenghaoyue/partial_vatex_validation_v1.0.json"
+ann_file_train = "/mnt/lustre/share_data/msrvtt/annos/videodatainfo_2017.json"
 ann_file_val = ann_file_train
 ann_file_test = ann_file_train
 mc_cfg = dict(
@@ -125,7 +125,7 @@ eval_config = dict(metrics=None, metric_options=None, logger=None)
 log_config = dict(interval=100000000, hooks=[dict(type="TextLoggerHook")])
 dist_params = dict(backend="nccl")
 log_level = "INFO"
-work_dir = "./work_dirs/vatex_features"
+work_dir = "./work_dirs/msrvtt_features"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
