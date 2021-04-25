@@ -8,7 +8,7 @@ import json
 
 
 @DATASETS.register_module()
-class MyDataset(BaseDataset):
+class MSRVTTDataset(BaseDataset):
     """Video dataset for action recognition.
 
     The dataset loads raw videos and apply specified transforms to return a
@@ -20,7 +20,7 @@ class MyDataset(BaseDataset):
 
     .. code-block:: json
 
-        [{"videoID":"xxx"}, {"videoID":"xxx"}]
+        [{"id": 0}, {"id": 1}]
 
     Args:
         ann_file (str): Path to the annotation file.
@@ -41,9 +41,6 @@ class MyDataset(BaseDataset):
         feature_suffix=".npy",
         **kwargs
     ):
-        files = ann_file.split(" ")
-        self.train_ann_file = files[0]
-        self.val_ann_file = files[1]
         self.feature_prefix = feature_prefix
         self.feature_suffix = feature_suffix
         os.makedirs(self.feature_prefix, exist_ok=True)
@@ -51,23 +48,18 @@ class MyDataset(BaseDataset):
 
     def load_annotations(self):
         """Load annotation file to get video information."""
-        with open(self.train_ann_file, "r", encoding="utf-8") as f:
+        with open(self.ann_file, "r", encoding="utf-8") as f:
             video_infos = [
                 dict(
-                    filename=osp.join(self.data_prefix, video_info["videoID"]) + ".mp4",
-                    featurepath=osp.join(self.feature_prefix, video_info["videoID"])
+                    filename=osp.join(
+                        self.data_prefix, "video" + str(video_info["id"]) + ".mp4"
+                    ),
+                    featurepath=osp.join(
+                        self.feature_prefix, "video" + str(video_info["id"])
+                    )
                     + self.feature_suffix,
                 )
-                for video_info in json.load(f)
-            ]
-        with open(self.val_ann_file, "r", encoding="utf-8") as f:
-            video_infos += [
-                dict(
-                    filename=osp.join(self.data_prefix, video_info["videoID"]) + ".mp4",
-                    featurepath=osp.join(self.feature_prefix, video_info["videoID"])
-                    + self.feature_suffix,
-                )
-                for video_info in json.load(f)
+                for video_info in json.load(f)["videos"]
             ]
         return video_infos
 
