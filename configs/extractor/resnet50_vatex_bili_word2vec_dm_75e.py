@@ -7,9 +7,11 @@ test_cfg = None
 dataset_type = "VATEXDataset"
 data_root = "/mnt/lustre/share_data/vatex/partial_videos"
 data_root_val = data_root
-feature_prefix = "/mnt/lustre/share_data/vatex/vatex_features_bili_word2vec_dm_75e"
+feature_prefix = (
+    "/mnt/lustre/share_data/vatex/features/vatex_features_bili_word2vec_dm_75e"
+)
 feature_prefix_val = feature_prefix
-ann_file_train = "/mnt/lustre/chenghaoyue/vatex_training_v1.0.json /mnt/lustre/chenghaoyue/vatex_validation_v1.0.json"
+ann_file_train = "/mnt/lustre/share_data/vatex/annos/vatex_training_v1.0.json /mnt/lustre/share_data/vatex/annos/vatex_validation_v1.0.json"
 ann_file_val = ann_file_train
 ann_file_test = ann_file_train
 mc_cfg = dict(
