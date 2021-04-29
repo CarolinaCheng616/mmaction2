@@ -21,7 +21,7 @@ model = dict(
     text_feat_dim=768,
     feature_dim=256,
     init_std=0.01,
-    bank_update_ratio=0.9,
+    bank_update_ratio=0.99,
 )
 train_cfg = None
 test_cfg = None
@@ -100,7 +100,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=16,
+    videos_per_gpu=32,
     workers_per_gpu=5,
     train=dict(
         type=dataset_type,
@@ -127,8 +127,8 @@ lr_config = dict(
     policy="CosineAnnealing",
     min_lr=0,
     warmup="linear",
-    warmup_by_epoch=True,
-    warmup_iters=1,
+    warmup_by_epoch=False,
+    warmup_iters=6250,
 )
 total_epochs = 100
 checkpoint_config = dict(interval=5)
@@ -142,7 +142,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl")
 log_level = "INFO"
-work_dir = "./work_dirs/v_t_memory_bank_e2e_100e"
+work_dir = "./work_dirs/v_t_mb_e2e_test_ratio0.99_warm_every_epoch"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
