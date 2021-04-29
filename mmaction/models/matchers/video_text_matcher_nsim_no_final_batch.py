@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 
 @MATCHERS.register_module()
-class VideoTextMatcherNSimLoss(BaseMatcher):
+class VideoTextMatcherNSimNOFINALBATCH(BaseMatcher):
     """VideoTextMatcher model framework."""
 
     def __init__(
@@ -28,7 +28,7 @@ class VideoTextMatcherNSimLoss(BaseMatcher):
         use_text_mlp=True,
         gather_flag=True,
     ):
-        super(VideoTextMatcherNSimLoss, self).__init__(
+        super(VideoTextMatcherNSimNOFINALBATCH, self).__init__(
             backbone1, backbone2, head, train_cfg, test_cfg, fp16_enabled
         )
 
@@ -42,14 +42,12 @@ class VideoTextMatcherNSimLoss(BaseMatcher):
             nn.BatchNorm1d(self.feature_dim * 2),
             nn.ReLU(),
             nn.Linear(self.feature_dim * 2, self.feature_dim),
-            nn.BatchNorm1d(self.feature_dim),
         )
         self.text_mlp = nn.Sequential(
             nn.Linear(text_feat_dim, self.feature_dim * 2),
             nn.BatchNorm1d(self.feature_dim * 2),
             nn.ReLU(),
             nn.Linear(self.feature_dim * 2, self.feature_dim),
-            nn.BatchNorm1d(self.feature_dim),
         )
 
         self.predictor_v = nn.Sequential(
@@ -138,19 +136,23 @@ class VideoTextMatcherNSimLoss(BaseMatcher):
         return self.head(v_feat, t_feat, p_v, p_t)
 
     def forward_test(self, imgs, texts_item):
-        pass
-        # N = imgs.shape[0]
-        # imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        # v_feat = nn.functional.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
-        # for key in texts_item:
-        #     texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
-        # t_feat = nn.functional.normalize(self.encoder_t(texts_item), dim=1)  # [N * text_num_per_video (T), C]
-        # t_feat = t_feat.view(N, -1)  # [N , T * C]
-        #
-        # if self.neck is not None:
-        #     v_feat, t_feat = self.neck(v_feat, t_feat)
-        #
-        # return zip(v_feat.cpu().numpy(),t_feat.view(N, -1, v_feat.shape[1]).cpu().numpy())
+        N = imgs.shape[0]
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])
+        v_feat = self.encoder_v(imgs, N)  # [N , C]
+        for key in texts_item:
+            texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
+        t_feat = self.encoder_t(texts_item)  # [N * text_num_per_video (T), C]
+
+        if self.gather_flag == True:
+            v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)
+            t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
+
+        if self.neck is not None:
+            v_feat, t_feat = self.neck(v_feat, t_feat)
+
+        p_v = self.predictor_v(v_feat)
+        p_t = self.predictor_t(t_feat)
+        return zip(v_feat.cpu().numpy(), p_t.view(N, -1, v_feat.shape[1]).cpu().numpy())
 
     def forward_gradcam(self, audios):
         raise NotImplementedError
