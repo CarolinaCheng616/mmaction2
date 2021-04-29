@@ -8,6 +8,7 @@ from .video_text_matcher_memory_bank_e2e import VideoTextMatcherBankE2E
 from .video_word2vec_matcher_e2e import VideoWord2VecMatcherE2E
 from .video_text_matcher_nsim_loss import VideoTextMatcherNSimLoss
 from .video_text_matcher_nsim_no_final_batch import VideoTextMatcherNSimNOFINALBATCH
+from .video_text_matcher_nsim_no_bn import VideoTextMatcherNSimNOBN
 
 __all__ = [
     "BaseMatcher",
@@ -20,4 +21,5 @@ __all__ = [
     "VideoWord2VecMatcherE2E",
     "VideoTextMatcherNSimLoss",
     "VideoTextMatcherNSimNOFINALBATCH",
+    "VideoTextMatcherNSimNOBN",
 ]
