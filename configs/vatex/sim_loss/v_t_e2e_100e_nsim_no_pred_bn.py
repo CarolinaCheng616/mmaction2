@@ -1,7 +1,7 @@
 bert_path = "work_dirs/bert_model"
 
 model = dict(
-    type="VideoTextMatcherNSimNOBN",
+    type="VideoTextMatcherNSimNOPredBN",
     backbone1=dict(
         type="ResNet", pretrained="torchvision://resnet50", depth=50, norm_eval=False
     ),
@@ -132,7 +132,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl", port=29579)
 log_level = "INFO"
-work_dir = "./work_dirs/vatex_nsim_no_bn"
+work_dir = "./work_dirs/vatex_nsim_no_pred_bn"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]

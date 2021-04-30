@@ -9,7 +9,7 @@ import torch.nn.functional as F
 
 
 @MATCHERS.register_module()
-class VideoTextMatcherNSimNOBN(BaseMatcher):
+class VideoTextMatcherNSimNOPredBN(BaseMatcher):
     """VideoTextMatcher model framework."""
 
     def __init__(
@@ -28,7 +28,7 @@ class VideoTextMatcherNSimNOBN(BaseMatcher):
         use_text_mlp=True,
         gather_flag=True,
     ):
-        super(VideoTextMatcherNSimNOBN, self).__init__(
+        super(VideoTextMatcherNSimNOPredBN, self).__init__(
             backbone1, backbone2, head, train_cfg, test_cfg, fp16_enabled
         )
 
@@ -39,13 +39,13 @@ class VideoTextMatcherNSimNOBN(BaseMatcher):
 
         self.img_mlp = nn.Sequential(
             nn.Linear(img_feat_dim, self.feature_dim * 2),
-            # nn.BatchNorm1d(self.feature_dim * 2),
+            nn.BatchNorm1d(self.feature_dim * 2),
             nn.ReLU(),
             nn.Linear(self.feature_dim * 2, self.feature_dim),
         )
         self.text_mlp = nn.Sequential(
             nn.Linear(text_feat_dim, self.feature_dim * 2),
-            # nn.BatchNorm1d(self.feature_dim * 2),
+            nn.BatchNorm1d(self.feature_dim * 2),
             nn.ReLU(),
             nn.Linear(self.feature_dim * 2, self.feature_dim),
         )
