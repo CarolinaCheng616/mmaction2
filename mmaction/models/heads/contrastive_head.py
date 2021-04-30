@@ -4,7 +4,8 @@ import torch.distributed as dist
 
 from ..registry import HEADS
 
-@HEADS.register_module
+
+@HEADS.register_module()
 class ContrastiveHead(nn.Module):
     """Head for contrastive learning.
 
@@ -14,16 +15,13 @@ class ContrastiveHead(nn.Module):
             Default: 0.1.
     """
 
-    def __init__(self,
-        temperature=0.1):
+    def __init__(self, temperature=0.1):
         super(ContrastiveHead, self).__init__()
         self.temperature = temperature
-
 
     def init_weights(self):
         """Initiate the parameters from scratch."""
         pass
-
 
     def forward(self, l_pos, vt_l_neg):
         """Forward head.
@@ -46,10 +44,10 @@ class ContrastiveHead(nn.Module):
 
         # vt_loss
         vt_nominator = torch.logsumexp(l_pos, dim=1)
-        vt_logits = torch.cat((l_pos, vt_l_neg), dim=1) # [N, T + t_queue_len]
+        vt_logits = torch.cat((l_pos, vt_l_neg), dim=1)  # [N, T + t_queue_len]
         vt_denominator = torch.logsumexp(vt_logits, dim=1)
 
-        losses['vt_loss'] = torch.mean(vt_denominator - vt_nominator)
+        losses["vt_loss"] = torch.mean(vt_denominator - vt_nominator)
 
         _, top1 = vt_logits.topk(k=1, dim=1)
         recall1 = torch.true_divide(torch.sum((top1 < T), dim=1), T)
@@ -60,9 +58,9 @@ class ContrastiveHead(nn.Module):
         _, top10 = vt_logits.topk(k=10, dim=1)
         recall10 = torch.true_divide(torch.sum((top10 < T), dim=1), T)
 
-        meta['recall1'] = torch.mean(recall1)
-        meta['recall5'] = torch.mean(recall5)
-        meta['recall10'] = torch.mean(recall10)
+        meta["recall1"] = torch.mean(recall1)
+        meta["recall5"] = torch.mean(recall5)
+        meta["recall10"] = torch.mean(recall10)
 
         """
         # tv_loss
@@ -74,4 +72,3 @@ class ContrastiveHead(nn.Module):
         """
 
         return losses, meta
-

@@ -15,6 +15,7 @@ from .ranking_head import RankingHead
 from .neg_sim_head import NegSimHead
 from .mb_nce_head import MBNCEHead
 from .neg_sim_grad_head import NegSimGradHead
+from .neg_sim_nce_head import NegSimNCEHead
 
 __all__ = [
     "TSNHead",
@@ -34,4 +35,5 @@ __all__ = [
     "NegSimHead",
     "MBNCEHead",
     "NegSimGradHead",
+    "NegSimNCEHead",
 ]
