@@ -12,8 +12,9 @@ class NegSimNCEHead(nn.Module):
 
     """
 
-    def __init__(self):
+    def __init__(self, temperature=0.1):
         super(NegSimNCEHead, self).__init__()
+        self.temperature = temperature
 
     def init_weights(self):
         """Initiate the parameters from scratch."""

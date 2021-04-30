@@ -6,7 +6,7 @@ model = dict(
         type="ResNet", pretrained="torchvision://resnet50", depth=50, norm_eval=False
     ),
     backbone2=dict(type="BERT", pretrained=bert_path, freeze=True),
-    head=dict(type="NegSimNCEHead"),
+    head=dict(type="NegSimNCEHead", temperature=0.05),
     fp16_enabled=False,
     img_feat_dim=2048,
     text_feat_dim=768,
