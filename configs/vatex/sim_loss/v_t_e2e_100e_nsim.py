@@ -29,7 +29,7 @@ dataset_type = 'Mp4TextDataset'
 data_root = ''
 data_root_val = ''
 ann_file_train = '/mnt/lustre/jinliwei/vatex_process/vatex_train_bert_ch1'
-ann_file_val = '/mnt/lustre/jinliwei/vatex_process/vatex_val_bert_ch1'
+ann_file_val = '/mnt/lustre/jinliwei/vatex_process/vatex_val_bert_ch1_1000'
 ann_file_test = '/mnt/lustre/jinliwei/vatex_process/vatex_val_bert_ch1_1000'
 >>>>>>> test_config
 mc_cfg = dict(
