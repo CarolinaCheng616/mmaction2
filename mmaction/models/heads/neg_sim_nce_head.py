@@ -46,8 +46,8 @@ class NegSimNCEHead(nn.Module):
         st = torch.true_divide(st, self.temperature)
 
         # MIL-NCE loss
-        nominator_v = (sv * torch.eye(batch)).sum(1).cuda()
-        nominator_t = (st * torch.eye(batch)).sum(1).cuda()
+        nominator_v = (sv * torch.eye(batch).cuda()).sum(1)
+        nominator_t = (st * torch.eye(batch).cuda()).sum(1)
         nominator = torch.cat((nominator_v, nominator_t), 0)
         nominator = torch.logsumexp(nominator, dim=0)
         denominator = torch.cat((sv, st), 1)
