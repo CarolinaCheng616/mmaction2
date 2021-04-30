@@ -12,26 +12,16 @@ model = dict(
     text_feat_dim=768,
     feature_dim=512,
     init_std=0.01,
-    update_ratio=0.99,
     gather_flag=False,
 )
 train_cfg = None
 test_cfg = None
-<<<<<<< HEAD
 dataset_type = "Mp4TextDataset"
 data_root = ""
 data_root_val = ""
 ann_file_train = "data/vatex/vatex_train_bert_ch1"
 ann_file_val = "data/vatex/vatex_val_bert_ch1"
 ann_file_test = "data/vatex/vatex_val_bert_ch1"
-=======
-dataset_type = 'Mp4TextDataset'
-data_root = ''
-data_root_val = ''
-ann_file_train = '/mnt/lustre/jinliwei/vatex_process/vatex_train_bert_ch1'
-ann_file_val = '/mnt/lustre/jinliwei/vatex_process/vatex_val_bert_ch1_1000'
-ann_file_test = '/mnt/lustre/jinliwei/vatex_process/vatex_val_bert_ch1_1000'
->>>>>>> test_config
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
