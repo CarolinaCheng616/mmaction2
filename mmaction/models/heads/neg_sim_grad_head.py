@@ -30,8 +30,8 @@ class NegSimGradHead(nn.Module):
         Returns:
             dict[str, Tensor]: A dictionary of loss components.
         """
-        v_feat = v_feat
-        t_feat = t_feat
+        # v_feat = v_feat.detach()
+        # t_feat = t_feat.detach()
         v_feat = F.normalize(v_feat, dim=1)
         t_feat = F.normalize(t_feat, dim=1)
         p_v = F.normalize(p_v, dim=1)
@@ -44,7 +44,6 @@ class NegSimGradHead(nn.Module):
         )
 
         with torch.no_grad():
-
             metric = {}
             metric["v_feat_std"] = torch.mean(torch.std(v_feat, dim=0))
             metric["t_feat_std"] = torch.mean(torch.std(t_feat, dim=0))

@@ -10,6 +10,7 @@ from .video_text_matcher_nsim_loss import VideoTextMatcherNSimLoss
 from .video_text_matcher_nsim_no_final_batch import VideoTextMatcherNSimNOFINALBATCH
 from .video_text_matcher_nsim_no_pred_bn import VideoTextMatcherNSimNOPredBN
 from .video_text_matcher_nsim_no_bn import VideoTextMatcherNSimNOBN
+from .video_text_matcher_nsim_momentum import VideoTextMatcherNSimMMT
 
 __all__ = [
     "BaseMatcher",
@@ -24,4 +25,5 @@ __all__ = [
     "VideoTextMatcherNSimNOFINALBATCH",
     "VideoTextMatcherNSimNOPredBN",
     "VideoTextMatcherNSimNOBN",
+    "VideoTextMatcherNSimMMT",
 ]
