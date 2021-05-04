@@ -12,6 +12,7 @@ model = dict(
     text_feat_dim=768,
     feature_dim=512,
     init_std=0.01,
+    update_ratio=0.99,
     gather_flag=False,
 )
 train_cfg = None
