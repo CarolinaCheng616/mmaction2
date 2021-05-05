@@ -86,7 +86,9 @@ class VideoTextMatcherNSimMMT(BaseMatcher):
             nn.Linear(self.feature_dim, self.feature_dim),
         )
 
-        self.init_weights()
+        self.init_backbone_weights()
+        self.init_mlp_weights()
+        self.init_predictor_weights()
 
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
@@ -94,9 +96,7 @@ class VideoTextMatcherNSimMMT(BaseMatcher):
         self.gather_flag = gather_flag
 
     def init_backbone_weights(self):
-        self.vbackbone1.init_weights()
         self.vbackbone2.init_weights()
-        self.tbackbone1.init_weights()
         self.tbackbone2.init_weights()
 
     def init_mlp_weights(self):
@@ -122,11 +122,6 @@ class VideoTextMatcherNSimMMT(BaseMatcher):
         for layer in self.predictor_t:
             if isinstance(layer, nn.Linear):
                 normal_init(layer, std=self.init_std)
-
-    def init_weights(self):
-        self.init_backbone_weights()
-        self.init_mlp_weights()
-        self.init_predictor_weights()
 
     def encoder_v(self, imgs, N):
         x1 = self.vbackbone1(imgs)

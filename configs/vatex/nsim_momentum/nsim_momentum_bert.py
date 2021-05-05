@@ -2,10 +2,10 @@ bert_path = "work_dirs/bert_model"
 
 model = dict(
     type="VideoTextMatcherNSimMMT",
-    backbone1=dict(
+    vbackbone=dict(
         type="ResNet", pretrained="torchvision://resnet50", depth=50, norm_eval=False
     ),
-    backbone2=dict(type="BERT", pretrained=bert_path, freeze=True),
+    tbackbone=dict(type="BERT", pretrained=bert_path, freeze=True),
     head=dict(type="NegSimHead"),
     fp16_enabled=False,
     img_feat_dim=2048,
