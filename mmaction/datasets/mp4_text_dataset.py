@@ -10,6 +10,7 @@ import warnings
 from mmcv.utils import print_log
 from ..core import eval_retrieval_metrics
 
+
 @DATASETS.register_module()
 class Mp4TextDataset(BaseDataset):
     """VideoText dataset for matcher.
@@ -59,19 +60,21 @@ class Mp4TextDataset(BaseDataset):
             Default: None.
     """
 
-    def __init__(self,
-                 ann_file,
-                 pipeline,
-                 data_prefix=None,
-                 test_mode=False,
-                 filename_tmpl='img_{:05}.jpg',
-                 with_offset=False,
-                 multi_class=False,
-                 num_classes=None,
-                 start_index=0,
-                 modality='RGB',
-                 sample_by_class=False,
-                 power=None):
+    def __init__(
+        self,
+        ann_file,
+        pipeline,
+        data_prefix=None,
+        test_mode=False,
+        filename_tmpl="img_{:05}.jpg",
+        with_offset=False,
+        multi_class=False,
+        num_classes=None,
+        start_index=0,
+        modality="RGB",
+        sample_by_class=False,
+        power=None,
+    ):
         self.filename_tmpl = filename_tmpl
         self.with_offset = with_offset
         super().__init__(
@@ -84,30 +87,33 @@ class Mp4TextDataset(BaseDataset):
             start_index,
             modality,
             sample_by_class=sample_by_class,
-            power=power)
+            power=power,
+        )
 
     def load_annotations(self):
         """Load annotation file to get video and text information."""
-        if self.ann_file.endswith('.json'):
+        if self.ann_file.endswith(".json"):
             return self.load_json_annotations()
         video_infos = []
-        with open(self.ann_file, 'r') as fin:
+        with open(self.ann_file, "r") as fin:
             for line in fin:
                 line = line.strip()
                 video_info = {}
 
-                video_info['filename'] = line.split(' ##$$## ')[0].rstrip()
-                video_info['text_path'] = line.split(' ##$$## ')[1].rstrip()
+                video_info["filename"] = line.split(" ##$$## ")[0].rstrip()
+                video_info["text_path"] = line.split(" ##$$## ")[1].rstrip()
 
                 video_infos.append(video_info)
 
         return video_infos
 
-    def evaluate(self,
-                 results,
-                 metrics=['vt_retrieval_metrics_full', 'tv_retrieval_metrics_full'],
-                 logger=None,
-                 **deprecated_kwargs):
+    def evaluate(
+        self,
+        results,
+        metrics=["vt_retrieval_metrics_full", "tv_retrieval_metrics_full"],
+        logger=None,
+        **deprecated_kwargs,
+    ):
         """Perform evaluation for common datasets.
 
         Args:
@@ -129,15 +135,17 @@ class Mp4TextDataset(BaseDataset):
 
         if deprecated_kwargs != {}:
             warnings.warn(
-                'Option arguments for metrics has been changed to '
+                "Option arguments for metrics has been changed to "
                 "`metric_options`, See 'https://github.com/open-mmlab/mmaction2/pull/286' "  # noqa: E501
-                'for more details')
+                "for more details"
+            )
 
         if not isinstance(results, list):
-            raise TypeError(f'results must be a list, but got {type(results)}')
+            raise TypeError(f"results must be a list, but got {type(results)}")
         assert len(results) == len(self), (
-            f'The length of results is not equal to the dataset len: '
-            f'{len(results)} != {len(self)}')
+            f"The length of results is not equal to the dataset len: "
+            f"{len(results)} != {len(self)}"
+        )
 
         v_feat = np.array([result[0] for result in results])
         t_feat = np.array([result[1] for result in results])
@@ -153,16 +161,15 @@ class Mp4TextDataset(BaseDataset):
             results = copy.deepcopy(np.random.choice(samples))
         else:
             results = copy.deepcopy(self.video_infos[idx])
-        results['filename_tmpl'] = self.filename_tmpl
-        results['modality'] = self.modality
-        results['start_index'] = self.start_index
-
+        results["filename_tmpl"] = self.filename_tmpl
+        results["modality"] = self.modality
+        results["start_index"] = self.start_index
 
         # prepare tensor in getitem
         if self.multi_class:
             onehot = torch.zeros(self.num_classes)
-            onehot[results['label']] = 1.
-            results['label'] = onehot
+            onehot[results["label"]] = 1.0
+            results["label"] = onehot
 
         return self.pipeline(results)
 
@@ -174,14 +181,14 @@ class Mp4TextDataset(BaseDataset):
             results = copy.deepcopy(np.random.choice(samples))
         else:
             results = copy.deepcopy(self.video_infos[idx])
-        results['filename_tmpl'] = self.filename_tmpl
-        results['modality'] = self.modality
-        results['start_index'] = self.start_index
+        results["filename_tmpl"] = self.filename_tmpl
+        results["modality"] = self.modality
+        results["start_index"] = self.start_index
 
         # prepare tensor in getitem
         if self.multi_class:
             onehot = torch.zeros(self.num_classes)
-            onehot[results['label']] = 1.
-            results['label'] = onehot
+            onehot[results["label"]] = 1.0
+            results["label"] = onehot
 
         return self.pipeline(results)
