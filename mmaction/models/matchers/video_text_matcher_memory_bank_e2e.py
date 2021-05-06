@@ -152,17 +152,20 @@ class VideoTextMatcherBankE2E(BaseMatcher):
 
         # self.update_bank(v_feat, t_feat, idxes)
 
-        slct_idx = (
-            torch.zeros(batch_size, self.bank_size + 1, dtype=torch.long)
-            .to(device)
-            .detach()
-        )  # [batch_size, bank_size + 1]
-        for i, idx in enumerate(idxes):
-            self.probs[idx] = 0.0
-            slct_idx[i] = torch.multinomial(
-                self.probs, self.bank_size + 1, replacement=True
-            ).detach()
-            self.probs[idx] = 1.0
+        # slct_idx = (
+        #     torch.zeros(batch_size, self.bank_size + 1, dtype=torch.long)
+        #     .to(device)
+        #     .detach()
+        # )  # [batch_size, bank_size + 1]
+        # for i, idx in enumerate(idxes):
+        #     self.probs[idx] = 0.0
+        #     slct_idx[i] = torch.multinomial(
+        #         self.probs, self.bank_size + 1, replacement=True
+        #     ).detach()
+        #     self.probs[idx] = 1.0
+        slct_idx = torch.multinomial(
+            self.probs, batch_size * (self.bank_size + 1), replacement=True
+        ).reshape(batch_size, self.bank_size + 1)
 
         slct_idx.select(1, 0).copy_(idxes.data)
 
