@@ -125,7 +125,7 @@ lr_config = dict(
     warmup_iters=1,
 )
 total_epochs = 100
-checkpoint_config = dict(interval=5)
+checkpoint_config = dict(interval=20)
 evaluation = dict(interval=1)
 log_config = dict(
     interval=1, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
