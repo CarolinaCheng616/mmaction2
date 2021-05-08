@@ -20,13 +20,16 @@ class VideoTextMatcherE2E(BaseMatcher):
         train_cfg=None,
         test_cfg=None,
         fp16_enabled=False,
-        img_feat_dim = 2048,
-        text_feat_dim = 768,
-        feature_dim = 256,
-        init_std = 0.01,
-        use_text_mlp = True,
-        gather_flag = True):
-        super(VideoTextMatcherE2E, self).__init__(backbone1,backbone2,head,train_cfg,test_cfg,fp16_enabled)
+        img_feat_dim=2048,
+        text_feat_dim=768,
+        feature_dim=256,
+        init_std=0.01,
+        use_text_mlp=True,
+        gather_flag=True,
+    ):
+        super(VideoTextMatcherE2E, self).__init__(
+            backbone1, backbone2, head, train_cfg, test_cfg, fp16_enabled
+        )
         self.img_feat_dim = img_feat_dim
         self.text_feat_dim = text_feat_dim
         self.feature_dim = feature_dim
@@ -87,7 +90,7 @@ class VideoTextMatcherE2E(BaseMatcher):
     def forward_train(self, imgs, texts_item):
         # BNCHW
         N = imgs.shape[0]
-        imgs = imgs.reshape((-1,) + imgs.shape[2:])  # BN * CHW
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])  # BN * C * H * W
         v_feat = nn.functional.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]
         for key in texts_item:
             texts_item[key] = texts_item[key].reshape((-1,) + texts_item[key].shape[2:])
@@ -96,7 +99,7 @@ class VideoTextMatcherE2E(BaseMatcher):
         )  # [N * text_num_per_video (T), C]
 
         if self.gather_flag == True:
-            v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0) # (2N) x d
+            v_feat = torch.cat(GatherLayer.apply(v_feat), dim=0)  # (2N) x d
             t_feat = torch.cat(GatherLayer.apply(t_feat), dim=0)
 
         if self.neck is not None:
@@ -191,4 +194,3 @@ class GatherLayer(torch.autograd.Function):
         grad_out = torch.zeros_like(input)
         grad_out[:] = grads[dist.get_rank()]
         return grad_out
-

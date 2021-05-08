@@ -16,6 +16,7 @@ from ..registry import PIPELINES
 from transformers import BertTokenizer
 import pickle
 
+
 @PIPELINES.register_module()
 class LoadHVULabel:
     """Convert the HVU label from dictionaries to torch tensors.
@@ -51,28 +52,29 @@ class LoadHVULabel:
         """
 
         if not self.hvu_initialized:
-            self.init_hvu_info(results['categories'], results['category_nums'])
+            self.init_hvu_info(results["categories"], results["category_nums"])
 
         onehot = torch.zeros(self.num_tags)
         onehot_mask = torch.zeros(self.num_tags)
         category_mask = torch.zeros(self.num_categories)
 
-        for category, tags in results['label'].items():
-            category_mask[self.categories.index(category)] = 1.
+        for category, tags in results["label"].items():
+            category_mask[self.categories.index(category)] = 1.0
             start_idx = self.category2startidx[category]
             category_num = self.category2num[category]
             tags = [idx + start_idx for idx in tags]
-            onehot[tags] = 1.
-            onehot_mask[start_idx:category_num + start_idx] = 1.
+            onehot[tags] = 1.0
+            onehot_mask[start_idx : category_num + start_idx] = 1.0
 
-        results['label'] = onehot
-        results['mask'] = onehot_mask
-        results['category_mask'] = category_mask
+        results["label"] = onehot
+        results["mask"] = onehot_mask
+        results["category_mask"] = category_mask
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'hvu_initialized={self.hvu_initialized})')
+        repr_str = (
+            f"{self.__class__.__name__}(" f"hvu_initialized={self.hvu_initialized})"
+        )
         return repr_str
 
 
@@ -103,15 +105,17 @@ class SampleFrames:
             see this: https://github.com/open-mmlab/mmaction2/pull/89.
     """
 
-    def __init__(self,
-                 clip_len,
-                 frame_interval=1,
-                 num_clips=1,
-                 temporal_jitter=False,
-                 twice_sample=False,
-                 out_of_bound_opt='loop',
-                 test_mode=False,
-                 start_index=None):
+    def __init__(
+        self,
+        clip_len,
+        frame_interval=1,
+        num_clips=1,
+        temporal_jitter=False,
+        twice_sample=False,
+        out_of_bound_opt="loop",
+        test_mode=False,
+        start_index=None,
+    ):
 
         self.clip_len = clip_len
         self.frame_interval = frame_interval
@@ -120,12 +124,14 @@ class SampleFrames:
         self.twice_sample = twice_sample
         self.out_of_bound_opt = out_of_bound_opt
         self.test_mode = test_mode
-        assert self.out_of_bound_opt in ['loop', 'repeat_last']
+        assert self.out_of_bound_opt in ["loop", "repeat_last"]
 
         if start_index is not None:
-            warnings.warn('No longer support "start_index" in "SampleFrames", '
-                          'it should be set in dataset class, see this pr: '
-                          'https://github.com/open-mmlab/mmaction2/pull/89')
+            warnings.warn(
+                'No longer support "start_index" in "SampleFrames", '
+                "it should be set in dataset class, see this pr: "
+                "https://github.com/open-mmlab/mmaction2/pull/89"
+            )
 
     def _get_train_clips(self, num_frames):
         """Get clip offsets in train mode.
@@ -147,16 +153,17 @@ class SampleFrames:
         if avg_interval > 0:
             base_offsets = np.arange(self.num_clips) * avg_interval
             clip_offsets = base_offsets + np.random.randint(
-                avg_interval, size=self.num_clips)
+                avg_interval, size=self.num_clips
+            )
         elif num_frames > max(self.num_clips, ori_clip_len):
             clip_offsets = np.sort(
-                np.random.randint(
-                    num_frames - ori_clip_len + 1, size=self.num_clips))
+                np.random.randint(num_frames - ori_clip_len + 1, size=self.num_clips)
+            )
         elif avg_interval == 0:
             ratio = (num_frames - ori_clip_len + 1.0) / self.num_clips
             clip_offsets = np.around(np.arange(self.num_clips) * ratio)
         else:
-            clip_offsets = np.zeros((self.num_clips, ), dtype=np.int)
+            clip_offsets = np.zeros((self.num_clips,), dtype=np.int)
 
         return clip_offsets
 
@@ -182,7 +189,7 @@ class SampleFrames:
             if self.twice_sample:
                 clip_offsets = np.concatenate([clip_offsets, base_offsets])
         else:
-            clip_offsets = np.zeros((self.num_clips, ), dtype=np.int)
+            clip_offsets = np.zeros((self.num_clips,), dtype=np.int)
         return clip_offsets
 
     def _sample_clips(self, num_frames):
@@ -208,48 +215,53 @@ class SampleFrames:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        total_frames = results['total_frames']
+        total_frames = results["total_frames"]
 
         clip_offsets = self._sample_clips(total_frames)
-        frame_inds = clip_offsets[:, None] + np.arange(
-            self.clip_len)[None, :] * self.frame_interval
+        frame_inds = (
+            clip_offsets[:, None]
+            + np.arange(self.clip_len)[None, :] * self.frame_interval
+        )
         frame_inds = np.concatenate(frame_inds)
 
         if self.temporal_jitter:
             perframe_offsets = np.random.randint(
-                self.frame_interval, size=len(frame_inds))
+                self.frame_interval, size=len(frame_inds)
+            )
             frame_inds += perframe_offsets
 
         frame_inds = frame_inds.reshape((-1, self.clip_len))
-        if self.out_of_bound_opt == 'loop':
+        if self.out_of_bound_opt == "loop":
             frame_inds = np.mod(frame_inds, total_frames)
-        elif self.out_of_bound_opt == 'repeat_last':
+        elif self.out_of_bound_opt == "repeat_last":
             safe_inds = frame_inds < total_frames
             unsafe_inds = 1 - safe_inds
             last_ind = np.max(safe_inds * frame_inds, axis=1)
-            new_inds = (safe_inds * frame_inds + (unsafe_inds.T * last_ind).T)
+            new_inds = safe_inds * frame_inds + (unsafe_inds.T * last_ind).T
             frame_inds = new_inds
         else:
-            raise ValueError('Illegal out_of_bound option.')
+            raise ValueError("Illegal out_of_bound option.")
 
-        start_index = results['start_index']
+        start_index = results["start_index"]
         frame_inds = np.concatenate(frame_inds) + start_index
-        results['frame_inds'] = frame_inds.astype(np.int)
-        results['clip_len'] = self.clip_len
-        results['frame_interval'] = self.frame_interval
-        results['num_clips'] = self.num_clips
+        results["frame_inds"] = frame_inds.astype(np.int)
+        results["clip_len"] = self.clip_len
+        results["frame_interval"] = self.frame_interval
+        results["num_clips"] = self.num_clips
         # print(results['total_frames'], results['frame_inds'])
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'clip_len={self.clip_len}, '
-                    f'frame_interval={self.frame_interval}, '
-                    f'num_clips={self.num_clips}, '
-                    f'temporal_jitter={self.temporal_jitter}, '
-                    f'twice_sample={self.twice_sample}, '
-                    f'out_of_bound_opt={self.out_of_bound_opt}, '
-                    f'test_mode={self.test_mode})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"clip_len={self.clip_len}, "
+            f"frame_interval={self.frame_interval}, "
+            f"num_clips={self.num_clips}, "
+            f"temporal_jitter={self.temporal_jitter}, "
+            f"twice_sample={self.twice_sample}, "
+            f"out_of_bound_opt={self.out_of_bound_opt}, "
+            f"test_mode={self.test_mode})"
+        )
         return repr_str
 
 
@@ -275,9 +287,11 @@ class UntrimmedSampleFrames:
         self.frame_interval = frame_interval
 
         if start_index is not None:
-            warnings.warn('No longer support "start_index" in "SampleFrames", '
-                          'it should be set in dataset class, see this pr: '
-                          'https://github.com/open-mmlab/mmaction2/pull/89')
+            warnings.warn(
+                'No longer support "start_index" in "SampleFrames", '
+                "it should be set in dataset class, see this pr: "
+                "https://github.com/open-mmlab/mmaction2/pull/89"
+            )
 
     def __call__(self, results):
         """Perform the SampleFrames loading.
@@ -286,29 +300,35 @@ class UntrimmedSampleFrames:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        total_frames = results['total_frames']
-        start_index = results['start_index']
+        total_frames = results["total_frames"]
+        start_index = results["start_index"]
 
-        clip_centers = np.arange(self.frame_interval // 2, total_frames,
-                                 self.frame_interval)
+        clip_centers = np.arange(
+            self.frame_interval // 2, total_frames, self.frame_interval
+        )
         num_clips = clip_centers.shape[0]
-        frame_inds = clip_centers[:, None] + np.arange(
-            -(self.clip_len // 2), self.clip_len -
-            (self.clip_len // 2))[None, :]
+        frame_inds = (
+            clip_centers[:, None]
+            + np.arange(-(self.clip_len // 2), self.clip_len - (self.clip_len // 2))[
+                None, :
+            ]
+        )
         # clip frame_inds to legal range
         frame_inds = np.clip(frame_inds, 0, total_frames - 1)
 
         frame_inds = np.concatenate(frame_inds) + start_index
-        results['frame_inds'] = frame_inds.astype(np.int)
-        results['clip_len'] = self.clip_len
-        results['frame_interval'] = self.frame_interval
-        results['num_clips'] = num_clips
+        results["frame_inds"] = frame_inds.astype(np.int)
+        results["clip_len"] = self.clip_len
+        results["frame_interval"] = self.frame_interval
+        results["num_clips"] = num_clips
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'clip_len={self.clip_len}, '
-                    f'frame_interval={self.frame_interval})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"clip_len={self.clip_len}, "
+            f"frame_interval={self.frame_interval})"
+        )
         return repr_str
 
 
@@ -335,22 +355,25 @@ class DenseSampleFrames(SampleFrames):
             Default: False.
     """
 
-    def __init__(self,
-                 clip_len,
-                 frame_interval=1,
-                 num_clips=1,
-                 sample_range=64,
-                 num_sample_positions=10,
-                 temporal_jitter=False,
-                 out_of_bound_opt='loop',
-                 test_mode=False):
+    def __init__(
+        self,
+        clip_len,
+        frame_interval=1,
+        num_clips=1,
+        sample_range=64,
+        num_sample_positions=10,
+        temporal_jitter=False,
+        out_of_bound_opt="loop",
+        test_mode=False,
+    ):
         super().__init__(
             clip_len,
             frame_interval,
             num_clips,
             temporal_jitter,
             out_of_bound_opt=out_of_bound_opt,
-            test_mode=test_mode)
+            test_mode=test_mode,
+        )
         self.sample_range = sample_range
         self.num_sample_positions = num_sample_positions
 
@@ -370,8 +393,9 @@ class DenseSampleFrames(SampleFrames):
         """
         sample_position = max(1, 1 + num_frames - self.sample_range)
         interval = self.sample_range // self.num_clips
-        start_idx = 0 if sample_position == 1 else np.random.randint(
-            0, sample_position - 1)
+        start_idx = (
+            0 if sample_position == 1 else np.random.randint(0, sample_position - 1)
+        )
         base_offsets = np.arange(self.num_clips) * interval
         clip_offsets = (base_offsets + start_idx) % num_frames
         return clip_offsets
@@ -393,7 +417,8 @@ class DenseSampleFrames(SampleFrames):
         sample_position = max(1, 1 + num_frames - self.sample_range)
         interval = self.sample_range // self.num_clips
         start_list = np.linspace(
-            0, sample_position - 1, num=self.num_sample_positions, dtype=int)
+            0, sample_position - 1, num=self.num_sample_positions, dtype=int
+        )
         base_offsets = np.arange(self.num_clips) * interval
         clip_offsets = list()
         for start_idx in start_list:
@@ -402,21 +427,22 @@ class DenseSampleFrames(SampleFrames):
         return clip_offsets
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'clip_len={self.clip_len}, '
-                    f'frame_interval={self.frame_interval}, '
-                    f'num_clips={self.num_clips}, '
-                    f'sample_range={self.sample_range}, '
-                    f'num_sample_positions={self.num_sample_positions}, '
-                    f'temporal_jitter={self.temporal_jitter}, '
-                    f'out_of_bound_opt={self.out_of_bound_opt}, '
-                    f'test_mode={self.test_mode})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"clip_len={self.clip_len}, "
+            f"frame_interval={self.frame_interval}, "
+            f"num_clips={self.num_clips}, "
+            f"sample_range={self.sample_range}, "
+            f"num_sample_positions={self.num_sample_positions}, "
+            f"temporal_jitter={self.temporal_jitter}, "
+            f"out_of_bound_opt={self.out_of_bound_opt}, "
+            f"test_mode={self.test_mode})"
+        )
         return repr_str
 
 
 @PIPELINES.register_module()
 class SampleAVAFrames(SampleFrames):
-
     def __init__(self, clip_len, frame_interval=2, test_mode=False):
 
         super().__init__(clip_len, frame_interval, test_mode=test_mode)
@@ -431,30 +457,34 @@ class SampleAVAFrames(SampleFrames):
         return frame_inds
 
     def __call__(self, results):
-        fps = results['fps']
-        timestamp = results['timestamp']
-        timestamp_start = results['timestamp_start']
-        shot_info = results['shot_info']
+        fps = results["fps"]
+        timestamp = results["timestamp"]
+        timestamp_start = results["timestamp_start"]
+        shot_info = results["shot_info"]
 
         center_index = fps * (timestamp - timestamp_start) + 1
 
         skip_offsets = np.random.randint(
-            -self.frame_interval // 2, (self.frame_interval + 1) // 2,
-            size=self.clip_len)
+            -self.frame_interval // 2,
+            (self.frame_interval + 1) // 2,
+            size=self.clip_len,
+        )
         frame_inds = self._get_clips(center_index, skip_offsets, shot_info)
 
-        results['frame_inds'] = np.array(frame_inds, dtype=np.int)
-        results['clip_len'] = self.clip_len
-        results['frame_interval'] = self.frame_interval
-        results['num_clips'] = 1
-        results['crop_quadruple'] = np.array([0, 0, 1, 1], dtype=np.float32)
+        results["frame_inds"] = np.array(frame_inds, dtype=np.int)
+        results["clip_len"] = self.clip_len
+        results["frame_interval"] = self.frame_interval
+        results["num_clips"] = 1
+        results["crop_quadruple"] = np.array([0, 0, 1, 1], dtype=np.float32)
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'clip_len={self.clip_len}, '
-                    f'frame_interval={self.frame_interval}, '
-                    f'test_mode={self.test_mode})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"clip_len={self.clip_len}, "
+            f"frame_interval={self.frame_interval}, "
+            f"test_mode={self.test_mode})"
+        )
         return repr_str
 
 
@@ -483,28 +513,31 @@ class SampleProposalFrames(SampleFrames):
             Default: 'train'.
     """
 
-    def __init__(self,
-                 clip_len,
-                 body_segments,
-                 aug_segments,
-                 aug_ratio,
-                 frame_interval=1,
-                 test_interval=6,
-                 temporal_jitter=False,
-                 mode='train'):
+    def __init__(
+        self,
+        clip_len,
+        body_segments,
+        aug_segments,
+        aug_ratio,
+        frame_interval=1,
+        test_interval=6,
+        temporal_jitter=False,
+        mode="train",
+    ):
         super().__init__(
-            clip_len,
-            frame_interval=frame_interval,
-            temporal_jitter=temporal_jitter)
+            clip_len, frame_interval=frame_interval, temporal_jitter=temporal_jitter
+        )
         self.body_segments = body_segments
         self.aug_segments = aug_segments
         self.aug_ratio = _pair(aug_ratio)
         if not mmcv.is_tuple_of(self.aug_ratio, (int, float)):
-            raise TypeError(f'aug_ratio should be int, float'
-                            f'or tuple of int and float, '
-                            f'but got {type(aug_ratio)}')
+            raise TypeError(
+                f"aug_ratio should be int, float"
+                f"or tuple of int and float, "
+                f"but got {type(aug_ratio)}"
+            )
         assert len(self.aug_ratio) == 2
-        assert mode in ['train', 'val', 'test']
+        assert mode in ["train", "val", "test"]
         self.mode = mode
         self.test_interval = test_interval
 
@@ -528,10 +561,9 @@ class SampleProposalFrames(SampleFrames):
         avg_interval = (valid_length + 1) // num_segments
         if avg_interval > 0:
             base_offsets = np.arange(num_segments) * avg_interval
-            offsets = base_offsets + np.random.randint(
-                avg_interval, size=num_segments)
+            offsets = base_offsets + np.random.randint(avg_interval, size=num_segments)
         else:
-            offsets = np.zeros((num_segments, ), dtype=np.int)
+            offsets = np.zeros((num_segments,), dtype=np.int)
 
         return offsets
 
@@ -556,7 +588,7 @@ class SampleProposalFrames(SampleFrames):
             base_offsets = np.arange(num_segments) * avg_interval
             offsets = (base_offsets + avg_interval / 2.0).astype(np.int)
         else:
-            offsets = np.zeros((num_segments, ), dtype=np.int)
+            offsets = np.zeros((num_segments,), dtype=np.int)
 
         return offsets
 
@@ -582,34 +614,36 @@ class SampleProposalFrames(SampleFrames):
         assert duration != 0
         valid_length = duration - ori_clip_len
 
-        valid_starting = max(0,
-                             start_frame - int(duration * self.aug_ratio[0]))
-        valid_ending = min(num_frames - ori_clip_len + 1,
-                           end_frame - 1 + int(duration * self.aug_ratio[1]))
+        valid_starting = max(0, start_frame - int(duration * self.aug_ratio[0]))
+        valid_ending = min(
+            num_frames - ori_clip_len + 1,
+            end_frame - 1 + int(duration * self.aug_ratio[1]),
+        )
 
         valid_starting_length = start_frame - valid_starting - ori_clip_len
         valid_ending_length = (valid_ending - end_frame + 1) - ori_clip_len
 
-        if self.mode == 'train':
-            starting_offsets = self._get_train_indices(valid_starting_length,
-                                                       self.aug_segments[0])
-            course_offsets = self._get_train_indices(valid_length,
-                                                     self.body_segments)
-            ending_offsets = self._get_train_indices(valid_ending_length,
-                                                     self.aug_segments[1])
-        elif self.mode == 'val':
-            starting_offsets = self._get_val_indices(valid_starting_length,
-                                                     self.aug_segments[0])
-            course_offsets = self._get_val_indices(valid_length,
-                                                   self.body_segments)
-            ending_offsets = self._get_val_indices(valid_ending_length,
-                                                   self.aug_segments[1])
+        if self.mode == "train":
+            starting_offsets = self._get_train_indices(
+                valid_starting_length, self.aug_segments[0]
+            )
+            course_offsets = self._get_train_indices(valid_length, self.body_segments)
+            ending_offsets = self._get_train_indices(
+                valid_ending_length, self.aug_segments[1]
+            )
+        elif self.mode == "val":
+            starting_offsets = self._get_val_indices(
+                valid_starting_length, self.aug_segments[0]
+            )
+            course_offsets = self._get_val_indices(valid_length, self.body_segments)
+            ending_offsets = self._get_val_indices(
+                valid_ending_length, self.aug_segments[1]
+            )
         starting_offsets += valid_starting
         course_offsets += start_frame
         ending_offsets += end_frame
 
-        offsets = np.concatenate(
-            (starting_offsets, course_offsets, ending_offsets))
+        offsets = np.concatenate((starting_offsets, course_offsets, ending_offsets))
         return offsets
 
     def _get_train_clips(self, num_frames, proposals):
@@ -627,10 +661,8 @@ class SampleProposalFrames(SampleFrames):
         """
         clip_offsets = []
         for proposal in proposals:
-            proposal_clip_offsets = self._get_proposal_clips(
-                proposal[0][1], num_frames)
-            clip_offsets = np.concatenate(
-                [clip_offsets, proposal_clip_offsets])
+            proposal_clip_offsets = self._get_proposal_clips(proposal[0][1], num_frames)
+            clip_offsets = np.concatenate([clip_offsets, proposal_clip_offsets])
 
         return clip_offsets
 
@@ -646,8 +678,7 @@ class SampleProposalFrames(SampleFrames):
             np.ndarray: Sampled frame indices in test mode.
         """
         ori_clip_len = self.clip_len * self.frame_interval
-        return np.arange(
-            0, num_frames - ori_clip_len, self.test_interval, dtype=np.int)
+        return np.arange(0, num_frames - ori_clip_len, self.test_interval, dtype=np.int)
 
     def _sample_clips(self, num_frames, proposals):
         """Choose clip offsets for the video in a given mode.
@@ -660,7 +691,7 @@ class SampleProposalFrames(SampleFrames):
         Returns:
             np.ndarray: Sampled frame indices.
         """
-        if self.mode == 'test':
+        if self.mode == "test":
             clip_offsets = self._get_test_clips(num_frames)
         else:
             assert proposals is not None
@@ -675,42 +706,48 @@ class SampleProposalFrames(SampleFrames):
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        total_frames = results['total_frames']
+        total_frames = results["total_frames"]
 
-        out_proposals = results.get('out_proposals', None)
+        out_proposals = results.get("out_proposals", None)
         clip_offsets = self._sample_clips(total_frames, out_proposals)
-        frame_inds = clip_offsets[:, None] + np.arange(
-            self.clip_len)[None, :] * self.frame_interval
+        frame_inds = (
+            clip_offsets[:, None]
+            + np.arange(self.clip_len)[None, :] * self.frame_interval
+        )
         frame_inds = np.concatenate(frame_inds)
 
         if self.temporal_jitter:
             perframe_offsets = np.random.randint(
-                self.frame_interval, size=len(frame_inds))
+                self.frame_interval, size=len(frame_inds)
+            )
             frame_inds += perframe_offsets
 
-        start_index = results['start_index']
+        start_index = results["start_index"]
         frame_inds = np.mod(frame_inds, total_frames) + start_index
 
-        results['frame_inds'] = np.array(frame_inds).astype(np.int)
-        results['clip_len'] = self.clip_len
-        results['frame_interval'] = self.frame_interval
-        results['num_clips'] = (
-            self.body_segments + self.aug_segments[0] + self.aug_segments[1])
-        if self.mode in ['train', 'val']:
-            results['num_proposals'] = len(results['out_proposals'])
+        results["frame_inds"] = np.array(frame_inds).astype(np.int)
+        results["clip_len"] = self.clip_len
+        results["frame_interval"] = self.frame_interval
+        results["num_clips"] = (
+            self.body_segments + self.aug_segments[0] + self.aug_segments[1]
+        )
+        if self.mode in ["train", "val"]:
+            results["num_proposals"] = len(results["out_proposals"])
 
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'clip_len={self.clip_len}, '
-                    f'body_segments={self.body_segments}, '
-                    f'aug_segments={self.aug_segments}, '
-                    f'aug_ratio={self.aug_ratio}, '
-                    f'frame_interval={self.frame_interval}, '
-                    f'test_interval={self.test_interval}, '
-                    f'temporal_jitter={self.temporal_jitter}, '
-                    f'mode={self.mode})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"clip_len={self.clip_len}, "
+            f"body_segments={self.body_segments}, "
+            f"aug_segments={self.aug_segments}, "
+            f"aug_ratio={self.aug_ratio}, "
+            f"frame_interval={self.frame_interval}, "
+            f"test_interval={self.test_interval}, "
+            f"temporal_jitter={self.temporal_jitter}, "
+            f"mode={self.mode})"
+        )
         return repr_str
 
 
@@ -729,7 +766,7 @@ class PyAVInit:
         kwargs (dict): Args for file client.
     """
 
-    def __init__(self, io_backend='disk', **kwargs):
+    def __init__(self, io_backend="disk", **kwargs):
         self.io_backend = io_backend
         self.kwargs = kwargs
         self.file_client = None
@@ -744,22 +781,24 @@ class PyAVInit:
         try:
             import av
         except ImportError:
-            raise ImportError('Please run "conda install av -c conda-forge" '
-                              'or "pip install av" to install PyAV first.')
+            raise ImportError(
+                'Please run "conda install av -c conda-forge" '
+                'or "pip install av" to install PyAV first.'
+            )
 
         if self.file_client is None:
             self.file_client = FileClient(self.io_backend, **self.kwargs)
 
-        file_obj = io.BytesIO(self.file_client.get(results['filename']))
+        file_obj = io.BytesIO(self.file_client.get(results["filename"]))
         container = av.open(file_obj)
 
-        results['video_reader'] = container
-        results['total_frames'] = container.streams.video[0].frames
+        results["video_reader"] = container
+        results["total_frames"] = container.streams.video[0].frames
 
         return results
 
     def __repr__(self):
-        repr_str = f'{self.__class__.__name__}(io_backend=disk)'
+        repr_str = f"{self.__class__.__name__}(io_backend=disk)"
         return repr_str
 
 
@@ -787,17 +826,17 @@ class PyAVDecode:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        container = results['video_reader']
+        container = results["video_reader"]
         imgs = list()
 
         try:
             if self.multi_thread:
-                container.streams.video[0].thread_type = 'AUTO'
-            if results['frame_inds'].ndim != 1:
-                results['frame_inds'] = np.squeeze(results['frame_inds'])
+                container.streams.video[0].thread_type = "AUTO"
+            if results["frame_inds"].ndim != 1:
+                results["frame_inds"] = np.squeeze(results["frame_inds"])
 
             # set max indice to make early stop
-            max_inds = max(results['frame_inds'])
+            max_inds = max(results["frame_inds"])
             i = 0
             for frame in container.decode(video=0):
                 if i > max_inds + 1:
@@ -805,25 +844,25 @@ class PyAVDecode:
                 imgs.append(frame.to_rgb().to_ndarray())
                 i += 1
 
-            results['video_reader'] = None
+            results["video_reader"] = None
         except:
-            imgs = [np.zeros((360, 360, 3)) for i in results['frame_inds']]
-            print(results['filename'])
+            imgs = [np.zeros((360, 360, 3)) for i in results["frame_inds"]]
+            print(results["filename"])
 
         del container
 
         # the available frame in pyav may be less than its length,
         # which may raise error
-        results['imgs'] = [imgs[i % len(imgs)] for i in results['frame_inds']]
+        results["imgs"] = [imgs[i % len(imgs)] for i in results["frame_inds"]]
 
-        results['original_shape'] = imgs[0].shape[:2]
-        results['img_shape'] = imgs[0].shape[:2]
+        results["original_shape"] = imgs[0].shape[:2]
+        results["img_shape"] = imgs[0].shape[:2]
 
         return results
 
     def __repr__(self):
         repr_str = self.__class__.__name__
-        repr_str += f'(multi_thread={self.multi_thread})'
+        repr_str += f"(multi_thread={self.multi_thread})"
         return repr_str
 
 
@@ -845,18 +884,22 @@ class PyAVDecodeMotionVector(PyAVDecode):
     @staticmethod
     def _parse_vectors(mv, vectors, height, width):
         """Parse the returned vectors."""
-        (w, h, src_x, src_y, dst_x,
-         dst_y) = (vectors['w'], vectors['h'], vectors['src_x'],
-                   vectors['src_y'], vectors['dst_x'], vectors['dst_y'])
+        (w, h, src_x, src_y, dst_x, dst_y) = (
+            vectors["w"],
+            vectors["h"],
+            vectors["src_x"],
+            vectors["src_y"],
+            vectors["dst_x"],
+            vectors["dst_y"],
+        )
         val_x = dst_x - src_x
         val_y = dst_y - src_y
         start_x = dst_x - w // 2
         start_y = dst_y - h // 2
         end_x = start_x + w
         end_y = start_y + h
-        for sx, ex, sy, ey, vx, vy in zip(start_x, end_x, start_y, end_y,
-                                          val_x, val_y):
-            if (sx >= 0 and ex < width and sy >= 0 and ey < height):
+        for sx, ex, sy, ey, vx, vy in zip(start_x, end_x, start_y, end_y, val_x, val_y):
+            if sx >= 0 and ex < width and sy >= 0 and ey < height:
                 mv[sy:ey, sx:ex] = (vx, vy)
 
         return mv
@@ -868,20 +911,20 @@ class PyAVDecodeMotionVector(PyAVDecode):
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        container = results['video_reader']
+        container = results["video_reader"]
         imgs = list()
 
         if self.multi_thread:
-            container.streams.video[0].thread_type = 'AUTO'
-        if results['frame_inds'].ndim != 1:
-            results['frame_inds'] = np.squeeze(results['frame_inds'])
+            container.streams.video[0].thread_type = "AUTO"
+        if results["frame_inds"].ndim != 1:
+            results["frame_inds"] = np.squeeze(results["frame_inds"])
 
         # set max index to make early stop
-        max_idx = max(results['frame_inds'])
+        max_idx = max(results["frame_inds"])
         i = 0
         stream = container.streams.video[0]
         codec_context = stream.codec_context
-        codec_context.options = {'flags2': '+export_mvs'}
+        codec_context.options = {"flags2": "+export_mvs"}
         for packet in container.demux(stream):
             for frame in packet.decode():
                 if i > max_idx + 1:
@@ -890,22 +933,22 @@ class PyAVDecodeMotionVector(PyAVDecode):
                 height = frame.height
                 width = frame.width
                 mv = np.zeros((height, width, 2), dtype=np.int8)
-                vectors = frame.side_data.get('MOTION_VECTORS')
+                vectors = frame.side_data.get("MOTION_VECTORS")
                 if frame.key_frame:
                     # Key frame don't have motion vectors
                     assert vectors is None
                 if vectors is not None and len(vectors) > 0:
-                    mv = self._parse_vectors(mv, vectors.to_ndarray(), height,
-                                             width)
+                    mv = self._parse_vectors(mv, vectors.to_ndarray(), height, width)
                 imgs.append(mv)
 
-        results['video_reader'] = None
+        results["video_reader"] = None
         del container
 
         # the available frame in pyav may be less than its length,
         # which may raise error
-        results['motion_vectors'] = np.array(
-            [imgs[i % len(imgs)] for i in results['frame_inds']])
+        results["motion_vectors"] = np.array(
+            [imgs[i % len(imgs)] for i in results["frame_inds"]]
+        )
         return results
 
 
@@ -919,7 +962,7 @@ class DecordInit:
     added or modified keys are "video_reader" and "total_frames".
     """
 
-    def __init__(self, io_backend='disk', num_threads=1, **kwargs):
+    def __init__(self, io_backend="disk", num_threads=1, **kwargs):
         self.io_backend = io_backend
         self.num_threads = num_threads
         self.kwargs = kwargs
@@ -936,21 +979,24 @@ class DecordInit:
             import decord
         except ImportError:
             raise ImportError(
-                'Please run "pip install decord" to install Decord first.')
+                'Please run "pip install decord" to install Decord first.'
+            )
 
         if self.file_client is None:
             self.file_client = FileClient(self.io_backend, **self.kwargs)
 
-        file_obj = io.BytesIO(self.file_client.get(results['filename']))
+        file_obj = io.BytesIO(self.file_client.get(results["filename"]))
         container = decord.VideoReader(file_obj, num_threads=self.num_threads)
-        results['video_reader'] = container
-        results['total_frames'] = len(container)
+        results["video_reader"] = container
+        results["total_frames"] = len(container)
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'io_backend={self.io_backend}, '
-                    f'num_threads={self.num_threads})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"io_backend={self.io_backend}, "
+            f"num_threads={self.num_threads})"
+        )
         return repr_str
 
 
@@ -971,31 +1017,29 @@ class DecordDecode:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        container = results['video_reader']
+        container = results["video_reader"]
 
-        if results['frame_inds'].ndim != 1:
-            results['frame_inds'] = np.squeeze(results['frame_inds'])
+        if results["frame_inds"].ndim != 1:
+            results["frame_inds"] = np.squeeze(results["frame_inds"])
 
-        frame_inds = results['frame_inds']
+        frame_inds = results["frame_inds"]
         # Generate frame index mapping in order
         try:
             frame_dict = {
-                idx: container[idx].asnumpy()
-                for idx in np.unique(frame_inds)
+                idx: container[idx].asnumpy() for idx in np.unique(frame_inds)
             }
             imgs = [frame_dict[idx] for idx in frame_inds]
 
         except:
-            print(results['filename'])
+            print(results["filename"])
             imgs = [np.zeros((360, 360, 3)) for idx in frame_inds]
 
-
-        results['video_reader'] = None
+        results["video_reader"] = None
         del container
 
-        results['imgs'] = imgs
-        results['original_shape'] = imgs[0].shape[:2]
-        results['img_shape'] = imgs[0].shape[:2]
+        results["imgs"] = imgs
+        results["original_shape"] = imgs[0].shape[:2]
+        results["img_shape"] = imgs[0].shape[:2]
 
         return results
 
@@ -1008,16 +1052,15 @@ class OpenCVInit:
     "video_reader" and "total_frames".
     """
 
-    def __init__(self, io_backend='disk', **kwargs):
+    def __init__(self, io_backend="disk", **kwargs):
         self.io_backend = io_backend
         self.kwargs = kwargs
         self.file_client = None
         self.tmp_folder = None
-        if self.io_backend != 'disk':
+        if self.io_backend != "disk":
             random_string = get_random_string()
             thread_id = get_thread_id()
-            self.tmp_folder = osp.join(get_shm_dir(),
-                                       f'{random_string}_{thread_id}')
+            self.tmp_folder = osp.join(get_shm_dir(), f"{random_string}_{thread_id}")
             os.mkdir(self.tmp_folder)
 
     def __call__(self, results):
@@ -1027,22 +1070,22 @@ class OpenCVInit:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        if self.io_backend == 'disk':
-            new_path = results['filename']
+        if self.io_backend == "disk":
+            new_path = results["filename"]
         else:
             if self.file_client is None:
                 self.file_client = FileClient(self.io_backend, **self.kwargs)
 
             thread_id = get_thread_id()
             # save the file of same thread at the same place
-            new_path = osp.join(self.tmp_folder, f'tmp_{thread_id}.mp4')
-            with open(new_path, 'wb') as f:
-                f.write(self.file_client.get(results['filename']))
+            new_path = osp.join(self.tmp_folder, f"tmp_{thread_id}.mp4")
+            with open(new_path, "wb") as f:
+                f.write(self.file_client.get(results["filename"]))
 
         container = mmcv.VideoReader(new_path)
-        results['new_path'] = new_path
-        results['video_reader'] = container
-        results['total_frames'] = len(container)
+        results["new_path"] = new_path
+        results["video_reader"] = container
+        results["total_frames"] = len(container)
         # print('OpenCVInit success')
         # print(len(container))
 
@@ -1053,8 +1096,7 @@ class OpenCVInit:
             shutil.rmtree(self.tmp_folder)
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'io_backend={self.io_backend})')
+        repr_str = f"{self.__class__.__name__}(" f"io_backend={self.io_backend})"
         return repr_str
 
 
@@ -1073,13 +1115,13 @@ class OpenCVDecode:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        container = results['video_reader']
+        container = results["video_reader"]
         imgs = list()
 
-        if results['frame_inds'].ndim != 1:
-            results['frame_inds'] = np.squeeze(results['frame_inds'])
+        if results["frame_inds"].ndim != 1:
+            results["frame_inds"] = np.squeeze(results["frame_inds"])
         try:
-            for frame_ind in results['frame_inds']:
+            for frame_ind in results["frame_inds"]:
                 cur_frame = container[frame_ind]
                 # last frame may be None in OpenCV
                 while isinstance(cur_frame, type(None)):
@@ -1088,23 +1130,23 @@ class OpenCVDecode:
                 imgs.append(cur_frame)
         except:
             imgs = []
-            for frame_ind in results['frame_inds']:
+            for frame_ind in results["frame_inds"]:
                 cur_frame = np.zeros((360, 360, 3))
                 imgs.append(cur_frame)
-            print(results['filename'])
+            print(results["filename"])
 
         # print('frame_inds:', results['frame_inds'])
         # print('total_frames:', results['total_frames'])
         # print(imgs[0].shape)
-        results['video_reader'] = None
+        results["video_reader"] = None
         del container
 
         imgs = np.array(imgs)
         # The default channel order of OpenCV is BGR, thus we change it to RGB
         imgs = imgs[:, :, :, ::-1]
-        results['imgs'] = list(imgs)
-        results['original_shape'] = imgs[0].shape[:2]
-        results['img_shape'] = imgs[0].shape[:2]
+        results["imgs"] = list(imgs)
+        results["original_shape"] = imgs[0].shape[:2]
+        results["img_shape"] = imgs[0].shape[:2]
 
         return results
 
@@ -1123,7 +1165,7 @@ class RawFrameDecode:
         kwargs (dict, optional): Arguments for FileClient.
     """
 
-    def __init__(self, io_backend='disk', decoding_backend='cv2', **kwargs):
+    def __init__(self, io_backend="disk", decoding_backend="cv2", **kwargs):
         self.io_backend = io_backend
         self.decoding_backend = decoding_backend
         self.kwargs = kwargs
@@ -1138,9 +1180,9 @@ class RawFrameDecode:
         """
         mmcv.use_backend(self.decoding_backend)
 
-        directory = results['frame_dir']
-        filename_tmpl = results['filename_tmpl']
-        modality = results['modality']
+        directory = results["frame_dir"]
+        filename_tmpl = results["filename_tmpl"]
+        modality = results["modality"]
 
         if self.file_client is None:
             self.file_client = FileClient(self.io_backend, **self.kwargs)
@@ -1148,67 +1190,66 @@ class RawFrameDecode:
         imgs = list()
         broken_frame_num = 0
 
-        if results['frame_inds'].ndim != 1:
-            results['frame_inds'] = np.squeeze(results['frame_inds'])
+        if results["frame_inds"].ndim != 1:
+            results["frame_inds"] = np.squeeze(results["frame_inds"])
 
-        offset = results.get('offset', 0)
+        offset = results.get("offset", 0)
 
-        for frame_idx in results['frame_inds']:
+        for frame_idx in results["frame_inds"]:
             frame_idx += offset
-            if modality == 'RGB':
+            if modality == "RGB":
                 filepath = osp.join(directory, filename_tmpl.format(frame_idx))
                 try:
                     img_bytes = self.file_client.get(filepath)
-                    cur_frame = mmcv.imfrombytes(img_bytes, channel_order='rgb')
+                    cur_frame = mmcv.imfrombytes(img_bytes, channel_order="rgb")
                     imgs.append(cur_frame)
                 except:
                     broken_frame_num += 1
 
-
-            elif modality == 'Flow':
-                x_filepath = osp.join(directory,
-                                      filename_tmpl.format('x', frame_idx))
-                y_filepath = osp.join(directory,
-                                      filename_tmpl.format('y', frame_idx))
+            elif modality == "Flow":
+                x_filepath = osp.join(directory, filename_tmpl.format("x", frame_idx))
+                y_filepath = osp.join(directory, filename_tmpl.format("y", frame_idx))
                 x_img_bytes = self.file_client.get(x_filepath)
-                x_frame = mmcv.imfrombytes(x_img_bytes, flag='grayscale')
+                x_frame = mmcv.imfrombytes(x_img_bytes, flag="grayscale")
                 y_img_bytes = self.file_client.get(y_filepath)
-                y_frame = mmcv.imfrombytes(y_img_bytes, flag='grayscale')
+                y_frame = mmcv.imfrombytes(y_img_bytes, flag="grayscale")
                 imgs.extend([x_frame, y_frame])
             else:
                 raise NotImplementedError
 
         if broken_frame_num > 0:
-            if len(imgs)!=0 :
+            if len(imgs) != 0:
                 for i in range(broken_frame_num):
                     imgs.append(imgs[0])
             else:
-                rd_img = np.random.randint(0, 255, (456, 256, 3), dtype='uint8')
+                rd_img = np.random.randint(0, 255, (456, 256, 3), dtype="uint8")
                 for i in range(broken_frame_num):
                     imgs.append(rd_img)
 
-        results['imgs'] = imgs
-        results['original_shape'] = imgs[0].shape[:2]
-        results['img_shape'] = imgs[0].shape[:2]
+        results["imgs"] = imgs
+        results["original_shape"] = imgs[0].shape[:2]
+        results["img_shape"] = imgs[0].shape[:2]
 
         # we resize the gt_bboxes and proposals to their real scale
-        if 'gt_bboxes' in results:
-            h, w = results['img_shape']
+        if "gt_bboxes" in results:
+            h, w = results["img_shape"]
             scale_factor = np.array([w, h, w, h])
-            gt_bboxes = results['gt_bboxes']
+            gt_bboxes = results["gt_bboxes"]
             gt_bboxes = (gt_bboxes * scale_factor).astype(np.float32)
-            results['gt_bboxes'] = gt_bboxes
-            if 'proposals' in results and results['proposals'] is not None:
-                proposals = results['proposals']
+            results["gt_bboxes"] = gt_bboxes
+            if "proposals" in results and results["proposals"] is not None:
+                proposals = results["proposals"]
                 proposals = (proposals * scale_factor).astype(np.float32)
-                results['proposals'] = proposals
+                results["proposals"] = proposals
 
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'io_backend={self.io_backend}, '
-                    f'decoding_backend={self.decoding_backend})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"io_backend={self.io_backend}, "
+            f"decoding_backend={self.decoding_backend})"
+        )
         return repr_str
 
 
@@ -1226,7 +1267,7 @@ class ImageDecode:
         kwargs (dict, optional): Arguments for FileClient.
     """
 
-    def __init__(self, io_backend='disk', decoding_backend='cv2', **kwargs):
+    def __init__(self, io_backend="disk", decoding_backend="cv2", **kwargs):
         self.io_backend = io_backend
         self.decoding_backend = decoding_backend
         self.kwargs = kwargs
@@ -1241,7 +1282,7 @@ class ImageDecode:
         """
         mmcv.use_backend(self.decoding_backend)
 
-        filename = results['filename']
+        filename = results["filename"]
 
         if self.file_client is None:
             self.file_client = FileClient(self.io_backend, **self.kwargs)
@@ -1249,12 +1290,12 @@ class ImageDecode:
         imgs = list()
         img_bytes = self.file_client.get(filename)
 
-        img = mmcv.imfrombytes(img_bytes, channel_order='rgb')
+        img = mmcv.imfrombytes(img_bytes, channel_order="rgb")
         imgs.append(img)
 
-        results['imgs'] = imgs
-        results['original_shape'] = imgs[0].shape[:2]
-        results['img_shape'] = imgs[0].shape[:2]
+        results["imgs"] = imgs
+        results["original_shape"] = imgs[0].shape[:2]
+        results["img_shape"] = imgs[0].shape[:2]
         return results
 
 
@@ -1271,14 +1312,12 @@ class AudioDecodeInit:
         sample_rate (int): Audio sampling times per second. Default: 16000.
     """
 
-    def __init__(self,
-                 io_backend='disk',
-                 sample_rate=16000,
-                 pad_method='zero',
-                 **kwargs):
+    def __init__(
+        self, io_backend="disk", sample_rate=16000, pad_method="zero", **kwargs
+    ):
         self.io_backend = io_backend
         self.sample_rate = sample_rate
-        if pad_method in ['random', 'zero']:
+        if pad_method in ["random", "zero"]:
             self.pad_method = pad_method
         else:
             raise NotImplementedError
@@ -1304,29 +1343,31 @@ class AudioDecodeInit:
         try:
             import librosa
         except ImportError:
-            raise ImportError('Please install librosa first.')
+            raise ImportError("Please install librosa first.")
 
         if self.file_client is None:
             self.file_client = FileClient(self.io_backend, **self.kwargs)
-        if osp.exists(results['audio_path']):
-            file_obj = io.BytesIO(self.file_client.get(results['audio_path']))
+        if osp.exists(results["audio_path"]):
+            file_obj = io.BytesIO(self.file_client.get(results["audio_path"]))
             y, sr = librosa.load(file_obj, sr=self.sample_rate)
         else:
             # Generate a random dummy 10s input
-            pad_func = getattr(self, f'_{self.pad_method}_pad')
+            pad_func = getattr(self, f"_{self.pad_method}_pad")
             y = pad_func(int(round(10.0 * self.sample_rate)))
             sr = self.sample_rate
 
-        results['length'] = y.shape[0]
-        results['sample_rate'] = sr
-        results['audios'] = y
+        results["length"] = y.shape[0]
+        results["sample_rate"] = sr
+        results["audios"] = y
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'io_backend={self.io_backend}, '
-                    f'sample_rate={self.sample_rate}, '
-                    f'pad_method={self.pad_method})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"io_backend={self.io_backend}, "
+            f"sample_rate={self.sample_rate}, "
+            f"pad_method={self.pad_method})"
+        )
         return repr_str
 
 
@@ -1338,8 +1379,8 @@ class LoadAudioFeature:
     audios".
     """
 
-    def __init__(self, pad_method='zero'):
-        if pad_method not in ['zero', 'random']:
+    def __init__(self, pad_method="zero"):
+        if pad_method not in ["zero", "random"]:
             raise NotImplementedError
         self.pad_method = pad_method
 
@@ -1360,21 +1401,20 @@ class LoadAudioFeature:
                 to the next transform in pipeline.
         """
 
-        if osp.exists(results['audio_path']):
-            feature_map = np.load(results['audio_path'])
+        if osp.exists(results["audio_path"]):
+            feature_map = np.load(results["audio_path"])
         else:
             # Generate a random dummy 10s input
             # Some videos do not have audio stream
-            pad_func = getattr(self, f'_{self.pad_method}_pad')
+            pad_func = getattr(self, f"_{self.pad_method}_pad")
             feature_map = pad_func((640, 80))
 
-        results['length'] = feature_map.shape[0]
-        results['audios'] = feature_map
+        results["length"] = feature_map.shape[0]
+        results["audios"] = feature_map
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'pad_method={self.pad_method})')
+        repr_str = f"{self.__class__.__name__}(" f"pad_method={self.pad_method})"
         return repr_str
 
 
@@ -1396,9 +1436,9 @@ class AudioDecode:
 
     def __call__(self, results):
         """Perform the ``AudioDecode`` to pick audio clips."""
-        audio = results['audios']
-        frame_inds = results['frame_inds']
-        num_clips = results['num_clips']
+        audio = results["audios"]
+        frame_inds = results["frame_inds"]
+        num_clips = results["num_clips"]
         resampled_clips = list()
         frame_inds = frame_inds.reshape(num_clips, -1)
         for clip_idx in range(num_clips):
@@ -1406,26 +1446,37 @@ class AudioDecode:
             start_idx = max(
                 0,
                 int(
-                    round((clip_frame_inds[0] + 1) / results['total_frames'] *
-                          results['length'])))
+                    round(
+                        (clip_frame_inds[0] + 1)
+                        / results["total_frames"]
+                        * results["length"]
+                    )
+                ),
+            )
             end_idx = min(
-                results['length'],
+                results["length"],
                 int(
-                    round((clip_frame_inds[-1] + 1) / results['total_frames'] *
-                          results['length'])))
+                    round(
+                        (clip_frame_inds[-1] + 1)
+                        / results["total_frames"]
+                        * results["length"]
+                    )
+                ),
+            )
             cropped_audio = audio[start_idx:end_idx]
             if cropped_audio.shape[0] >= self.fixed_length:
-                truncated_audio = cropped_audio[:self.fixed_length]
+                truncated_audio = cropped_audio[: self.fixed_length]
             else:
                 truncated_audio = np.pad(
                     cropped_audio,
                     ((0, self.fixed_length - cropped_audio.shape[0])),
-                    mode='constant')
+                    mode="constant",
+                )
 
             resampled_clips.append(truncated_audio)
 
-        results['audios'] = np.array(resampled_clips)
-        results['audios_shape'] = results['audios'].shape
+        results["audios"] = np.array(resampled_clips)
+        results["audios_shape"] = results["audios"].shape
         return results
 
 
@@ -1445,17 +1496,16 @@ class BuildPseudoClip:
 
     def __call__(self, results):
         # the input should be one single image
-        assert len(results['imgs']) == 1
-        im = results['imgs'][0]
+        assert len(results["imgs"]) == 1
+        im = results["imgs"][0]
         for _ in range(1, self.clip_len):
-            results['imgs'].append(np.copy(im))
-        results['clip_len'] = self.clip_len
-        results['num_clips'] = 1
+            results["imgs"].append(np.copy(im))
+        results["clip_len"] = self.clip_len
+        results["num_clips"] = 1
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'fix_length={self.fixed_length})')
+        repr_str = f"{self.__class__.__name__}(" f"fix_length={self.fixed_length})"
         return repr_str
 
 
@@ -1464,8 +1514,9 @@ class FrameSelector(RawFrameDecode):
     """Deprecated class for ``RawFrameDecode``."""
 
     def __init__(self, *args, **kwargs):
-        warnings.warn('"FrameSelector" is deprecated, please switch to'
-                      '"RawFrameDecode"')
+        warnings.warn(
+            '"FrameSelector" is deprecated, please switch to' '"RawFrameDecode"'
+        )
         super().__init__(*args, **kwargs)
 
 
@@ -1492,9 +1543,9 @@ class AudioFeatureSelector:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        audio = results['audios']
-        frame_inds = results['frame_inds']
-        num_clips = results['num_clips']
+        audio = results["audios"]
+        frame_inds = results["frame_inds"]
+        num_clips = results["num_clips"]
         resampled_clips = list()
 
         frame_inds = frame_inds.reshape(num_clips, -1)
@@ -1503,30 +1554,40 @@ class AudioFeatureSelector:
             start_idx = max(
                 0,
                 int(
-                    round((clip_frame_inds[0] + 1) / results['total_frames'] *
-                          results['length'])))
+                    round(
+                        (clip_frame_inds[0] + 1)
+                        / results["total_frames"]
+                        * results["length"]
+                    )
+                ),
+            )
             end_idx = min(
-                results['length'],
+                results["length"],
                 int(
-                    round((clip_frame_inds[-1] + 1) / results['total_frames'] *
-                          results['length'])))
+                    round(
+                        (clip_frame_inds[-1] + 1)
+                        / results["total_frames"]
+                        * results["length"]
+                    )
+                ),
+            )
             cropped_audio = audio[start_idx:end_idx, :]
             if cropped_audio.shape[0] >= self.fixed_length:
-                truncated_audio = cropped_audio[:self.fixed_length, :]
+                truncated_audio = cropped_audio[: self.fixed_length, :]
             else:
                 truncated_audio = np.pad(
                     cropped_audio,
                     ((0, self.fixed_length - cropped_audio.shape[0]), (0, 0)),
-                    mode='constant')
+                    mode="constant",
+                )
 
             resampled_clips.append(truncated_audio)
-        results['audios'] = np.array(resampled_clips)
-        results['audios_shape'] = results['audios'].shape
+        results["audios"] = np.array(resampled_clips)
+        results["audios_shape"] = results["audios"].shape
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'fix_length={self.fixed_length})')
+        repr_str = f"{self.__class__.__name__}(" f"fix_length={self.fixed_length})"
         return repr_str
 
 
@@ -1541,8 +1602,8 @@ class LoadLocalizationFeature:
         raw_feature_ext (str): Raw feature file extension.  Default: '.csv'.
     """
 
-    def __init__(self, raw_feature_ext='.csv'):
-        valid_raw_feature_ext = ('.csv', )
+    def __init__(self, raw_feature_ext=".csv"):
+        valid_raw_feature_ext = (".csv",)
         if raw_feature_ext not in valid_raw_feature_ext:
             raise NotImplementedError
         self.raw_feature_ext = raw_feature_ext
@@ -1554,20 +1615,20 @@ class LoadLocalizationFeature:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        video_name = results['video_name']
-        data_prefix = results['data_prefix']
+        video_name = results["video_name"]
+        data_prefix = results["data_prefix"]
 
         data_path = osp.join(data_prefix, video_name + self.raw_feature_ext)
-        raw_feature = np.loadtxt(
-            data_path, dtype=np.float32, delimiter=',', skiprows=1)
+        raw_feature = np.loadtxt(data_path, dtype=np.float32, delimiter=",", skiprows=1)
 
-        results['raw_feature'] = np.transpose(raw_feature, (1, 0))
+        results["raw_feature"] = np.transpose(raw_feature, (1, 0))
 
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'raw_feature_ext={self.raw_feature_ext})')
+        repr_str = (
+            f"{self.__class__.__name__}(" f"raw_feature_ext={self.raw_feature_ext})"
+        )
         return repr_str
 
 
@@ -1586,23 +1647,21 @@ class GenerateLocalizationLabels:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        video_frame = results['duration_frame']
-        video_second = results['duration_second']
-        feature_frame = results['feature_frame']
+        video_frame = results["duration_frame"]
+        video_second = results["duration_second"]
+        feature_frame = results["feature_frame"]
         corrected_second = float(feature_frame) / video_frame * video_second
-        annotations = results['annotations']
+        annotations = results["annotations"]
 
         gt_bbox = []
 
         for annotation in annotations:
-            current_start = max(
-                min(1, annotation['segment'][0] / corrected_second), 0)
-            current_end = max(
-                min(1, annotation['segment'][1] / corrected_second), 0)
+            current_start = max(min(1, annotation["segment"][0] / corrected_second), 0)
+            current_end = max(min(1, annotation["segment"][1] / corrected_second), 0)
             gt_bbox.append([current_start, current_end])
 
         gt_bbox = np.array(gt_bbox)
-        results['gt_bbox'] = gt_bbox
+        results["gt_bbox"] = gt_bbox
         return results
 
 
@@ -1621,20 +1680,22 @@ class LoadProposals:
         feature_ext (str): Feature file extension. Default: '.npy'.
     """
 
-    def __init__(self,
-                 top_k,
-                 pgm_proposals_dir,
-                 pgm_features_dir,
-                 proposal_ext='.csv',
-                 feature_ext='.npy'):
+    def __init__(
+        self,
+        top_k,
+        pgm_proposals_dir,
+        pgm_features_dir,
+        proposal_ext=".csv",
+        feature_ext=".npy",
+    ):
         self.top_k = top_k
         self.pgm_proposals_dir = pgm_proposals_dir
         self.pgm_features_dir = pgm_features_dir
-        valid_proposal_ext = ('.csv', )
+        valid_proposal_ext = (".csv",)
         if proposal_ext not in valid_proposal_ext:
             raise NotImplementedError
         self.proposal_ext = proposal_ext
-        valid_feature_ext = ('.npy', )
+        valid_feature_ext = (".npy",)
         if feature_ext not in valid_feature_ext:
             raise NotImplementedError
         self.feature_ext = feature_ext
@@ -1646,44 +1707,46 @@ class LoadProposals:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        video_name = results['video_name']
-        proposal_path = osp.join(self.pgm_proposals_dir,
-                                 video_name + self.proposal_ext)
-        if self.proposal_ext == '.csv':
+        video_name = results["video_name"]
+        proposal_path = osp.join(self.pgm_proposals_dir, video_name + self.proposal_ext)
+        if self.proposal_ext == ".csv":
             pgm_proposals = np.loadtxt(
-                proposal_path, dtype=np.float32, delimiter=',', skiprows=1)
+                proposal_path, dtype=np.float32, delimiter=",", skiprows=1
+            )
 
-        pgm_proposals = np.array(pgm_proposals[:self.top_k])
+        pgm_proposals = np.array(pgm_proposals[: self.top_k])
         tmin = pgm_proposals[:, 0]
         tmax = pgm_proposals[:, 1]
         tmin_score = pgm_proposals[:, 2]
         tmax_score = pgm_proposals[:, 3]
         reference_temporal_iou = pgm_proposals[:, 5]
 
-        feature_path = osp.join(self.pgm_features_dir,
-                                video_name + self.feature_ext)
-        if self.feature_ext == '.npy':
+        feature_path = osp.join(self.pgm_features_dir, video_name + self.feature_ext)
+        if self.feature_ext == ".npy":
             bsp_feature = np.load(feature_path).astype(np.float32)
 
-        bsp_feature = bsp_feature[:self.top_k, :]
+        bsp_feature = bsp_feature[: self.top_k, :]
 
-        results['bsp_feature'] = bsp_feature
-        results['tmin'] = tmin
-        results['tmax'] = tmax
-        results['tmin_score'] = tmin_score
-        results['tmax_score'] = tmax_score
-        results['reference_temporal_iou'] = reference_temporal_iou
+        results["bsp_feature"] = bsp_feature
+        results["tmin"] = tmin
+        results["tmax"] = tmax
+        results["tmin_score"] = tmin_score
+        results["tmax_score"] = tmax_score
+        results["reference_temporal_iou"] = reference_temporal_iou
 
         return results
 
     def __repr__(self):
-        repr_str = (f'{self.__class__.__name__}('
-                    f'top_k={self.top_k}, '
-                    f'pgm_proposals_dir={self.pgm_proposals_dir}, '
-                    f'pgm_features_dir={self.pgm_features_dir}, '
-                    f'proposal_ext={self.proposal_ext}, '
-                    f'feature_ext={self.feature_ext})')
+        repr_str = (
+            f"{self.__class__.__name__}("
+            f"top_k={self.top_k}, "
+            f"pgm_proposals_dir={self.pgm_proposals_dir}, "
+            f"pgm_features_dir={self.pgm_features_dir}, "
+            f"proposal_ext={self.proposal_ext}, "
+            f"feature_ext={self.feature_ext})"
+        )
         return repr_str
+
 
 @PIPELINES.register_module()
 class LoadTexts:
@@ -1697,16 +1760,14 @@ class LoadTexts:
         sample_number (int): The number of sentences sampled in the whole sentence set(corresponding to the sampled video).
     """
 
-    def __init__(self,
-                 sample_mode = None,
-                 sample_ratio = None,
-                 sample_number = None,
-                 prefix = ''):
+    def __init__(
+        self, sample_mode=None, sample_ratio=None, sample_number=None, prefix=""
+    ):
         self.sample_mode = sample_mode
         self.sample_ratio = sample_ratio
         self.sample_number = sample_number
         self.prefix = prefix
-        assert sample_mode in ['number','ratio']
+        assert sample_mode in ["number", "ratio"]
 
     def __call__(self, results):
         """Perform the text loading.
@@ -1720,24 +1781,28 @@ class LoadTexts:
 
         # print(results[self.prefix + "text_path"])
         if os.path.exists(results[self.prefix + "text_path"]):
-            fin = open(results[self.prefix + "text_path"],'r')
+            fin = open(results[self.prefix + "text_path"], "r")
             lines = fin.readlines()
             fin.close()
         else:
-            lines = ['1\n','0\n','\n','1 1\n']
+            lines = ["1\n", "0\n", "\n", "1 1\n"]
 
         num_sentences = int(lines[0].rstrip())
         assert num_sentences * 3 + 1 <= len(lines)
 
-        if self.sample_mode == 'number':
+        if self.sample_mode == "number":
             sample_number = self.sample_number
-        elif self.sample_mode == 'ratio':
+        elif self.sample_mode == "ratio":
             sample_number = int(num_sentences * self.sample_ratio)
 
         if sample_number > num_sentences:
-            sampled_sentences_inds = np.random.shuffle(np.array([i%num_sentences for i in range(sample_number)]))
+            sampled_sentences_inds = np.random.shuffle(
+                np.array([i % num_sentences for i in range(sample_number)])
+            )
         else:
-            sampled_sentences_inds = np.random.choice(num_sentences, sample_number, replace = False)
+            sampled_sentences_inds = np.random.choice(
+                num_sentences, sample_number, replace=False
+            )
 
         texts = []
         texts_locations = []
@@ -1745,10 +1810,10 @@ class LoadTexts:
         for i in list(sampled_sentences_inds):
             p = i * 3 + 1
             assert int(lines[p].rstrip()) == i
-            sentence = lines[p+1].rstrip()
-            st,ed = map(int,lines[p+2].rstrip().split())
+            sentence = lines[p + 1].rstrip()
+            st, ed = map(int, lines[p + 2].rstrip().split())
             texts.append(sentence)
-            texts_locations.append(np.array([st,ed]))
+            texts_locations.append(np.array([st, ed]))
 
         results[self.prefix + "texts"] = texts
         results[self.prefix + "texts_locations"] = texts_locations
@@ -1765,7 +1830,7 @@ class TextTokenize:
         tokenizer_dir
     """
 
-    def __init__(self, tokenizer_dir, prefix = ''):
+    def __init__(self, tokenizer_dir, prefix=""):
         self.tokenizer = BertTokenizer.from_pretrained(tokenizer_dir)
         self.prefix = prefix
 
@@ -1776,9 +1841,15 @@ class TextTokenize:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        texts_item = self.tokenizer(results[self.prefix + 'texts'], truncation=True, padding='max_length', return_tensors="pt")
-        results[self.prefix + 'texts_item'] = texts_item
+        texts_item = self.tokenizer(
+            results[self.prefix + "texts"],
+            truncation=True,
+            padding="max_length",
+            return_tensors="pt",
+        )
+        results[self.prefix + "texts_item"] = texts_item
         return results
+
 
 @PIPELINES.register_module()
 class LoadWord2Vec:
@@ -1790,7 +1861,7 @@ class LoadWord2Vec:
         tokenizer_dir
     """
 
-    def __init__(self, truncated = True, max_word_num = 128, word2vec_dim=512):
+    def __init__(self, truncated=True, max_word_num=128, word2vec_dim=512):
         self.truncated = truncated
         self.max_word_num = max_word_num
         self.word2vec_dim = 512
@@ -1803,21 +1874,22 @@ class LoadWord2Vec:
             results (dict): The resulting dict to be modified and passed
                 to the next transform in pipeline.
         """
-        with open(results['word2vec_path'], 'rb') as f:
+        with open(results["word2vec_path"], "rb") as f:
             keyword_list = pickle.load(f)
 
-
-        if self.truncated :
+        if self.truncated:
             if len(keyword_list) > self.max_word_num:
-                keyword_list = keyword_list[:self.max_word_num]
+                keyword_list = keyword_list[: self.max_word_num]
             word2vec = [keyword[1] for keyword in keyword_list]
             weight = [keyword[2] for keyword in keyword_list]
             if len(keyword_list) < self.max_word_num:
-                word2vec.extend([self.padding]*(self.max_word_num-len(keyword_list)))
-                weight.extend([0]*(self.max_word_num-len(keyword_list)))
-        else :
+                word2vec.extend(
+                    [self.padding] * (self.max_word_num - len(keyword_list))
+                )
+                weight.extend([0] * (self.max_word_num - len(keyword_list)))
+        else:
             raise NotImplementedError
 
-        results['word2vec'] = np.array(word2vec).astype('float32')
-        results['weight'] = np.array(weight).astype('float32')
+        results["word2vec"] = np.array(word2vec).astype("float32")
+        results["weight"] = np.array(weight).astype("float32")
         return results

@@ -20,6 +20,7 @@ from .mp4_text_dataset import Mp4TextDataset
 from .vatex_dataset import VATEXDataset
 from .msrvtt_dataset import MSRVTTDataset
 from .mp4_word2vec_dataset import Mp4Word2VecDataset
+from .rawframe_text_dataset import RawframeTextDataset
 
 __all__ = [
     "VideoDataset",
@@ -42,7 +43,8 @@ __all__ = [
     "VideoSubtitleTextDataset",
     "VideoSubtitleAudioTextDataset",
     "Mp4TextDataset",
-    'Mp4Word2VecDataset',
+    "Mp4Word2VecDataset",
     "VATEXDataset",
     "MSRVTTDataset",
+    "RawframeTextDataset",
 ]
