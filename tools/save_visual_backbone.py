@@ -7,7 +7,7 @@ def parse_args():
     parser.add_argument("--in_file", help="input checkpoint filename")
     parser.add_argument("--out_file", help="output checkpoint filename")
     parser.add_argument("--prefix", help="prefix to find")
-    parser.add_argument("--replace", type=str, required=True)
+    parser.add_argument("--replace", type=str, default="")
     args = parser.parse_args()
     return args
 
