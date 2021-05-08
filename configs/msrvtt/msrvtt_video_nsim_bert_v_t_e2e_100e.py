@@ -16,13 +16,13 @@ model = dict(
 )
 train_cfg = None
 test_cfg = None
-dataset_type = "RawframeTextDataset"
+dataset_type = "Mp4TextDataset"
 data_root = ""
 data_root_val = ""
 data_root_test = ""
-ann_file_train = "data/msrvtt/msrvtt_train_bert"
-ann_file_val = "data/msrvtt/msrvtt_val_bert"
-ann_file_test = "data/msrvtt/msrvtt_test_bert"
+ann_file_train = "data/msrvtt/msrvtt_videos_train_bert"
+ann_file_val = "data/msrvtt/msrvtt_videos_val_bert"
+ann_file_test = "data/msrvtt/msrvtt_videos_test_bert"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -33,8 +33,9 @@ img_norm_cfg = dict(
     mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False
 )
 train_pipeline = [
+    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
-    dict(type="RawFrameDecode", io_backend="memcached", **mc_cfg),
+    dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256), lazy=True),
     dict(
         type="MultiScaleCrop",
@@ -55,8 +56,9 @@ train_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 val_pipeline = [
+    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
-    dict(type="RawFrameDecode", io_backend="memcached", **mc_cfg),
+    dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256), lazy=True),
     dict(type="CenterCrop", crop_size=224, lazy=True),
     dict(type="Resize", scale=(112, 112), keep_ratio=False, lazy=True),
@@ -70,8 +72,9 @@ val_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 test_pipeline = [
+    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
-    dict(type="RawFrameDecode", io_backend="memcached", **mc_cfg),
+    dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256), lazy=True),
     dict(
         type="MultiScaleCrop",
@@ -132,7 +135,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl", port=29579)
 log_level = "INFO"
-work_dir = "./work_dirs/msrvtt_nsim_bert"
+work_dir = "./work_dirs/msrvtt_video_nsim_bert_v_t_e2e_100e"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]

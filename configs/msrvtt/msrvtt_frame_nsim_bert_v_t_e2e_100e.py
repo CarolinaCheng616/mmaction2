@@ -1,12 +1,12 @@
 bert_path = "work_dirs/bert_model"
 
 model = dict(
-    type="VideoTextMatcherE2E",
+    type="VideoTextMatcherNSimLoss",
     backbone1=dict(
         type="ResNet", pretrained="torchvision://resnet101", depth=101, norm_eval=False
     ),
     backbone2=dict(type="BERT", pretrained=bert_path, freeze=True),
-    head=dict(type="MILNCEHead"),
+    head=dict(type="NegSimHead"),
     fp16_enabled=False,
     img_feat_dim=2048,
     text_feat_dim=768,
@@ -132,7 +132,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl", port=29579)
 log_level = "INFO"
-work_dir = "./work_dirs/msrvtt_frame_mil_nce_bert_v_t_e2e_100e"
+work_dir = "./work_dirs/msrvtt_frame_nsim_bert_v_t_e2e_100e"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
