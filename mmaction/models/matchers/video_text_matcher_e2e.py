@@ -89,10 +89,6 @@ class VideoTextMatcherE2E(BaseMatcher):
 
     def forward_train(self, imgs, texts_item):
         # BNCHW
-        import pdb
-
-        pdb.set_trace()
-        print(self.backbone2.training())
         N = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])  # BN * C * H * W
         v_feat = nn.functional.normalize(self.encoder_v(imgs, N), dim=1)  # [N , C]

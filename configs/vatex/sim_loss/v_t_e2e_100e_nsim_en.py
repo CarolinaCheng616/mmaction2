@@ -19,9 +19,9 @@ test_cfg = None
 dataset_type = "Mp4TextDataset"
 data_root = ""
 data_root_val = ""
-ann_file_train = "data/vatex/vatex_train_bert_ch1"
-ann_file_val = "data/vatex/vatex_val_bert_ch1"
-ann_file_test = "data/vatex/vatex_val_bert_ch1"
+ann_file_train = "data/vatex/vatex_train_bert_en1"
+ann_file_val = "data/vatex/vatex_val_bert_en1"
+ann_file_test = "data/vatex/vatex_val_bert_en1"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -133,7 +133,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl", port=29579)
 log_level = "INFO"
-work_dir = "./work_dirs/vatex_nsim_test"
+work_dir = "./work_dirs/vatex_nsim_en"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
