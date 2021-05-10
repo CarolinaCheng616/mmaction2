@@ -117,6 +117,10 @@ class VideoTextMatcherNSimLoss(BaseMatcher):
         return self.forward_test(imgs, texts_item)
 
     def forward_train(self, imgs, texts_item):
+        import pdb
+
+        pdb.set_trace()
+        print(self.backbone2.training)
         N = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         v_feat = self.encoder_v(imgs, N)  # [N , C]
