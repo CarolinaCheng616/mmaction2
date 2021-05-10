@@ -135,7 +135,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl", port=29579)
 log_level = "INFO"
-work_dir = "./work_dirs/msrvtt_video_mil_nce_bert_v_t_e2e_100e"
+work_dir = "./work_dirs/msrvtt_video_mil_nce_bert_v_t_e2e_100e_test"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
