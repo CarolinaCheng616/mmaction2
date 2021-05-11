@@ -1,6 +1,8 @@
 model = dict(
     type="VideoExtractor",
-    backbone=dict(type="ResNet", pretrained=None, depth=50, norm_eval=False),
+    backbone=dict(
+        type="ResNet", pretrained="torchvision://resnet50", depth=50, norm_eval=False
+    ),
 )
 train_cfg = None
 test_cfg = None

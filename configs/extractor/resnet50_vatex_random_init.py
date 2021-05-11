@@ -5,11 +5,13 @@ model = dict(
 train_cfg = None
 test_cfg = None
 dataset_type = "VATEXDataset"
-data_root = "/mnt/lustre/share_data/vatex/partial_videos"
+data_root = "data/vatex/partial_videos"
 data_root_val = data_root
-feature_prefix = "/mnt/lustre/share_data/vatex/vatex_features_random_backbone"
+feature_prefix = "/mnt/lustre/share_data/vatex/features/vatex_features_random_backbone"
 feature_prefix_val = feature_prefix
-ann_file_train = "/mnt/lustre/chenghaoyue/vatex_training_v1.0.json /mnt/lustre/chenghaoyue/vatex_validation_v1.0.json"
+ann_file_train = (
+    "data/vatex/vatex_training_v1.0.json data/vatex/vatex_validation_v1.0.json"
+)
 ann_file_val = ann_file_train
 ann_file_test = ann_file_train
 mc_cfg = dict(
@@ -85,7 +87,7 @@ test_pipeline = [
 ]
 
 data = dict(
-    videos_per_gpu=32,
+    videos_per_gpu=64,
     workers_per_gpu=5,
     train=dict(
         type=dataset_type,
