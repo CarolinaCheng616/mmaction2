@@ -3,48 +3,19 @@ import torch
 import numpy as np
 import os.path as osp
 
-from .. import builder
 from .base import FeatureExtractor
 from ..registry import EXTRACTORS
-
-# from ...utils import get_root_logger
-
-# from mmcv.cnn import ConvModule, constant_init, kaiming_init
-# from mmcv.runner import _load_checkpoint, load_checkpoint
 
 
 @EXTRACTORS.register_module()
 class VideoExtractor(FeatureExtractor):
     def __init__(self, backbone, train_cfg=None, test_cfg=None):
         super(VideoExtractor, self).__init__(backbone, train_cfg, test_cfg)
-        self.backbone = builder.build_backbone(backbone)
         import pdb
 
         pdb.set_trace()
-        self.backbone.init_weights()
         self.backbone.eval()
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
-        self.train_cfg = train_cfg
-        self.test_cfg = test_cfg
-
-    # def init_weights(self):
-    #     """Initiate the parameters either from existing checkpoint or from
-    #     scratch."""
-    #     if isinstance(self.pretrained, str):
-    #         logger = get_root_logger()
-    #         if self.torchvision_pretrain:
-    #             self._load_torchvision_checkpoint(logger)
-    #         else:
-    #             load_checkpoint(
-    #                 self, self.pretrained, strict=False, logger=logger)
-    #     elif self.pretrained is None:
-    #         for m in self.modules():
-    #             if isinstance(m, nn.Conv2d):
-    #                 kaiming_init(m)
-    #             elif isinstance(m, nn.BatchNorm2d):
-    #                 constant_init(m, 1)
-    #     else:
-    #         raise TypeError('pretrained must be a str or None')
 
     def forward_test(self, x, img_metas=None):
         # x.shape = BNCHW

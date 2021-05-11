@@ -11,6 +11,10 @@ class FeatureExtractor(nn.Module, metaclass=ABCMeta):
         self.backbone = builder.build_backbone(backbone)
         self.train_cfg = train_cfg
         self.test_cfg = test_cfg
+        self.init_weights()
+
+    def init_weights(self):
+        self.backbone.init_weights()
 
     @abstractmethod
     def forward_test(self, imgs, texts, **kwargs):
