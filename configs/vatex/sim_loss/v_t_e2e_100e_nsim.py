@@ -125,7 +125,7 @@ lr_config = dict(
     warmup_iters=1,
 )
 total_epochs = 100
-checkpoint_config = dict(interval=5)
+checkpoint_config = dict(interval=25)
 evaluation = dict(interval=1)
 eval_config = dict(metrics=["vt_retrieval_metrics_full", "tv_retrieval_metrics_full"])
 log_config = dict(
@@ -133,7 +133,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl", port=29579)
 log_level = "INFO"
-work_dir = "./work_dirs/vatex_nsim"
+work_dir = "./work_dirs/vatex_nsim_ch_fix_bert"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
