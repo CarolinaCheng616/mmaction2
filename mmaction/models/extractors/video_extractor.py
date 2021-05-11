@@ -18,6 +18,9 @@ class VideoExtractor(FeatureExtractor):
     def __init__(self, backbone, train_cfg=None, test_cfg=None):
         super(VideoExtractor, self).__init__(backbone, train_cfg, test_cfg)
         self.backbone = builder.build_backbone(backbone)
+        import pdb
+
+        pdb.set_trace()
         self.backbone.init_weights()
         self.backbone.eval()
         self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
@@ -45,6 +48,9 @@ class VideoExtractor(FeatureExtractor):
 
     def forward_test(self, x, img_metas=None):
         # x.shape = BNCHW
+        import pdb
+
+        pdb.set_trace()
         batch, frames = x.shape[:2]
         idxes = []
         new_img_metas = []
