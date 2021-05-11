@@ -111,6 +111,7 @@ class VideoTextMatcherNSimLoss(BaseMatcher):
 
     def forward(self, imgs, texts_item, return_loss=True):
         """Define the computation performed at every call."""
+        self.backbone2.eval()
         if return_loss:
             return self.forward_train(imgs, texts_item)
 
