@@ -9,7 +9,9 @@ test_cfg = None
 dataset_type = "VATEXDataset"
 data_root = "data/vatex/partial_videos"
 data_root_val = data_root
-feature_prefix = "/mnt/lustre/share_data/vatex/features/vatex_features_imgnet_pretrain"
+feature_prefix = (
+    "/mnt/lustre/share_data/vatex/features/vatex_features_imgnet_pretrain_2"
+)
 feature_prefix_val = feature_prefix
 ann_file_train = (
     "data/vatex/vatex_training_v1.0.json data/vatex/vatex_validation_v1.0.json"
