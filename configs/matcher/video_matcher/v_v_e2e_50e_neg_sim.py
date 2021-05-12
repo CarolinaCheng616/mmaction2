@@ -3,7 +3,7 @@ bert_path = "work_dirs/bert_model"
 model = dict(
     type="VideoMatcherNSim",
     backbone=dict(type="ResNet", pretrained=None, depth=50, norm_eval=False),
-    head=dict(type="NegSimHead"),
+    head=dict(type="NegSimVideoHead"),
     fp16_enabled=False,
     img_feat_dim=2048,
     feature_dim=256,
