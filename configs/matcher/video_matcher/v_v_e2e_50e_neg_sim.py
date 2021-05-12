@@ -6,7 +6,7 @@ model = dict(
     head=dict(type="NegSimHead"),
     fp16_enabled=False,
     img_feat_dim=2048,
-    feature_dim=512,
+    feature_dim=256,
     init_std=0.01,
     gather_flag=False,
 )
