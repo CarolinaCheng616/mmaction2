@@ -5,7 +5,7 @@ model = dict(
     backbone1=dict(
         type="ResNet", pretrained="torchvision://resnet50", depth=50, norm_eval=False
     ),
-    backbone2=None,
+    backbone2=dict(type="BERT", pretrained=bert_path, freeze=True),
     head=dict(type="NegSimHead"),
     fp16_enabled=False,
     img_feat_dim=2048,
@@ -133,7 +133,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl", port=29579)
 log_level = "INFO"
-work_dir = "./work_dirs/vatex_nsim_ch_fix_bert_test"
+work_dir = "./work_dirs/vatex_nsim_ch_fix_bert"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
