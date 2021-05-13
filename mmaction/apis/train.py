@@ -121,13 +121,8 @@ def train_model(
         momentum_update_config = cfg.get("momentum_update_config")
         end_momentum = momentum_update_config["end_momentum"]
         update_interval = momentum_update_config["update_interval"]
-        kwargs = momentum_update_config["kwargs"]
         runner.register_hook(
-            BYOLHook(
-                end_momentum=end_momentum,
-                update_interval=update_interval,
-                kwargs=kwargs,
-            )
+            BYOLHook(end_momentum=end_momentum, update_interval=update_interval)
         )
 
     if distributed:
