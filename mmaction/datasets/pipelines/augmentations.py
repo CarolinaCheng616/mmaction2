@@ -7,7 +7,8 @@ from torch.nn.modules.utils import _pair
 
 from ..registry import PIPELINES
 
-from PIL import Image, ImageFilter, ImageOps
+# from PIL import Image, ImageFilter, ImageOps
+from scipy.ndimage.filters import gaussian_filter
 
 
 def _init_lazy_if_proper(results, lazy):
@@ -1672,7 +1673,7 @@ class RandomGaussianBlur(object):
         sigma = np.random.uniform(self.sigma_min, self.sigma_max)
         out = []
         for img in imgs:
-            img = img.filter(ImageFilter.GaussianBlur(radius=sigma))
+            img = gaussian_filter(img, sigma=sigma)
             out.append(img)
         results["imgs"] = out
         return results
@@ -1697,9 +1698,7 @@ class RandomSolarization(object):
         print(f"solarization: {imgs[0].shape} {imgs[0]}")
         out = []
         for img in imgs:
-            img = np.array(img)
             img = np.where(img < self.threshold, img, 255 - img)
-            img = Image.fromarray(img.astype(np.uint8))
             out.append(img)
         results["imgs"] = out
         return results
@@ -1718,10 +1717,12 @@ class RandomGrayscale(object):
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
+        print(imgs)
+        exit(0)
         print(f"gray scale: {imgs[0].shape} {imgs[0]}")
         out = []
         for img in imgs:
-            img = ImageOps.grayscale(img)
+            img = np.dot(img[..., :3], [0.299, 0.587, 0.114])
             out.append(img)
         results["imgs"] = out
         return results
