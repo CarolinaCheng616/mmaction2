@@ -15,6 +15,7 @@ from ..core import (
     EpochEvalHook,
     OmniSourceDistSamplerSeedHook,
     OmniSourceRunner,
+    BYOLHook,
 )
 from ..datasets import build_dataloader, build_dataset
 from ..utils import get_root_logger
@@ -117,7 +118,17 @@ def train_model(
     )
 
     if cfg.get("momentum_update_config", None):
-        runner.register_hook(cfg.get("momentum_update_config"))
+        momentum_update_config = cfg.get("momentum_update_config")
+        end_momentum = momentum_update_config["end_momentum"]
+        update_interval = momentum_update_config["update_interval"]
+        kwargs = momentum_update_config["kwargs"]
+        runner.register_hook(
+            BYOLHook(
+                end_momentum=end_momentum,
+                update_interval=update_interval,
+                kwargs=kwargs,
+            )
+        )
 
     if distributed:
         if cfg.omnisource:
