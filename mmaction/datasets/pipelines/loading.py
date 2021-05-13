@@ -1029,9 +1029,6 @@ class DecordDecode:
                 idx: container[idx].asnumpy() for idx in np.unique(frame_inds)
             }
             imgs = [frame_dict[idx] for idx in frame_inds]
-            import pdb
-
-            pdb.set_trace()
 
         except:
             print(results["filename"])

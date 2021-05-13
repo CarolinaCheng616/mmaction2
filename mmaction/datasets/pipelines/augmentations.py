@@ -1669,7 +1669,10 @@ class RandomGaussianBlur(object):
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
-        print(f"gaussian blur: {imgs[0].shape} {imgs[0]}")
+        # print(f"gaussian blur: {imgs[0].shape} {imgs[0]}")
+        import pdb
+
+        pdb.set_trace()
         sigma = np.random.uniform(self.sigma_min, self.sigma_max)
         out = []
         for img in imgs:
@@ -1695,7 +1698,10 @@ class RandomSolarization(object):
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
-        print(f"solarization: {imgs[0].shape} {imgs[0]}")
+        # print(f"solarization: {imgs[0].shape} {imgs[0]}")
+        import pdb
+
+        pdb.set_trace()
         out = []
         for img in imgs:
             img = np.where(img < self.threshold, img, 255 - img)
@@ -1717,9 +1723,9 @@ class RandomGrayscale(object):
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
-        print(imgs)
-        exit(0)
-        print(f"gray scale: {imgs[0].shape} {imgs[0]}")
+        import pdb
+
+        pdb.set_trace()
         out = []
         for img in imgs:
             img = np.dot(img[..., :3], [0.299, 0.587, 0.114])
@@ -1882,7 +1888,10 @@ class RandomColorJitter:
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
-        print(f"color jitter: {imgs[0].shape} {imgs[0]}")
+        # print(f"color jitter: {imgs[0].shape} {imgs[0]}")
+        import pdb
+
+        pdb.set_trace()
         out = []
         if self.color_space_aug:
             bright_delta = np.random.uniform(-32, 32)
