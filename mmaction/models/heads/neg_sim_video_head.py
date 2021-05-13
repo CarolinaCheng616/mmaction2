@@ -55,7 +55,11 @@ class NegSimVideoHead(nn.Module):
             s1 = torch.matmul(v_feat1, p_v2.permute(1, 0)).view(N, N)  # [N, N]
             s2 = torch.matmul(v_feat2, p_v1.permute(1, 0)).view(N, N)  # [N, N]
 
-            metric = self.retrieval_metric(s1, s2)
+            retrieval_metric = self.retrieval_metric(s1, s2)
+            metric["recall1"] = retrieval_metric["recall1"]
+            metric["recall5"] = retrieval_metric["recall5"]
+            metric["recall10"] = retrieval_metric["recall10"]
+            metric["mean_rk"] = retrieval_metric["mean_rk"]
 
         return losses, metric
 
