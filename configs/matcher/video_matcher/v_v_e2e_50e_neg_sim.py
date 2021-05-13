@@ -120,7 +120,7 @@ data = dict(
     ),
 )
 
-momentum_config = dict(type="BYOLHook", end_momentum=1.0, update_interval=1)
+momentum_update_config = dict(type="BYOLHook", end_momentum=1.0, update_interval=1)
 optimizer = dict(
     type="SGD", lr=0.06, momentum=0.9, weight_decay=0.0001
 )  # lr for 2*8 gpus
