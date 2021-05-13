@@ -192,9 +192,6 @@ class VideoMatcherNSim(nn.Module):
 
     @torch.no_grad()
     def momentum_update(self):
-        import pdb
-
-        pdb.set_trace()
         for backbone_param_ol, backbone_param_tgt in zip(
             self.backbone1.parameters(), self.backbone2.parameters()
         ):
