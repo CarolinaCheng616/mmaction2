@@ -216,9 +216,6 @@ class VideoMatcherNSim(nn.Module):
         return self.forward_test(imgs1, imgs2)
 
     def forward_train(self, imgs1, imgs2):
-        import pdb
-
-        pdb.set_trace()
         N = imgs1.shape[0]
         imgs1 = imgs1.reshape((-1,) + imgs1.shape[2:])
         imgs2 = imgs2.reshape((-1,) + imgs2.shape[2:])
