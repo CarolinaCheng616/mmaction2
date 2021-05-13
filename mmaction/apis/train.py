@@ -114,8 +114,11 @@ def train_model(
         cfg.checkpoint_config,
         cfg.log_config,
         cfg.get("momentum_config", None),
-        cfg.get("momentum_update_config", None),
     )
+
+    if cfg.get("momentum_update_config", None):
+        runner.register_hook(cfg.get("momentum_update_config"))
+
     if distributed:
         if cfg.omnisource:
             runner.register_hook(OmniSourceDistSamplerSeedHook())
