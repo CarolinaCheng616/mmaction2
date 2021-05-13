@@ -24,6 +24,7 @@ class VideoMatcherNSim(nn.Module):
         feature_dim=256,
         init_std=0.01,
         gather_flag=True,
+        syncBN=False,
         base_momentum=0.996,
     ):
         super().__init__()
@@ -51,6 +52,7 @@ class VideoMatcherNSim(nn.Module):
         self.img_feat_dim = img_feat_dim
         self.feature_dim = feature_dim
         self.init_std = init_std
+        self.syncBN = syncBN
 
         self.img_mlp1 = nn.Sequential(
             nn.Linear(img_feat_dim, self.feature_dim * 2),
@@ -72,6 +74,14 @@ class VideoMatcherNSim(nn.Module):
             nn.ReLU(),
             nn.Linear(self.feature_dim, self.feature_dim),
         )
+
+        if syncBN:
+            self.img_mlp1 = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self.img_mlp1)
+            self.img_mlp2 = torch.nn.SyncBatchNorm.convert_sync_batchnorm(self.img_mlp2)
+            self.predictor_v = torch.nn.SyncBatchNorm.convert_sync_batchnorm(
+                self.predictor_v
+            )
+
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.gather_flag = gather_flag

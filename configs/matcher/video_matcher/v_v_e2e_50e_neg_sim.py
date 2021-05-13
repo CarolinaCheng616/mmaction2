@@ -1,4 +1,5 @@
 bert_path = "work_dirs/bert_model"
+syncBN = True
 
 model = dict(
     type="VideoMatcherNSim",
@@ -6,7 +7,9 @@ model = dict(
         type="ResNet",
         pretrained="torchvision://resnet50",
         depth=50,
-        # norm_cfg=dict(type='SyncBN', requires_grad=True),
+        norm_cfg=dict(type="SyncBN", requires_grad=True, eps=1e-5)
+        if syncBN
+        else dict(type="BN2d", requires_grad=True),
         norm_eval=False,
     ),
     head=dict(type="NegSimVideoHead"),
@@ -15,6 +18,7 @@ model = dict(
     feature_dim=256,
     init_std=0.01,
     gather_flag=False,
+    syncBN=syncBN,
     base_momentum=0.996,
 )
 train_cfg = None
@@ -52,18 +56,12 @@ val_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, 256), lazy=True),
-    dict(
-        type="MultiScaleCrop",
-        input_size=112,
-        scales=(1, 0.875, 0.75, 0.66),
-        random_crop=False,
-        max_wh_scale_gap=1,
-        lazy=True,
-    ),
-    dict(type="Resize", scale=(112, 112), keep_ratio=False, lazy=True),
-    dict(type="Flip", flip_ratio=0.5, lazy=True),
-    dict(type="Fuse"),
+    dict(type="RandomResizedCrop"),
+    dict(type="Resize", scale=(224, 224), keep_ratio=False),
+    dict(type="Flip", flip_ratio=0.5),
+    dict(type="RandomColorJitter", color_space_aug=True, p=0.8),
+    dict(type="RandomGaussianBlur", sigma_min=0.1, sigma_max=2.0, p=0.5),
+    dict(type="RandomSolarization", p=0.2),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
     dict(type="Collect", keys=["imgs"], meta_keys=[]),
@@ -73,18 +71,12 @@ test_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, 256), lazy=True),
-    dict(
-        type="MultiScaleCrop",
-        input_size=112,
-        scales=(1, 0.875, 0.75, 0.66),
-        random_crop=False,
-        max_wh_scale_gap=1,
-        lazy=True,
-    ),
-    dict(type="Resize", scale=(112, 112), keep_ratio=False, lazy=True),
-    dict(type="Flip", flip_ratio=0.5, lazy=True),
-    dict(type="Fuse"),
+    dict(type="RandomResizedCrop"),
+    dict(type="Resize", scale=(224, 224), keep_ratio=False),
+    dict(type="Flip", flip_ratio=0.5),
+    dict(type="RandomColorJitter", color_space_aug=True, p=0.8),
+    dict(type="RandomGaussianBlur", sigma_min=0.1, sigma_max=2.0, p=0.5),
+    dict(type="RandomSolarization", p=0.2),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
     dict(type="Collect", keys=["imgs"], meta_keys=[]),
@@ -117,7 +109,7 @@ data = dict(
 
 momentum_update_config = dict(type="BYOLHook", end_momentum=1.0, update_interval=1)
 optimizer = dict(
-    type="SGD", lr=0.06, momentum=0.9, weight_decay=0.0001
+    type="SGD", lr=0.03, momentum=0.9, weight_decay=0.0001
 )  # lr for 2*8 gpus
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 lr_config = dict(
