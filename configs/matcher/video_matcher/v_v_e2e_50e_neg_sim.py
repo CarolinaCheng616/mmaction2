@@ -1,5 +1,5 @@
 bert_path = "work_dirs/bert_model"
-syncBN = True
+syncBN = False
 
 model = dict(
     type="VideoMatcherNSim",

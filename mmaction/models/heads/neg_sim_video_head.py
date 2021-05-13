@@ -99,9 +99,9 @@ class NegSimVideoHead(nn.Module):
         mean_rk = torch.true_divide(mean_rk, T)
 
         metric = dict()
-        metric["recall1"] = torch.mean(recall1)
-        metric["recall5"] = torch.mean(recall5)
-        metric["recall10"] = torch.mean(recall10)
-        metric["mean_rk"] = torch.mean(mean_rk)
+        metric["recall1"] = torch.mean(recall1) / 2
+        metric["recall5"] = torch.mean(recall5) / 2
+        metric["recall10"] = torch.mean(recall10) / 2
+        metric["mean_rk"] = torch.mean(mean_rk) / 2
 
         return metric
