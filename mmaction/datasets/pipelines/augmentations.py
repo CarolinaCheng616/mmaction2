@@ -1669,10 +1669,6 @@ class RandomGaussianBlur(object):
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
-        # print(f"gaussian blur: {imgs[0].shape} {imgs[0]}")
-        import pdb
-
-        pdb.set_trace()
         sigma = np.random.uniform(self.sigma_min, self.sigma_max)
         out = []
         for img in imgs:
@@ -1698,10 +1694,6 @@ class RandomSolarization(object):
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
-        # print(f"solarization: {imgs[0].shape} {imgs[0]}")
-        import pdb
-
-        pdb.set_trace()
         out = []
         for img in imgs:
             img = np.where(img < self.threshold, img, 255 - img)
@@ -1714,28 +1706,28 @@ class RandomSolarization(object):
         return repr_str
 
 
-@PIPELINES.register_module
-class RandomGrayscale(object):
-    def __init__(self, p=0.5):
-        self.p = p
-
-    def __call__(self, results):
-        if np.random.rand() > self.p:
-            return results
-        imgs = results["imgs"]
-        import pdb
-
-        pdb.set_trace()
-        out = []
-        for img in imgs:
-            img = np.dot(img[..., :3], [0.299, 0.587, 0.114])
-            out.append(img)
-        results["imgs"] = out
-        return results
-
-    def __repr__(self):
-        repr_str = self.__class__.__name__
-        return repr_str
+# @PIPELINES.register_module
+# class RandomGrayscale(object):
+#     def __init__(self, p=0.5):
+#         self.p = p
+#
+#     def __call__(self, results):
+#         if np.random.rand() > self.p:
+#             return results
+#         imgs = results["imgs"]
+#         import pdb
+#
+#         pdb.set_trace()
+#         out = []
+#         for img in imgs:
+#             img = np.dot(img[..., :3], [0.299, 0.587, 0.114])
+#             out.append(img)
+#         results["imgs"] = out
+#         return results
+#
+#     def __repr__(self):
+#         repr_str = self.__class__.__name__
+#         return repr_str
 
 
 @PIPELINES.register_module()
@@ -1888,10 +1880,6 @@ class RandomColorJitter:
         if np.random.rand() > self.p:
             return results
         imgs = results["imgs"]
-        # print(f"color jitter: {imgs[0].shape} {imgs[0]}")
-        import pdb
-
-        pdb.set_trace()
         out = []
         if self.color_space_aug:
             bright_delta = np.random.uniform(-32, 32)

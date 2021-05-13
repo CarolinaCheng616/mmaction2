@@ -20,7 +20,7 @@ from .augmentations import (
     ThreeCrop,
     RandomGaussianBlur,
     RandomSolarization,
-    RandomGrayscale,
+    # RandomGrayscale,
     RandomColorJitter,
 )
 from .compose import Compose
@@ -83,7 +83,7 @@ __all__ = [
     "CenterCrop",
     "TenCrop",
     "RandomColorJitter",
-    "RandomGrayscale",
+    # "RandomGrayscale",
     "RandomGaussianBlur",
     "RandomSolarization",
     "ImageToTensor",
