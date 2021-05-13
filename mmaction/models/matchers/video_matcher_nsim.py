@@ -262,6 +262,9 @@ class VideoMatcherNSim(nn.Module):
         loss, log_vars = self._parse_losses(losses)
 
         for key, value in metric.items():
+            import pdb
+
+            pdb.set_trace()
             if dist.is_available() and dist.is_initialized():
                 value = value.data.clone()
                 dist.all_reduce(value.div_(dist.get_world_size()))

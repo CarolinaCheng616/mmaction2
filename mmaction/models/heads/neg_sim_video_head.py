@@ -85,7 +85,7 @@ class NegSimVideoHead(nn.Module):
         for i in range(N):
             for j in range(N * T):
                 if rank[i][j].item() >= T * i and rank[i][j].item() < T * (i + 1):
-                    mean_rk[i] += j
+                    mean_rk[i] += j + 1
                     if j < 10:
                         recall10[i] += 1
                     if j < 5:

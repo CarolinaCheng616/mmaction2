@@ -26,7 +26,7 @@ test_cfg = None
 dataset_type = "VideoClipDataset"
 data_root = "/mnt/lustre/share_data/MM21-PRETRAIN/video"
 data_root_val = data_root
-ann_file_train = "/mnt/lustre/share_data/MM21-PRETRAIN/video/full_self_sup_anno"
+ann_file_train = "/mnt/lustre/share_data/MM21-PRETRAIN/sub_train_self_sup_anno"
 ann_file_val = ann_file_train
 ann_file_test = ann_file_train
 mc_cfg = dict(
@@ -41,18 +41,12 @@ train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, 256), lazy=True),
-    dict(
-        type="MultiScaleCrop",
-        input_size=224,
-        scales=(1, 0.875, 0.75, 0.66),
-        random_crop=False,
-        max_wh_scale_gap=1,
-        lazy=True,
-    ),
-    dict(type="Resize", scale=(224, 224), keep_ratio=False, lazy=True),
-    dict(type="Flip", flip_ratio=0.5, lazy=True),
-    dict(type="Fuse"),
+    dict(type="RandomResizedCrop"),
+    dict(type="Resize", scale=(224, 224), keep_ratio=False),
+    dict(type="Flip", flip_ratio=0.5),
+    dict(type="RandomColorJitter", color_space_aug=True, p=0.8),
+    dict(type="RandomGaussianBlur", sigma_min=0.1, sigma_max=2.0, p=0.5),
+    dict(type="RandomSolarization", p=0.2),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
     dict(type="Collect", keys=["imgs"], meta_keys=[]),
@@ -90,7 +84,7 @@ test_pipeline = [
 ]
 data = dict(
     videos_per_gpu=16,
-    workers_per_gpu=0,
+    workers_per_gpu=10,
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -137,7 +131,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl")
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/pt/3m_v_v_e2e_50e_neg_sim_no_s_aug"
+work_dir = "./work_dirs/MM21/pt/3m_v_v_e2e_50e_neg_sim_partial"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
