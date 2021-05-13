@@ -18,6 +18,10 @@ from .augmentations import (
     Resize,
     TenCrop,
     ThreeCrop,
+    RandomGaussianBlur,
+    RandomSolarization,
+    RandomGrayscale,
+    RandomColorJitter,
 )
 from .compose import Compose
 from .formating import (
@@ -78,6 +82,10 @@ __all__ = [
     "ThreeCrop",
     "CenterCrop",
     "TenCrop",
+    "RandomColorJitter",
+    "RandomGrayscale",
+    "RandomGaussianBlur",
+    "RandomSolarization",
     "ImageToTensor",
     "Transpose",
     "Collect",

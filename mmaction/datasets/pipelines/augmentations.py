@@ -1667,10 +1667,8 @@ class RandomGaussianBlur(object):
     def __call__(self, results):
         if np.random.rand() > self.p:
             return results
-        import pdb
-
-        pdb.set_trace()
         imgs = results["imgs"]
+        print(f"gaussian blur: {imgs[0].shape} {imgs[0]}")
         sigma = np.random.uniform(self.sigma_min, self.sigma_max)
         out = []
         for img in imgs:
@@ -1695,10 +1693,8 @@ class RandomSolarization(object):
     def __call__(self, results):
         if np.random.rand() > self.p:
             return results
-        import pdb
-
-        pdb.set_trace()
         imgs = results["imgs"]
+        print(f"solarization: {imgs[0].shape} {imgs[0]}")
         out = []
         for img in imgs:
             img = np.array(img)
@@ -1721,10 +1717,8 @@ class RandomGrayscale(object):
     def __call__(self, results):
         if np.random.rand() > self.p:
             return results
-        import pdb
-
-        pdb.set_trace()
         imgs = results["imgs"]
+        print(f"gray scale: {imgs[0].shape} {imgs[0]}")
         out = []
         for img in imgs:
             img = ImageOps.grayscale(img)
@@ -1886,10 +1880,8 @@ class RandomColorJitter:
     def __call__(self, results):
         if np.random.rand() > self.p:
             return results
-        import pdb
-
-        pdb.set_trace()
         imgs = results["imgs"]
+        print(f"color jitter: {imgs[0].shape} {imgs[0]}")
         out = []
         if self.color_space_aug:
             bright_delta = np.random.uniform(-32, 32)
