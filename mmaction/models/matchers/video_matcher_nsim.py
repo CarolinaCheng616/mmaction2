@@ -24,10 +24,12 @@ class VideoMatcherNSim(nn.Module):
         feature_dim=256,
         init_std=0.01,
         gather_flag=True,
+        base_momentum=0.996,
     ):
         super().__init__()
 
-        self.backbone = builder.build_backbone(backbone)
+        self.backbone1 = builder.build_backbone(backbone)
+        self.backbone2 = builder.build_backbone(backbone)
         if neck is not None:
             self.neck = builder.build_neck(neck)
         else:
@@ -40,7 +42,8 @@ class VideoMatcherNSim(nn.Module):
             self.aux_info = train_cfg["aux_info"]
         self.fp16_enabled = fp16_enabled
         if fp16_enabled is True:
-            self.backbone = self.backbone.half()
+            self.backbone1 = self.backbone1.half()
+            self.backbone2 = self.backbone2.half()
             if neck is not None:
                 self.neck = self.neck.half()
             self.head = self.head.half()
@@ -49,7 +52,14 @@ class VideoMatcherNSim(nn.Module):
         self.feature_dim = feature_dim
         self.init_std = init_std
 
-        self.img_mlp = nn.Sequential(
+        self.img_mlp1 = nn.Sequential(
+            nn.Linear(img_feat_dim, self.feature_dim * 2),
+            nn.BatchNorm1d(self.feature_dim * 2),
+            nn.ReLU(),
+            nn.Linear(self.feature_dim * 2, self.feature_dim),
+            nn.BatchNorm1d(self.feature_dim),
+        )
+        self.img_mlp2 = nn.Sequential(
             nn.Linear(img_feat_dim, self.feature_dim * 2),
             nn.BatchNorm1d(self.feature_dim * 2),
             nn.ReLU(),
@@ -65,6 +75,8 @@ class VideoMatcherNSim(nn.Module):
         self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
 
         self.gather_flag = gather_flag
+        self.base_momentum = base_momentum
+        self.momentum = base_momentum
 
         self.init_weights()
 
@@ -107,25 +119,87 @@ class VideoMatcherNSim(nn.Module):
         return loss, log_vars
 
     def init_weights(self):
-        self.backbone.init_weights()
-        for layer in self.img_mlp:
+        self.backbone1.init_weights()
+        for layer in self.img_mlp1:
             if isinstance(layer, nn.Linear):
                 normal_init(layer, std=self.init_std)
         for layer in self.predictor_v:
             if isinstance(layer, nn.Linear):
                 normal_init(layer, std=self.init_std)
 
-    def encoder_v(self, imgs, N):
-        x = self.backbone(imgs)
+        for backbone_param_ol, backbone_param_tgt in zip(
+            self.backbone1.parameters(), self.backbone2.parameters()
+        ):
+            backbone_param_tgt.data.copy_(backbone_param_ol.data)
+        for mlp_param_ol, mlp_param_tgt in zip(
+            self.img_mlp1.parameters(), self.img_mlp2.parameters()
+        ):
+            mlp_param_tgt.data.copy_(mlp_param_ol.data)
+
+    def encoder_v(self, imgs1, imgs2, N):
+        x11 = self.backbone1(imgs1)
         if self.avg_pool is not None:
-            x = self.avg_pool(x)
-        x = x.reshape((N, -1) + x.shape[1:])
-        x = x.mean(dim=1, keepdim=True)
-        x = x.squeeze(1)
+            x11 = self.avg_pool(x11)
+        x11 = x11.reshape((N, -1) + x11.shape[1:])
+        x11 = x11.mean(dim=1, keepdim=True)
+        x11 = x11.squeeze(1)
         # dropout
-        x = x.view(x.size(0), -1)
-        x = self.img_mlp(x)
-        return x
+        x11 = x11.view(x11.size(0), -1)
+        p_v1 = self.predictor_v(self.img_mlp1(x11))
+
+        x21 = self.backbone1(imgs2)
+        if self.avg_pool is not None:
+            x21 = self.avg_pool(x21)
+        x21 = x21.reshape((N, -1) + x21.shape[1:])
+        x21 = x21.mean(dim=1, keepdim=True)
+        x21 = x21.squeeze(1)
+        # dropout
+        x21 = x21.view(x21.size(0), -1)
+        p_v2 = self.predictor_v(self.img_mlp1(x21))
+
+        with torch.no_grad():
+            x12 = self.backbone2(imgs1)
+            if self.avg_pool is not None:
+                x12 = self.avg_pool(x12)
+            x12 = x12.reshape((N, -1) + x12.shape[1:])
+            x12 = x12.mean(dim=1, keepdim=True)
+            x12 = x12.squeeze(1)
+            # dropout
+            x12 = x12.view(x12.size(0), -1)
+            v_feat1 = self.img_mlp2(x12).clone().detach()
+
+            x22 = self.backbone2(imgs2)
+            if self.avg_pool is not None:
+                x22 = self.avg_pool(x22)
+            x22 = x22.reshape((N, -1) + x22.shape[1:])
+            x22 = x22.mean(dim=1, keepdim=True)
+            x22 = x22.squeeze(1)
+            # dropout
+            x22 = x22.view(x22.size(0), -1)
+            v_feat2 = self.img_mlp2(x22).clone().detach()
+
+        return v_feat1, v_feat2, p_v1, p_v2
+
+    @torch.no_grad()
+    def momentum_update(self):
+        import pdb
+
+        pdb.set_trace()
+        for backbone_param_ol, backbone_param_tgt in zip(
+            self.backbone1.parameters(), self.backbone2.parameters()
+        ):
+            backbone_param_tgt.data = (
+                backbone_param_tgt.data * self.momentum
+                + backbone_param_ol.data * (1.0 - self.momentum)
+            )
+
+        for mlp_param_ol, mlp_param_tgt in zip(
+            self.img_mlp1.parameters(), self.img_mlp2.parameters()
+        ):
+            mlp_param_tgt.data = (
+                mlp_param_tgt.data * self.momentum
+                + mlp_param_ol.data * (1.0 - self.momentum)
+            )
 
     def forward(self, imgs1, imgs2, return_loss=True):
         """Define the computation performed at every call."""
@@ -138,40 +212,12 @@ class VideoMatcherNSim(nn.Module):
         N = imgs1.shape[0]
         imgs1 = imgs1.reshape((-1,) + imgs1.shape[2:])
         imgs2 = imgs2.reshape((-1,) + imgs2.shape[2:])
-        v_feat1 = self.encoder_v(imgs1, N)  # [N , C]
-        v_feat2 = self.encoder_v(imgs2, N)  # [N , C]
-
-        if self.gather_flag == True:
-            v_feat1 = torch.cat(GatherLayer.apply(v_feat1), dim=0)
-            v_feat2 = torch.cat(GatherLayer.apply(v_feat2), dim=0)
-
-        if self.neck is not None:
-            v_feat1, v_feat2 = self.neck(v_feat1, v_feat2)
-
-        p_v1 = self.predictor_v(v_feat1)
-        p_v2 = self.predictor_v(v_feat2)
+        v_feat1, v_feat2, p_v1, p_v2 = self.encoder_v(imgs1, imgs2, N)  # [N , C]
 
         return self.head(v_feat1, v_feat2, p_v1, p_v2)
 
     def forward_test(self, imgs1, imgs2):
-        N = imgs1.shape[0]
-        imgs1 = imgs1.reshape((-1,) + imgs1.shape[2:])
-        imgs2 = imgs2.reshape((-1,) + imgs2.shape[2:])
-        v_feat1 = self.encoder_v(imgs1, N)  # [N , C]
-        v_feat2 = self.encoder_v(imgs2, N)  # [N , C]
-
-        if self.gather_flag == True:
-            v_feat1 = torch.cat(GatherLayer.apply(v_feat1), dim=0)
-            v_feat2 = torch.cat(GatherLayer.apply(v_feat2), dim=0)
-
-        if self.neck is not None:
-            v_feat1, v_feat2 = self.neck(v_feat1, v_feat2)
-
-        p_v1 = self.predictor_v(v_feat1)
-        p_v2 = self.predictor_v(v_feat2)
-        return zip(
-            v_feat1.cpu().numpy(), p_v2.view(N, -1, v_feat1.shape[1]).cpu().numpy()
-        )
+        pass
 
     def forward_gradcam(self, audios):
         raise NotImplementedError

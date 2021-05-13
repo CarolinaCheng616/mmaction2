@@ -166,9 +166,11 @@ class VideoClipDataset(BaseDataset):
 
         results1["filename"] = osp.join(self.data_prefix, img1_path)
         results1["start_index"] = self.start_index
+        results1["modality"] = self.modality
 
         results2["filename"] = osp.join(self.data_prefix, img2_path)
         results2["start_index"] = self.start_index
+        results2["modality"] = self.modality
 
         results["imgs1"] = self.pipeline(results1)["imgs"]
         results["imgs2"] = self.pipeline(results2)["imgs"]

@@ -45,7 +45,6 @@ class NegSimVideoHead(nn.Module):
         )
 
         with torch.no_grad():
-
             metric = {}
             metric["v_feat1_std"] = torch.mean(torch.std(v_feat1, dim=0))
             metric["v_feat2_std"] = torch.mean(torch.std(v_feat2, dim=0))
