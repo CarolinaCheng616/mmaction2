@@ -1,8 +1,7 @@
-bert_path = "work_dirs/bert_model"
 syncBN = True
 
 model = dict(
-    type="VideoMatcherNSim",
+    type="3DideoMatcherNSim",
     backbone=dict(
         type="ResNet3dSlowFast",
         pretrained=None,

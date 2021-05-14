@@ -1,4 +1,3 @@
-bert_path = "work_dirs/bert_model"
 syncBN = True
 
 model = dict(
