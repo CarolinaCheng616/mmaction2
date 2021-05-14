@@ -82,7 +82,7 @@ class Video3DMatcherNSim(nn.Module):
                 self.predictor_v
             )
 
-        self.avg_pool = nn.AdaptiveAvgPool2d((1, 1))
+        self.avg_pool = nn.AdaptiveAvgPool3d((1, 1))
 
         self.gather_flag = gather_flag
         self.base_momentum = base_momentum
