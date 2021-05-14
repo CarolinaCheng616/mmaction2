@@ -258,11 +258,8 @@ class Video3DMatcherNSim(nn.Module):
                 DDP, it means the batch size on each GPU), which is used for
                 averaging the logs.
         """
-        import pdb
-
-        pdb.set_trace()
-        imgs1 = data_batch["imgs1"]
-        imgs2 = data_batch["imgs2"]
+        imgs1 = data_batch["imgs"][:, 0, :, :, :, :].squeeze()
+        imgs2 = data_batch["imgs"][:, 1, :, :, :, :].squeeze()
         losses, metric = self(imgs1, imgs2)
 
         loss, log_vars = self._parse_losses(losses)
