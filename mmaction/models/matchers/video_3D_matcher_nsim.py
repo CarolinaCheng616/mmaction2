@@ -147,6 +147,9 @@ class Video3DMatcherNSim(nn.Module):
             mlp_param_tgt.data.copy_(mlp_param_ol.data)
 
     def encoder_v(self, imgs1, imgs2, N):
+        import pdb
+
+        pdb.set_trace()
         x11_fast, x11_slow = self.backbone1(imgs1)
         if self.avg_pool is not None:
             x11_fast = self.avg_pool(x11_fast)
