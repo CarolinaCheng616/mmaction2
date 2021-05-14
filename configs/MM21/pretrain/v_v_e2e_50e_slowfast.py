@@ -153,7 +153,7 @@ log_config = dict(
 )
 dist_params = dict(backend="nccl")
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/pt/3m_v_v_e2e_50e_neg_sim"
-load_from = "../ckpt/slowfast_r50_4x16x1_256e_kinetics400_rgb_20200704-bcde7ed7.pth"
+work_dir = "work_dirs/MM21/pt/10w_v_v_e2e_50e_neg_sim"
+load_from = "ckpt/slowfast_r50_4x16x1_256e_kinetics400_rgb_20200704-bcde7ed7.pth"
 resume_from = None
 workflow = [("train", 1)]
