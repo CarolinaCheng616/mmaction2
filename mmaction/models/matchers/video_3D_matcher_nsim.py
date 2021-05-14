@@ -147,45 +147,37 @@ class Video3DMatcherNSim(nn.Module):
             mlp_param_tgt.data.copy_(mlp_param_ol.data)
 
     def encoder_v(self, imgs1, imgs2, N):
-        x11 = self.backbone1(imgs1)
+        x11_fast, x11_slow = self.backbone1(imgs1)
         if self.avg_pool is not None:
-            x11 = self.avg_pool(x11)
-        x11 = x11.reshape((N, -1) + x11.shape[1:])
-        x11 = x11.mean(dim=1, keepdim=True)
-        x11 = x11.squeeze(1)
-        # dropout
-        x11 = x11.view(x11.size(0), -1)
+            x11_fast = self.avg_pool(x11_fast)
+            x11_slow = self.avg_pool(x11_slow)
+            x11 = torch.cat((x11_slow, x11_fast), dim=1)
+        x11 = x11.reshape(x11.size(0), -1)
         p_v1 = self.predictor_v(self.img_mlp1(x11))
 
-        x21 = self.backbone1(imgs2)
+        x21_fast, x21_slow = self.backbone1(imgs2)
         if self.avg_pool is not None:
-            x21 = self.avg_pool(x21)
-        x21 = x21.reshape((N, -1) + x21.shape[1:])
-        x21 = x21.mean(dim=1, keepdim=True)
-        x21 = x21.squeeze(1)
-        # dropout
-        x21 = x21.view(x21.size(0), -1)
+            x21_fast = self.avg_pool(x21_fast)
+            x21_slow = self.avg_pool(x21_slow)
+            x21 = torch.cat((x21_slow, x21_fast), dim=1)
+        x21 = x21.reshape(x21.size(0), -1)
         p_v2 = self.predictor_v(self.img_mlp1(x21))
 
         with torch.no_grad():
-            x12 = self.backbone2(imgs1)
+            x12_fast, x12_slow = self.backbone2(imgs1)
             if self.avg_pool is not None:
-                x12 = self.avg_pool(x12)
-            x12 = x12.reshape((N, -1) + x12.shape[1:])
-            x12 = x12.mean(dim=1, keepdim=True)
-            x12 = x12.squeeze(1)
-            # dropout
-            x12 = x12.view(x12.size(0), -1)
+                x12_fast = self.avg_pool(x12_fast)
+                x12_slow = self.avg_pool(x12_slow)
+                x12 = torch.cat((x12_slow, x12_fast), dim=1)
+            x12 = x12.reshape(x12.size(0), -1)
             v_feat1 = self.img_mlp2(x12).clone().detach()
 
-            x22 = self.backbone2(imgs2)
+            x22_fast, x22_slow = self.backbone2(imgs2)
             if self.avg_pool is not None:
-                x22 = self.avg_pool(x22)
-            x22 = x22.reshape((N, -1) + x22.shape[1:])
-            x22 = x22.mean(dim=1, keepdim=True)
-            x22 = x22.squeeze(1)
-            # dropout
-            x22 = x22.view(x22.size(0), -1)
+                x22_fast = self.avg_pool(x22_fast)
+                x22_slow = self.avg_pool(x22_slow)
+                x22 = torch.cat((x22_slow, x22_fast), dim=1)
+            x22 = x22.reshape(x22.size(0), -1)
             v_feat2 = self.img_mlp2(x22).clone().detach()
 
         return v_feat1, v_feat2, p_v1, p_v2
@@ -216,12 +208,7 @@ class Video3DMatcherNSim(nn.Module):
         return self.forward_test(imgs1, imgs2)
 
     def forward_train(self, imgs1, imgs2):
-        import pdb
-
-        pdb.set_trace()
         N = imgs1.shape[0]
-        imgs1 = imgs1.reshape((-1,) + imgs1.shape[2:])
-        imgs2 = imgs2.reshape((-1,) + imgs2.shape[2:])
         v_feat1, v_feat2, p_v1, p_v2 = self.encoder_v(imgs1, imgs2, N)  # [N , C]
 
         return self.head(v_feat1, v_feat2, p_v1, p_v2)
