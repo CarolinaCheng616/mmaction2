@@ -1,7 +1,7 @@
 syncBN = True
 
 model = dict(
-    type="3DideoMatcherNSim",
+    type="Video3DMatcherNSim",
     backbone=dict(
         type="ResNet3dSlowFast",
         pretrained=None,

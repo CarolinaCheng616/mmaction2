@@ -12,6 +12,8 @@ from .video_text_matcher_nsim_no_pred_bn import VideoTextMatcherNSimNOPredBN
 from .video_text_matcher_nsim_no_bn import VideoTextMatcherNSimNOBN
 from .video_text_matcher_nsim_momentum import VideoTextMatcherNSimMMT
 from .video_matcher_nsim import VideoMatcherNSim
+from .video_3D_matcher_nsim import Video3DMatcherNSim
+
 
 __all__ = [
     "BaseMatcher",
@@ -28,4 +30,5 @@ __all__ = [
     "VideoTextMatcherNSimNOBN",
     "VideoTextMatcherNSimMMT",
     "VideoMatcherNSim",
+    "Video3DMatcherNSim",
 ]
