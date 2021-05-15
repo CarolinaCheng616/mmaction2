@@ -4,7 +4,7 @@ model = dict(
     type="Video3DMatcherNSim",
     backbone=dict(
         type="ResNet3dSlowFast",
-        pretrained=None,
+        pretrained="ckpt/slowfast_backbone_k400.pth",
         resample_rate=8,  # tau
         speed_ratio=8,  # alpha
         channel_ratio=8,  # beta_inv
@@ -154,7 +154,7 @@ log_config = dict(
 dist_params = dict(backend="nccl")
 log_level = "INFO"
 work_dir = "work_dirs/MM21/pt/10w_v_v_e2e_50e_neg_sim"
-load_from = "ckpt/slowfast_r50_4x16x1_256e_kinetics400_rgb_20200704-bcde7ed7.pth"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
+find_unused_parameters = True
