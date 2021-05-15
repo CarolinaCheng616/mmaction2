@@ -126,9 +126,14 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
 total_epochs = 50
 checkpoint_config = dict(interval=5)
+<<<<<<< HEAD
 workflow = [('train', 1)]
 evaluation = dict(
     interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'])
+=======
+workflow = [("train", 1)]
+evaluation = dict(interval=5, metrics=["top_k_accuracy", "mean_class_accuracy"])
+>>>>>>> 3d
 log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
