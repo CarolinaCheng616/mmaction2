@@ -82,7 +82,7 @@ class Video3DMatcherNSim(nn.Module):
                 self.predictor_v
             )
 
-        self.avg_pool = nn.AdaptiveAvgPool3d((1, 1))
+        self.avg_pool = nn.AdaptiveAvgPool3d((1, 1, 1))
 
         self.gather_flag = gather_flag
         self.base_momentum = base_momentum
@@ -147,9 +147,6 @@ class Video3DMatcherNSim(nn.Module):
             mlp_param_tgt.data.copy_(mlp_param_ol.data)
 
     def encoder_v(self, imgs1, imgs2, N):
-        import pdb
-
-        pdb.set_trace()
         x11_fast, x11_slow = self.backbone1(imgs1)
         if self.avg_pool is not None:
             x11_fast = self.avg_pool(x11_fast)
@@ -248,8 +245,8 @@ class Video3DMatcherNSim(nn.Module):
                 DDP, it means the batch size on each GPU), which is used for
                 averaging the logs.
         """
-        imgs1 = data_batch["imgs"][:, :1, :, :, :, :]
-        imgs2 = data_batch["imgs"][:, 1:, :, :, :, :]
+        imgs1 = data_batch["imgs"][:, 0, :, :, :, :]
+        imgs2 = data_batch["imgs"][:, 1, :, :, :, :]
         losses, metric = self(imgs1, imgs2)
 
         loss, log_vars = self._parse_losses(losses)
