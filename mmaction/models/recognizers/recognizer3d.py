@@ -7,12 +7,15 @@ class Recognizer3D(BaseRecognizer):
     """3D recognizer model framework."""
 
     def forward_train(self, imgs, labels, **kwargs):
+        import pdb
+
+        pdb.set_trace()
         """Defines the computation performed at every call when training."""
-        imgs = imgs.reshape((-1, ) + imgs.shape[2:])
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])
         losses = dict()
 
         x = self.extract_feat(imgs)
-        if hasattr(self, 'neck'):
+        if hasattr(self, "neck"):
             x, loss_aux = self.neck(x, labels.squeeze())
             losses.update(loss_aux)
 
@@ -27,10 +30,10 @@ class Recognizer3D(BaseRecognizer):
         """Defines the computation performed at every call when evaluation,
         testing and gradcam."""
         num_segs = imgs.shape[1]
-        imgs = imgs.reshape((-1, ) + imgs.shape[2:])
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])
 
         x = self.extract_feat(imgs)
-        if hasattr(self, 'neck'):
+        if hasattr(self, "neck"):
             x, _ = self.neck(x)
 
         cls_score = self.cls_head(x)
@@ -54,13 +57,13 @@ class Recognizer3D(BaseRecognizer):
         Returns:
             Tensor: Class score.
         """
-        imgs = imgs.reshape((-1, ) + imgs.shape[2:])
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])
         x = self.extract_feat(imgs)
 
-        if hasattr(self, 'neck'):
+        if hasattr(self, "neck"):
             x, _ = self.neck(x)
 
-        outs = (self.cls_head(x), )
+        outs = (self.cls_head(x),)
         return outs
 
     def forward_gradcam(self, imgs):
