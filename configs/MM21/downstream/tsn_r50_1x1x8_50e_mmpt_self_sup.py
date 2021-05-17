@@ -1,12 +1,7 @@
 # model settings
 model = dict(
     type="Recognizer2D",
-    backbone=dict(
-        type="ResNet",
-        pretrained="ckpt/mmpt_self_sup_resnet50.pth",
-        depth=50,
-        norm_eval=False,
-    ),
+    backbone=dict(type="ResNet", pretrained=None, depth=50, norm_eval=False),
     cls_head=dict(
         type="TSNHead",
         num_classes=240,
@@ -121,6 +116,6 @@ log_config = dict(
 dist_params = dict(backend="nccl", port=25684)
 log_level = "INFO"
 work_dir = "work_dirs/MM21/ds/tsn_r50_8f_50e_mmpt_self_sup"
-load_from = None
+load_from = "ckpt/mmpt_self_sup_resnet50_backbone.pth"
 resume_from = None
 workflow = [("train", 1)]
