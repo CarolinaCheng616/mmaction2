@@ -1,4 +1,5 @@
 import torch.nn as nn
+import torch
 
 from ...utils import get_root_logger
 from ..registry import BACKBONES
@@ -8,10 +9,11 @@ import clip
 
 @BACKBONES.register_module()
 class CLIP(nn.Module):
-    def __init__(self, pretrained=None, freeze=True):
+    def __init__(self, pretrained=None, freeze=True, fp16_enabled=True):
         super().__init__()
         self.pretrained = pretrained
         self.freeze = freeze
+        self.fp16_enabled = fp16_enabled
 
     def init_weights(self):
         """Initiate the parameters either from existing checkpoint or from
@@ -28,8 +30,13 @@ class CLIP(nn.Module):
 
     def forward(self, x):
         # x.shape = [batch * seg, C, H, W]
+        if self.fp16_enabled:
+            x = x.half()
         if self.freeze:
             self.model.eval()
-        features = self.model(x)
+            with torch.no_grad():
+                features = self.model(x)
+        else:
+            features = self.model(x)
         # x.shape = [batch * seg, 512]
         return features

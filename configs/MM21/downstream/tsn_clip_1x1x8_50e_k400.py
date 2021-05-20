@@ -2,7 +2,7 @@
 model = dict(
     type="Recognizer2D",
     backbone=dict(
-        type="CLIP", pretrained="ViT-B/32", freeze=False
+        type="CLIP", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
     ),  # output: [batch * segs, 512]
     cls_head=dict(
         type="CLIPHead",
