@@ -122,3 +122,4 @@ work_dir = "./work_dirs/MM21/ds/tsn_clip_1x1x8_50e_k400"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
+find_unused_parameters = True

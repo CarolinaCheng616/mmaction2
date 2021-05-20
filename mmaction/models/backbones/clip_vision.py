@@ -22,7 +22,7 @@ class CLIP(nn.Module):
             ), "not allowed pretrained model"
             logger = get_root_logger()
             logger.info(f"load model from: {self.pretrained}")
-            self.model = clip.load(self.pretrained)[0]
+            self.model = clip.load(self.pretrained)[0].visual
         else:
             raise TypeError("pretrained must be a str")
 
@@ -30,6 +30,6 @@ class CLIP(nn.Module):
         # x.shape = [batch * seg, C, H, W]
         if self.freeze:
             self.model.eval()
-        features = self.model.encode_image(x)
+        features = self.model(x)
         # x.shape = [batch * seg, 512]
         return features
