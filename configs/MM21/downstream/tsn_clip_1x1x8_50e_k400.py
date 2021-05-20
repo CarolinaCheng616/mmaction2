@@ -3,13 +3,13 @@ model = dict(
     type="Recognizer2D",
     backbone=dict(
         type="CLIP", pretrained="ViT-B/32", freeze=False
-    ),  # output: [batch * segs, output_dim]
+    ),  # output: [batch * segs, 512]
     cls_head=dict(
         type="CLIPHead",
         num_classes=240,
-        in_channels=2048,  ############## todo
+        in_channels=512,
         consensus=dict(type="AvgConsensus", dim=1),
-        dropout_ratio=0.8,
+        dropout_ratio=0.4,
         init_std=0.001,
     ),
 )

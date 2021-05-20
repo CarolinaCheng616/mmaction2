@@ -27,11 +27,9 @@ class CLIP(nn.Module):
             raise TypeError("pretrained must be a str")
 
     def forward(self, x):
-        # x.shape = [N, C, H, W]
-        import pdb
-
-        pdb.set_trace()
+        # x.shape = [batch * seg, C, H, W]
         if self.freeze:
             self.model.eval()
         features = self.model.encode_image(x)
+        # x.shape = [batch * seg, 512]
         return features
