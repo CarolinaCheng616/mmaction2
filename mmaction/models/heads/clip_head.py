@@ -30,6 +30,7 @@ class CLIPHead(BaseHead):
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.4,
         init_std=0.01,
+        fp16_enabled=False,
         **kwargs
     ):
         super().__init__(num_classes, in_channels, loss_cls=loss_cls, **kwargs)
@@ -49,7 +50,14 @@ class CLIPHead(BaseHead):
             self.dropout = nn.Dropout(p=self.dropout_ratio)
         else:
             self.dropout = None
+
         self.fc_cls = nn.Linear(self.in_channels, self.num_classes)
+
+        self.fp16_enabled = fp16_enabled
+        if fp16_enabled:
+            self.fc_cls = self.fc_cls.half()
+
+        self.init_weights()
 
     def init_weights(self):
         """Initiate the parameters from scratch."""

@@ -11,6 +11,7 @@ model = dict(
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.4,
         init_std=0.001,
+        fp16_enabled=True,
     ),
 )
 # model training and testing settings
