@@ -34,10 +34,8 @@ model = dict(
         type="SlowFastHead",
         in_channels=2304,  # 2048+256
         num_classes=240,
-        spatial_type="avg",
-        dropout_ratio=0.5,
-    ),
-)
+        spatial_type='avg',
+        dropout_ratio=0.8))
 train_cfg = None
 test_cfg = dict(average_clips="prob")
 dataset_type = "VideoDataset"
@@ -128,8 +126,14 @@ optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
 total_epochs = 50
 checkpoint_config = dict(interval=5)
+<<<<<<< HEAD
 workflow = [("train", 1)]
 evaluation = dict(interval=5, metrics=["top_k_accuracy", "mean_class_accuracy"])
+=======
+workflow = [('train', 1)]
+evaluation = dict(
+    interval=1, metrics=['top_k_accuracy', 'mean_class_accuracy'])
+>>>>>>> config
 log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
