@@ -19,6 +19,7 @@ from .neg_sim_nce_head import NegSimNCEHead
 from .neg_sim_nce_grad_head import NegSimNCEGradHead
 from .neg_sim_video_head import NegSimVideoHead
 from .clip_head import CLIPHead
+from .timesformer_head import TimeSformerHead
 
 __all__ = [
     "TSNHead",
@@ -42,4 +43,5 @@ __all__ = [
     "NegSimNCEGradHead",
     "NegSimVideoHead",
     "CLIPHead",
+    "TimeSformerHead",
 ]

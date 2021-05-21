@@ -11,6 +11,7 @@ from .resnet_tsm import ResNetTSM
 from .x3d import X3D
 from .bert import BERT
 from .clip_vision import CLIP
+from .timesformer import TimeSformer
 
 __all__ = [
     "C3D",
@@ -27,4 +28,5 @@ __all__ = [
     "ResNet3dLayer",
     "BERT",
     "CLIP",
+    "TimeSformer",
 ]
