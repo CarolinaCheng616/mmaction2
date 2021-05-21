@@ -12,6 +12,7 @@ from .x3d import X3D
 from .bert import BERT
 from .clip_vision import CLIP
 from .timesformer import TimeSformer
+from .deit import DEIT
 
 __all__ = [
     "C3D",
@@ -29,4 +30,5 @@ __all__ = [
     "BERT",
     "CLIP",
     "TimeSformer",
+    "DEIT",
 ]
