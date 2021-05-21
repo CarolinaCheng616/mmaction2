@@ -5,9 +5,9 @@ model = dict(
         type="CLIP", pretrained="RN50", freeze=False, fp16_enabled=True
     ),  # output: [batch * segs, 512]
     cls_head=dict(
-        type="CLIPHeadTmp",
+        type="CLIPHead",
         num_classes=240,
-        in_channels=512,
+        in_channels=1024,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
         init_std=0.001,
