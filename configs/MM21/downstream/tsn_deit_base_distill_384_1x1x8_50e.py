@@ -81,7 +81,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=64,
+    videos_per_gpu=32,
     workers_per_gpu=10,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
@@ -121,7 +121,7 @@ log_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_clip_vit_1x1x8_50e_0.00625_d0.8"
+work_dir = "./work_dirs/MM21/ds/tsn_deit_base_distill_384_1x1x8_50e"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
