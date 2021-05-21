@@ -5,7 +5,7 @@ model = dict(
         type="DEIT",
         pretrained="deit_base_distilled_patch16_384",
         freeze=False,
-        fp16_enabled=True,
+        fp16_enabled=False,
     ),  # output: [batch * segs, 512]
     cls_head=dict(
         type="CLIPHead",
@@ -14,7 +14,7 @@ model = dict(
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
         init_std=0.001,
-        fp16_enabled=True,
+        fp16_enabled=False,
     ),
 )
 # model training and testing settings
