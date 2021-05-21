@@ -9,7 +9,7 @@ model = dict(
         num_classes=240,
         in_channels=512,
         consensus=dict(type="AvgConsensus", dim=1),
-        dropout_ratio=0.4,
+        dropout_ratio=0.8,
         init_std=0.001,
         fp16_enabled=True,
     ),
@@ -102,7 +102,7 @@ data = dict(
 )
 # optimizer
 optimizer = dict(
-    type="SGD", lr=0.025, momentum=0.9, weight_decay=0.0005
+    type="SGD", lr=0.00625, momentum=0.9, weight_decay=0.0005
 )  # this lr is used for 4 gpus
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
@@ -118,7 +118,7 @@ log_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_clip_1x1x8_50e_k400"
+work_dir = "./work_dirs/MM21/ds/tsn_clip_vit_1x1x8_50e_0.00625_d0.8"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
