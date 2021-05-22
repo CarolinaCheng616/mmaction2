@@ -293,7 +293,7 @@ class VisualTransformer(nn.Module):
         self.transformer = Transformer(width, layers, heads)
 
         self.ln_post = LayerNorm(width)
-        self.proj = nn.Parameter(scale * torch.randn(width, output_dim))
+        # self.proj = nn.Parameter(scale * torch.randn(width, output_dim))
 
     def forward(self, x: torch.Tensor):
         x = self.conv1(x)  # shape = [*, width, grid, grid]

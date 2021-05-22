@@ -2,12 +2,12 @@
 model = dict(
     type="Recognizer2D",
     backbone=dict(
-        type="CLIP", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
+        type="CLIPViT", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
     ),  # output: [batch * segs, 512]
     cls_head=dict(
         type="CLIPHead",
         num_classes=240,
-        in_channels=512,
+        in_channels=768,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
         init_std=0.001,
@@ -118,7 +118,7 @@ log_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_clip_vit_1x1x8_50e_0.00625_d0.8"
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_0.00625_d0.8"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
