@@ -73,9 +73,6 @@ class CLIPHead(BaseHead):
         Returns:
             torch.Tensor: The classification scores for input samples.
         """
-        import pdb
-
-        pdb.set_trace()
         # x.shape = [N * num_segs, in_channels]
         x = x.reshape((-1, num_segs) + x.shape[1:])
         # x.shape = [N, num_segs, in_channels]
