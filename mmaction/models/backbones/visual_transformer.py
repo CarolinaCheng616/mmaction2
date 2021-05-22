@@ -745,7 +745,7 @@ class CLIPViT(nn.Module):
         if isinstance(self.pretrained, str):
             logger = get_root_logger()
             logger.info(f"load model from: {self.pretrained}")
-            self.model = load(self.pretrained).visual
+            self.model = load(self.pretrained, jit=False).visual
         else:
             raise TypeError("pretrained must be a str")
 
