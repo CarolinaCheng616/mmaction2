@@ -82,7 +82,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=8,
+    videos_per_gpu=16,
     workers_per_gpu=10,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
@@ -107,7 +107,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.005,
+    lr=0.005,  # for 8 gpus
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,

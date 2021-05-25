@@ -247,4 +247,4 @@ class TimeSformer(nn.Module):
             x = torch.mean(x, 1)
         x = self.norm(x)
 
-        return x[:, 0]
+        return x[:, 0]  # [batch_size, embed_dims]
