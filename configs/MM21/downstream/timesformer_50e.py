@@ -112,5 +112,15 @@ lr_config = dict(policy="step", step=[5, 10])
 total_epochs = 15
 
 # runtime settings
-checkpoint_config = dict(interval=1)
-work_dir = "./work_dirs/timesformer_divST_8x32x1_15e_kinetics400_rgb"
+checkpoint_config = dict(interval=5)
+work_dir = "work_dirs/MM21/ds/timesformer_50e"
+
+log_config = dict(
+    interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
+)
+# runtime settings
+dist_params = dict(backend="nccl")
+log_level = "INFO"
+load_from = None
+resume_from = None
+workflow = [("train", 1)]
