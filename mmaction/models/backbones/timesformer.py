@@ -3,13 +3,11 @@ import torch.nn as nn
 from einops import rearrange
 from mmcv import ConfigDict
 from mmcv.cnn import build_conv_layer, build_norm_layer, kaiming_init
-
-# from mmcv.cnn import normal_init
 from mmcv.cnn.bricks.transformer import build_transformer_layer_sequence
+from mmcv.cnn.utils.weight_init import trunc_normal_
 from mmcv.runner import _load_checkpoint, load_state_dict
 from torch.nn.modules.utils import _pair
 
-from mmaction.utils import trunc_normal_
 from ...utils import get_root_logger
 from ..registry import BACKBONES
 
@@ -17,18 +15,18 @@ from ..registry import BACKBONES
 class PatchEmbed(nn.Module):
     """Image to Patch Embedding.
     Args:
-        img_size (int | tuple): The size of input image.
-        patch_size (int): The size of one patch
-        in_channels (int): The num of input channels.
-        embed_dims (int): The dimensions of embedding.
-        conv_cfg (dict | None): The config dict for conv layers.
-            Default: None.
+        img_size (int | tuple): Size of input image.
+        patch_size (int): Size of one patch.
+        in_channels (int): Channel num of input features. Defaults to 3.
+        embed_dims (int): Dimensions of embedding. Defaults to 768.
+        conv_cfg (dict | None): Config dict for convolution layer. Defaults to
+            `dict(type='Conv2d')`.
     """
 
     def __init__(
         self,
-        img_size=224,
-        patch_size=16,
+        img_size,
+        patch_size,
         in_channels=3,
         embed_dims=768,
         conv_cfg=dict(type="Conv2d"),
@@ -65,6 +63,32 @@ class PatchEmbed(nn.Module):
 
 @BACKBONES.register_module()
 class TimeSformer(nn.Module):
+    """TimeSformer. A PyTorch impl of `Is Space-Time Attention All You Need for
+    Video Understanding? <https://arxiv.org/abs/2102.05095>`_
+    Args:
+        num_frames (int): Number of frames in the video.
+        img_size (int | tuple): Size of input image.
+        patch_size (int): Size of one patch.
+        pretrained (str | None): Name of pretrained model. Default: None.
+        embed_dims (int): Dimensions of embedding. Defaults to 768.
+        num_heads (int): Number of parallel attention heads in
+            TransformerCoder. Defaults to 12.
+        num_transformer_layers (int): Number of transformer layers. Defaults to
+            12.
+        in_channels (int): Channel num of input features. Defaults to 3.
+        dropout_ratio (float): Probability of dropout layer. Defaults to 0..
+        transformer_layers (list[obj:`mmcv.ConfigDict`] |
+            obj:`mmcv.ConfigDict`): Config of transformerlayer in
+            TransformerCoder. If it is obj:`mmcv.ConfigDict`, it would be
+            repeated `num_transformer_layers` times to a
+            list[obj:`mmcv.ConfigDict`]. Defaults to None.
+        attention_type (str): Type of attentions in TransformerCoder. Choices
+            are 'divided_space_time', 'space_only' and 'joint_space_time'.
+            Defaults to 'divided_space_time'.
+        norm_cfg (dict): Config for norm layers. Defaults to
+            `dict(type='LN', eps=1e-6)`.
+    """
+
     supported_attention_type = ["divided_space_time", "space_only", "joint_space_time"]
 
     def __init__(
@@ -74,9 +98,10 @@ class TimeSformer(nn.Module):
         patch_size,
         pretrained=None,
         embed_dims=768,
-        num_layers=12,
+        num_heads=12,
+        num_transformer_layers=12,
         in_channels=3,
-        drop_rate=0.0,
+        dropout_ratio=0.0,
         transformer_layers=None,
         attention_type="divided_space_time",
         norm_cfg=dict(type="LN", eps=1e-6),
@@ -86,11 +111,13 @@ class TimeSformer(nn.Module):
         assert (
             attention_type in self.supported_attention_type
         ), f"Unsupported Attention Type {self.attention_type}!"
+
         self.num_frames = num_frames
         self.pretrained = pretrained
         self.embed_dims = embed_dims
-        self.num_layers = num_layers
+        self.num_transformer_layers = num_transformer_layers
         self.attention_type = attention_type
+
         self.patch_embed = PatchEmbed(
             img_size=img_size,
             patch_size=patch_size,
@@ -101,16 +128,16 @@ class TimeSformer(nn.Module):
 
         self.cls_token = nn.Parameter(torch.zeros(1, 1, embed_dims))
         self.pos_embed = nn.Parameter(torch.zeros(1, num_patches + 1, embed_dims))
-        self.drop_after_pos = nn.Dropout(p=drop_rate)
+        self.drop_after_pos = nn.Dropout(p=dropout_ratio)
         if self.attention_type != "space_only":
             self.time_embed = nn.Parameter(torch.zeros(1, num_frames, embed_dims))
-            self.drop_after_time = nn.Dropout(p=drop_rate)
+            self.drop_after_time = nn.Dropout(p=dropout_ratio)
 
         self.norm = build_norm_layer(norm_cfg, embed_dims)[1]
 
         if transformer_layers is None:
             # stochastic depth decay rule
-            dpr = [x.item() for x in torch.linspace(0, 0.1, num_layers)]
+            dpr = [x.item() for x in torch.linspace(0, 0.1, num_transformer_layers)]
 
             if self.attention_type == "divided_space_time":
                 _transformerlayers_cfg = [
@@ -120,7 +147,7 @@ class TimeSformer(nn.Module):
                             dict(
                                 type="DividedTemporalAttentionWithNorm",
                                 embed_dims=embed_dims,
-                                num_heads=12,
+                                num_heads=num_heads,
                                 num_frames=num_frames,
                                 dropout_layer=dict(type="DropPath", drop_prob=dpr[i]),
                                 norm_cfg=dict(type="LN", eps=1e-6),
@@ -128,7 +155,7 @@ class TimeSformer(nn.Module):
                             dict(
                                 type="DividedSpatialAttentionWithNorm",
                                 embed_dims=embed_dims,
-                                num_heads=12,
+                                num_heads=num_heads,
                                 num_frames=num_frames,
                                 dropout_layer=dict(type="DropPath", drop_prob=dpr[i]),
                                 norm_cfg=dict(type="LN", eps=1e-6),
@@ -137,7 +164,7 @@ class TimeSformer(nn.Module):
                         ffn_cfgs=dict(
                             type="FFNWithNorm",
                             embed_dims=embed_dims,
-                            feedforward_channels=3072,
+                            feedforward_channels=embed_dims * 4,
                             num_fcs=2,
                             act_cfg=dict(type="GELU"),
                             dropout_layer=dict(type="DropPath", drop_prob=dpr[i]),
@@ -145,7 +172,7 @@ class TimeSformer(nn.Module):
                         ),
                         operation_order=("self_attn", "self_attn", "ffn"),
                     )
-                    for i in range(num_layers)
+                    for i in range(num_transformer_layers)
                 ]
             else:
                 # Sapce Only & Joint Space Time
@@ -156,7 +183,7 @@ class TimeSformer(nn.Module):
                             dict(
                                 type="MultiheadAttention",
                                 embed_dims=embed_dims,
-                                num_heads=12,
+                                num_heads=num_heads,
                                 batch_first=True,
                                 dropout_layer=dict(type="DropPath", drop_prob=dpr[i]),
                             )
@@ -164,7 +191,7 @@ class TimeSformer(nn.Module):
                         ffn_cfgs=dict(
                             type="FFN",
                             embed_dims=embed_dims,
-                            feedforward_channels=3072,
+                            feedforward_channels=embed_dims * 4,
                             num_fcs=2,
                             act_cfg=dict(type="GELU"),
                             dropout_layer=dict(type="DropPath", drop_prob=dpr[i]),
@@ -172,20 +199,22 @@ class TimeSformer(nn.Module):
                         operation_order=("norm", "self_attn", "norm", "ffn"),
                         norm_cfg=dict(type="LN", eps=1e-6),
                     )
-                    for i in range(num_layers)
+                    for i in range(num_transformer_layers)
                 ]
 
             transformer_layers = ConfigDict(
                 dict(
                     type="TransformerLayerSequence",
                     transformerlayers=_transformerlayers_cfg,
-                    num_layers=num_layers,
+                    num_layers=num_transformer_layers,
                 )
             )
 
         self.transformer_layers = build_transformer_layer_sequence(transformer_layers)
 
     def init_weights(self, pretrained=None):
+        """Initiate the parameters either from existing checkpoint or from
+        scratch."""
         trunc_normal_(self.pos_embed, std=0.02)
         trunc_normal_(self.cls_token, std=0.02)
 
@@ -195,26 +224,29 @@ class TimeSformer(nn.Module):
             logger = get_root_logger()
             logger.info(f"load model from: {self.pretrained}")
 
-            state_dict = _load_checkpoint(self.pretrained, map_location="cpu")
+            state_dict = _load_checkpoint(self.pretrained)
             if "state_dict" in state_dict:
                 state_dict = state_dict["state_dict"]
 
             if self.attention_type == "divided_space_time":
-                # vit has no temporal attention, temporal_fc and time_embed
-                #   which were constructed in divided_space_time timesformer.
-                # for time_embed and temporal_fc, keep them as default initial
-                #   state;
-                # for temporal attention, use the same parameters of its
-                #   following spatial attention.
+                # copy the parameters of space attention to time attention
                 old_state_dict_keys = list(state_dict.keys())
                 for old_key in old_state_dict_keys:
-                    if "attentions.1" in old_key:
-                        new_key = old_key.replace("attentions.1", "attentions.0")
+                    if "norms" in old_key:
+                        new_key = old_key.replace("norms.0", "attentions.0.norm")
+                        new_key = new_key.replace("norms.1", "ffns.0.norm")
+                        state_dict[new_key] = state_dict.pop(old_key)
+
+                old_state_dict_keys = list(state_dict.keys())
+                for old_key in old_state_dict_keys:
+                    if "attentions.0" in old_key:
+                        new_key = old_key.replace("attentions.0", "attentions.1")
                         state_dict[new_key] = state_dict[old_key].clone()
 
             load_state_dict(self, state_dict, strict=False, logger=logger)
 
     def forward(self, x):
+        """Defines the computation performed at every call."""
         # x [batch_size * num_frames, num_patches, embed_dims]
         B = x.shape[0]
         x = self.patch_embed(x)
@@ -235,16 +267,14 @@ class TimeSformer(nn.Module):
             x = rearrange(x, "(b p) t m -> b (p t) m", b=B)
             x = torch.cat((cls_tokens, x), dim=1)
 
-        # if self.attention_type != 'divided_space_time':
-        #     x = x.permute(1, 0, 2)
         x = self.transformer_layers(x, None, None)
-        # if self.attention_type != 'divided_space_time':
-        #     x = x.permute(1, 0, 2)
 
         if self.attention_type == "space_only":
             # x [batch_size, num_patches + 1, embed_dims]
             x = x.view(-1, self.num_frames, *x.size()[-2:])
             x = torch.mean(x, 1)
+
         x = self.norm(x)
 
+        # return class token
         return x[:, 0]  # [batch_size, embed_dims]

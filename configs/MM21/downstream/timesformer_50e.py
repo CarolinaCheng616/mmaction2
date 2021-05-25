@@ -14,26 +14,33 @@ model = dict(
         attention_type="space_only",
         norm_cfg=dict(type="LN", eps=1e-6),
     ),
-    cls_head=dict(type="TimeSformerHead", num_classes=400, in_channels=768),
+    cls_head=dict(type="TimeSformerHead", num_classes=240, in_channels=768),
     # model training and testing settings
-    train_cfg=None,
-    test_cfg=dict(average_clips="score"),
 )
-
+# model training and testing settings
+train_cfg = None
+test_cfg = dict(average_clips="score")
 # dataset settings
-dataset_type = "RawframeDataset"
-data_root = "data/kinetics400/rawframes_train"
-data_root_val = "data/kinetics400/rawframes_val"
-ann_file_train = "data/kinetics400/kinetics400_train_list_rawframes.txt"
-ann_file_val = "data/kinetics400/kinetics400_val_list_rawframes.txt"
-ann_file_test = "data/kinetics400/kinetics400_val_list_rawframes.txt"
+dataset_type = "VideoDataset"
+data_root = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
+data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
+ann_file_train = "/mnt/lustre/share_data/MM21-CLASSIFICATION/train_anno"
+ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
+ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/test_anno"
+
+mc_cfg = dict(
+    server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
+    client_cfg="/mnt/lustre/share/memcached_client/client.conf",
+    sys_path="/mnt/lustre/share/pymc/py3",
+)
 
 img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
 
 train_pipeline = [
-    dict(type="SampleFrames", clip_len=8, frame_interval=32, num_clips=1),
-    dict(type="RawFrameDecode"),
-    dict(type="RandomRescale", scale_range=(256, 320)),
+    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
+    dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
+    dict(type="DecordDecode"),
+    dict(type="Resize", scale=(-1, 256)),
     dict(type="RandomCrop", size=224),
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
@@ -42,10 +49,11 @@ train_pipeline = [
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 val_pipeline = [
+    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(
-        type="SampleFrames", clip_len=8, frame_interval=32, num_clips=1, test_mode=True
+        type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8, test_mode=True
     ),
-    dict(type="RawFrameDecode"),
+    dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256)),
     dict(type="CenterCrop", crop_size=224),
     dict(type="Normalize", **img_norm_cfg),
@@ -54,11 +62,12 @@ val_pipeline = [
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 test_pipeline = [
+    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(
-        type="SampleFrames", clip_len=8, frame_interval=32, num_clips=1, test_mode=True
+        type="SampleFrames", clip_len=1, frame_interval=1, num_clips=25, test_mode=True
     ),
-    dict(type="RawFrameDecode"),
-    dict(type="Resize", scale=(-1, 224)),
+    dict(type="DecordDecode"),
+    dict(type="Resize", scale=(-1, 256)),
     dict(type="ThreeCrop", crop_size=224),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCTHW"),
@@ -66,8 +75,8 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 data = dict(
-    videos_per_gpu=8,
-    workers_per_gpu=4,
+    videos_per_gpu=16,
+    workers_per_gpu=8,
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -88,12 +97,13 @@ data = dict(
     ),
 )
 
-evaluation = dict(interval=1, metrics=["top_k_accuracy", "mean_class_accuracy"])
+# learning policy
+lr_config = dict(policy="CosineAnnealing", min_lr=0)
 
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.005,
+    lr=0.005,  # this lr is used for 8 gpus
     momentum=0.9,
     paramwise_cfg=dict(
         custom_keys={
@@ -103,22 +113,28 @@ optimizer = dict(
     ),
     weight_decay=1e-4,
     nesterov=True,
-)  # this lr is used for 8 gpus
+)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
-# learning policy
-lr_config = dict(policy="step", step=[5, 10])
-total_epochs = 15
 
-# runtime settings
+# checkpoint
+total_epochs = 50
 checkpoint_config = dict(interval=5)
-work_dir = "work_dirs/MM21/ds/timesformer_50e"
 
+# evaluate
+evaluation = dict(
+    interval=1, metrics=["top_k_accuracy", "mean_class_accuracy"], topk=(1, 5)
+)
+
+# log
+work_dir = "work_dirs/MM21/ds/timesformer_50e"
 log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
+
 # runtime settings
 dist_params = dict(backend="nccl")
 log_level = "INFO"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
+find_unused_parameters = True
