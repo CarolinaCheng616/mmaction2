@@ -1,103 +1,83 @@
+# model settings
 model = dict(
-    type="Recognizer3D",
-    backbone=dict(
-        type="ResNet3dSlowFast",
-        pretrained=None,
-        resample_rate=8,  # tau
-        speed_ratio=8,  # alpha
-        channel_ratio=8,  # beta_inv
-        slow_pathway=dict(
-            type="resnet3d",
-            depth=50,
-            pretrained=None,
-            lateral=True,
-            conv1_kernel=(1, 7, 7),
-            dilations=(1, 1, 1, 1),
-            conv1_stride_t=1,
-            pool1_stride_t=1,
-            inflate=(0, 0, 1, 1),
-            norm_eval=False,
-        ),
-        fast_pathway=dict(
-            type="resnet3d",
-            depth=50,
-            pretrained=None,
-            lateral=False,
-            base_channels=8,
-            conv1_kernel=(5, 7, 7),
-            conv1_stride_t=1,
-            pool1_stride_t=1,
-            norm_eval=False,
-        ),
-    ),
+    type="Recognizer2D",
+    backbone=dict(type="ResNet", pretrained=None, depth=50, norm_eval=False),
     cls_head=dict(
-        type="SlowFastHead",
-        in_channels=2304,  # 2048+256
+        type="TSNHead",
         num_classes=240,
+        in_channels=2048,
         spatial_type="avg",
+        consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
+        init_std=0.001,
     ),
 )
+# model training and testing settings
 train_cfg = None
-test_cfg = dict(average_clips="prob")
+test_cfg = dict(average_clips=None)
+# dataset settings
 dataset_type = "VideoDataset"
-data_root = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
-data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
-ann_file_train = "/mnt/lustre/share_data/MM21-CLASSIFICATION/train_anno"
-ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
-ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/test_anno"
-img_norm_cfg = dict(
-    mean=[123.675, 116.28, 103.53], std=[58.395, 57.12, 57.375], to_bgr=False
-)
+data_root = "/mnt/lustre/share_data/MM21-PRETRAIN/video"
+data_root_val = "/mnt/lustre/share_data/MM21-PRETRAIN/video"
+ann_file_train = "/mnt/lustre/share_data/MM21-PRETRAIN/distillation/full_anno_2"
+ann_file_val = "/mnt/lustre/share_data/MM21-PRETRAIN/distillation/full_anno_2"
+ann_file_test = "/mnt/lustre/share_data/MM21-PRETRAIN/distillation/full_anno_2"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
     sys_path="/mnt/lustre/share/pymc/py3",
 )
+img_norm_cfg = dict(mean=[104, 117, 128], std=[1, 1, 1], to_bgr=False)
 train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
-    dict(type="SampleFrames", clip_len=32, frame_interval=2, num_clips=1),
+    dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256)),
-    dict(type="RandomResizedCrop"),
+    dict(
+        type="MultiScaleCrop",
+        input_size=224,
+        scales=(1, 0.875, 0.75, 0.66),
+        random_crop=False,
+        max_wh_scale_gap=1,
+    ),
     dict(type="Resize", scale=(224, 224), keep_ratio=False),
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
-    dict(type="FormatShape", input_format="NCTHW"),
+    dict(type="FormatShape", input_format="NCHW"),
     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 val_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(
-        type="SampleFrames", clip_len=32, frame_interval=2, num_clips=1, test_mode=True
+        type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8, test_mode=True
     ),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256)),
     dict(type="CenterCrop", crop_size=224),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
-    dict(type="FormatShape", input_format="NCTHW"),
+    dict(type="FormatShape", input_format="NCHW"),
     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
     dict(type="ToTensor", keys=["imgs"]),
 ]
 test_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(
-        type="SampleFrames", clip_len=32, frame_interval=2, num_clips=10, test_mode=True
+        type="SampleFrames", clip_len=1, frame_interval=1, num_clips=25, test_mode=True
     ),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256)),
-    dict(type="ThreeCrop", crop_size=256),
+    dict(type="TenCrop", crop_size=224),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
-    dict(type="FormatShape", input_format="NCTHW"),
+    dict(type="FormatShape", input_format="NCHW"),
     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=16,
-    workers_per_gpu=10,
+    videos_per_gpu=32,
+    workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
         type=dataset_type,
@@ -120,21 +100,28 @@ data = dict(
 )
 # optimizer
 optimizer = dict(
-    type="SGD", lr=0.025, momentum=0.9, weight_decay=0.0001
+    type="SGD", lr=0.0125, momentum=0.9, weight_decay=0.0005
 )  # this lr is used for 4 gpus
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
 total_epochs = 50
 checkpoint_config = dict(interval=5)
-workflow = [("train", 1)]
-evaluation = dict(interval=5, metrics=["top_k_accuracy", "mean_class_accuracy"])
+evaluation = dict(
+    interval=1, metrics=["top_k_accuracy", "mean_class_accuracy"], topk=(1, 5)
+)
 log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
-dist_params = dict(backend="nccl", port=29555)
+# runtime settings
+dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/slowfast_r50_4*16*1_50e_k400_pt"
-load_from = "ckpt/slowfast_r50_4x16x1_256e_kinetics400_rgb_20200704-bcde7ed7.pth"
+work_dir = "./work_dirs/MM21/ds/tsn_r50_8f_50e_k400_pt_half_lr"
+load_from = None
 resume_from = None
-find_unused_parameters = False
+workflow = [("train", 1)]
+# output config
+output_config = dict(
+    out="/mnt/lustre/share_data/MM21-PRETRAIN/distillation/mm21_ds_distill.pkl",
+    output_format="pkl",
+)
