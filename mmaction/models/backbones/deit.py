@@ -28,17 +28,14 @@ class DEIT(nn.Module):
             raise TypeError("pretrained must be a str")
 
     def forward(self, x):
-        import pdb
-
-        pdb.set_trace()
         # x.shape = [batch * seg, C, H, W]
         if self.fp16_enabled:
             x = x.half()
         if self.freeze:
             self.model.eval()
             with torch.no_grad():
-                features = self.model(x)
+                features = self.model.forward_features(x)
         else:
-            features = self.model(x)
-        # x.shape = [batch * seg, 512]
+            features = self.model.forward_features(x)
+        # x.shape = [batch * seg, 768]
         return features

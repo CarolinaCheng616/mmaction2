@@ -1,15 +1,17 @@
+_base_ = ["../../_base_/default_runtime.py"]
+
 # model settings
 model = dict(
     type="Recognizer3D",
     backbone=dict(
         type="TimeSformer",
-        pretrained="work_dirs/vit_base_patch16_224.pth",
+        pretrained="https://download.openmmlab.com/mmaction/recognition/timesformer/vit_base_patch16_224.pth",  # noqa: E251  # noqa: E501
         num_frames=8,
         img_size=224,
         patch_size=16,
         embed_dims=768,
         in_channels=3,
-        drop_rate=0.0,
+        dropout_ratio=0.0,
         transformer_layers=None,
         attention_type="space_only",
         norm_cfg=dict(type="LN", eps=1e-6),
@@ -30,15 +32,9 @@ ann_file_test = "data/kinetics400/kinetics400_val_list_rawframes.txt"
 
 img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
 
-mc_cfg = dict(
-    server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
-    client_cfg="/mnt/lustre/share/memcached_client/client.conf",
-    sys_path="/mnt/lustre/share/pymc/py3",
-)
-
 train_pipeline = [
     dict(type="SampleFrames", clip_len=8, frame_interval=32, num_clips=1),
-    dict(type="RawFrameDecode", io_backend="memcached", **mc_cfg),
+    dict(type="RawFrameDecode"),
     dict(type="RandomRescale", scale_range=(256, 320)),
     dict(type="RandomCrop", size=224),
     dict(type="Flip", flip_ratio=0.5),
@@ -51,7 +47,7 @@ val_pipeline = [
     dict(
         type="SampleFrames", clip_len=8, frame_interval=32, num_clips=1, test_mode=True
     ),
-    dict(type="RawFrameDecode", io_backend="memcached", **mc_cfg),
+    dict(type="RawFrameDecode"),
     dict(type="Resize", scale=(-1, 256)),
     dict(type="CenterCrop", crop_size=224),
     dict(type="Normalize", **img_norm_cfg),
@@ -63,7 +59,7 @@ test_pipeline = [
     dict(
         type="SampleFrames", clip_len=8, frame_interval=32, num_clips=1, test_mode=True
     ),
-    dict(type="RawFrameDecode", io_backend="memcached", **mc_cfg),
+    dict(type="RawFrameDecode"),
     dict(type="Resize", scale=(-1, 224)),
     dict(type="ThreeCrop", crop_size=224),
     dict(type="Normalize", **img_norm_cfg),
@@ -72,8 +68,8 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 data = dict(
-    videos_per_gpu=4,
-    workers_per_gpu=2,
+    videos_per_gpu=8,
+    workers_per_gpu=4,
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -99,7 +95,7 @@ evaluation = dict(interval=1, metrics=["top_k_accuracy", "mean_class_accuracy"])
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.02,
+    lr=0.005,
     momentum=0.9,
     paramwise_cfg=dict(
         custom_keys={
@@ -118,17 +114,3 @@ total_epochs = 15
 # runtime settings
 checkpoint_config = dict(interval=1)
 work_dir = "./work_dirs/timesformer_divST_8x32x1_15e_kinetics400_rgb"
-
-log_config = dict(
-    interval=20,
-    hooks=[
-        dict(type="TextLoggerHook"),
-        # dict(type='TensorboardLoggerHook'),
-    ],
-)
-# runtime settings
-dist_params = dict(backend="nccl")
-log_level = "INFO"
-load_from = None
-resume_from = None
-workflow = [("train", 1)]

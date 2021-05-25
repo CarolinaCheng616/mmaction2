@@ -3,17 +3,17 @@ model = dict(
     type="Recognizer2D",
     backbone=dict(
         type="DEIT",
-        pretrained="deit_base_distilled_patch16_224",
+        pretrained="deit_base_patch16_224",
         freeze=False,
         fp16_enabled=False,
-    ),  # output: [batch * segs, 512]
+    ),  # output: [batch * segs, 768]
     cls_head=dict(
         type="CLIPHead",
         num_classes=240,
-        in_channels=512,
+        in_channels=768,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
-        init_std=0.001,
+        init_std=0.02,
         fp16_enabled=False,
     ),
 )
@@ -32,7 +32,8 @@ mc_cfg = dict(
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
     sys_path="/mnt/lustre/share/pymc/py3",
 )
-img_norm_cfg = dict(mean=[104, 117, 128], std=[1, 1, 1], to_bgr=False)
+# img_norm_cfg = dict(mean=[104, 117, 128], std=[1, 1, 1], to_bgr=False)
+img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
 train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
@@ -105,11 +106,22 @@ data = dict(
 )
 # optimizer
 optimizer = dict(
-    type="SGD", lr=0.00625, momentum=0.9, weight_decay=0.0005
+    type="SGD",
+    lr=0.005,
+    momentum=0.9,
+    weight_decay=1e-4,
+    nesterov=True,
+    paramwise_cfg=dict(
+        custom_keys={
+            ".backbone.cls_token": dict(decay_mult=0.0),
+            ".backbone.pos_embed": dict(decay_mult=0.0),
+        }
+    ),
 )  # this lr is used for 4 gpus
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
+# lr_config = dict(policy='step', step=[5, 10])
 total_epochs = 50
 checkpoint_config = dict(interval=5)
 evaluation = dict(
@@ -121,7 +133,7 @@ log_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_deit_base_distill_384_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_vit_1x1x8_50e"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]

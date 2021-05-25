@@ -1,5 +1,5 @@
 import torch.nn as nn
-from mmcv.cnn import normal_init
+from mmcv.cnn import normal_init, trunc_normal_init
 
 from ..registry import HEADS
 from .base import AvgConsensus, BaseHead
@@ -61,7 +61,7 @@ class CLIPHead(BaseHead):
 
     def init_weights(self):
         """Initiate the parameters from scratch."""
-        normal_init(self.fc_cls, std=self.init_std)
+        trunc_normal_init(normal_init(self.fc_cls, std=self.init_std))
 
     def forward(self, x, num_segs):
         """Defines the computation performed at every call.
