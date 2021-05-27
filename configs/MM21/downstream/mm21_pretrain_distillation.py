@@ -122,6 +122,5 @@ resume_from = None
 workflow = [("train", 1)]
 # output config
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-PRETRAIN/distillation/mm21_ds_distill.pkl",
-    output_format="pkl",
+    out="/mnt/lustre/share_data/MM21-PRETRAIN/distillation/mm21_ds_distill.pkl"
 )

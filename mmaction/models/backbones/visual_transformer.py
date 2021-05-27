@@ -731,8 +731,8 @@ def load(
     return model
 
 
-@BACKBONES.register_module()
-class CLIPViT(nn.Module):
+# @BACKBONES.register_module()
+class CLIPViT_(nn.Module):
     def __init__(self, pretrained=None, freeze=True, fp16_enabled=True):
         super().__init__()
         self.pretrained = pretrained

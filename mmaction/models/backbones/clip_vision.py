@@ -8,7 +8,7 @@ import clip
 
 
 @BACKBONES.register_module()
-class CLIP(nn.Module):
+class CLIPVIT(nn.Module):
     def __init__(self, pretrained=None, freeze=True, fp16_enabled=True):
         super().__init__()
         self.pretrained = pretrained
@@ -35,8 +35,52 @@ class CLIP(nn.Module):
         if self.freeze:
             self.model.eval()
             with torch.no_grad():
-                features = self.model(x)
+                # features = self.model(x)
+                x = self.model.conv1(x)  # shape = [*, width, grid, grid]
+                x = x.reshape(
+                    x.shape[0], x.shape[1], -1
+                )  # shape = [*, width, grid ** 2]
+                x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
+                x = torch.cat(
+                    [
+                        self.model.class_embedding.to(x.dtype)
+                        + torch.zeros(
+                            x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device
+                        ),
+                        x,
+                    ],
+                    dim=1,
+                )  # shape = [*, grid ** 2 + 1, width]
+                x = x + self.model.positional_embedding.to(x.dtype)
+                x = self.model.ln_pre(x)
+
+                x = x.permute(1, 0, 2)  # NLD -> LND
+                x = self.model.transformer(x)
+                x = x.permute(1, 0, 2)  # LND -> NLD
+
+                features = self.model.ln_post(x[:, 0, :])
         else:
-            features = self.model(x)
-        # x.shape = [batch * seg, 512]
+            # features = self.model(x)
+            x = self.model.conv1(x)  # shape = [*, width, grid, grid]
+            x = x.reshape(x.shape[0], x.shape[1], -1)  # shape = [*, width, grid ** 2]
+            x = x.permute(0, 2, 1)  # shape = [*, grid ** 2, width]
+            x = torch.cat(
+                [
+                    self.model.class_embedding.to(x.dtype)
+                    + torch.zeros(
+                        x.shape[0], 1, x.shape[-1], dtype=x.dtype, device=x.device
+                    ),
+                    x,
+                ],
+                dim=1,
+            )  # shape = [*, grid ** 2 + 1, width]
+            x = x + self.model.positional_embedding.to(x.dtype)
+            x = self.model.ln_pre(x)
+
+            x = x.permute(1, 0, 2)  # NLD -> LND
+            x = self.model.transformer(x)
+            x = x.permute(1, 0, 2)  # LND -> NLD
+
+            features = self.model.ln_post(x[:, 0, :])
+        # x.shape = [batch * seg, 768]
         return features

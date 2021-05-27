@@ -10,10 +10,11 @@ from .resnet_tin import ResNetTIN
 from .resnet_tsm import ResNetTSM
 from .x3d import X3D
 from .bert import BERT
-from .clip_vision import CLIP
+from .clip_vision import CLIPVIT
 from .timesformer import TimeSformer
 from .deit import DEIT
-from .visual_transformer import CLIPViT
+
+# from .visual_transformer import CLIPViT
 
 __all__ = [
     "C3D",
@@ -29,8 +30,7 @@ __all__ = [
     "ResNetAudio",
     "ResNet3dLayer",
     "BERT",
-    "CLIP",
+    "CLIPVIT",
     "TimeSformer",
     "DEIT",
-    "CLIPViT",
 ]

@@ -23,7 +23,7 @@ data_root = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
 data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
 ann_file_train = "/mnt/lustre/share_data/MM21-CLASSIFICATION/train_anno"
 ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
-ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/test_anno"
+ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -130,6 +130,7 @@ evaluation = dict(
 log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
+output_config = dict(out="work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e/eval.json")
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
