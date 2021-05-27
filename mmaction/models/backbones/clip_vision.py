@@ -8,7 +8,7 @@ import clip
 
 
 @BACKBONES.register_module()
-class CLIPVIT(nn.Module):
+class CLIPViT(nn.Module):
     def __init__(self, pretrained=None, freeze=True, fp16_enabled=True):
         super().__init__()
         self.pretrained = pretrained
