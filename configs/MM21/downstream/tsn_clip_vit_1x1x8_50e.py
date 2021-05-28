@@ -130,7 +130,8 @@ evaluation = dict(
 log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
-output_config = dict(out="work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e/eval.json")
+eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
+output_config = dict(out="/mnt/lustre/share_data/MM21-CLASSIFICATION/clip_vit.pkl")
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"

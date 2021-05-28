@@ -132,7 +132,7 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_distill_result.json"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_distill_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
