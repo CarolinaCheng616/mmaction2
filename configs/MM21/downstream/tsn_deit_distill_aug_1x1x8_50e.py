@@ -134,11 +134,13 @@ log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
-output_config = dict(out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_result.json")
+output_config = dict(
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_distill_aug_result.json"
+)
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_deit_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_deit_distill_aug_1x1x8_50e"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]

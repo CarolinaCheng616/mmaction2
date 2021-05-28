@@ -3,12 +3,12 @@ model = dict(
     type="Recognizer2D",
     backbone=dict(
         type="DEIT",
-        pretrained="deit_base_distilled_patch16_384",
+        pretrained="deit_base_patch16_224",
         freeze=False,
         fp16_enabled=False,
-    ),  # output: ([batch * segs, 768], [batch * segs, 768])
+    ),  # output: [batch * segs, 768]
     cls_head=dict(
-        type="DEITHead",
+        type="CLIPHead",
         num_classes=240,
         in_channels=768,
         consensus=dict(type="AvgConsensus", dim=1),
@@ -38,15 +38,15 @@ train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, 384)),
+    dict(type="Resize", scale=(-1, 256)),
     dict(
         type="MultiScaleCrop",
-        input_size=384,
+        input_size=224,
         scales=(1, 0.875, 0.75, 0.66),
         random_crop=False,
         max_wh_scale_gap=1,
     ),
-    dict(type="Resize", scale=(384, 384), keep_ratio=False),
+    dict(type="Resize", scale=(224, 224), keep_ratio=False),
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -59,8 +59,8 @@ val_pipeline = [
         type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8, test_mode=True
     ),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, 384)),
-    dict(type="CenterCrop", crop_size=384),
+    dict(type="Resize", scale=(-1, 256)),
+    dict(type="CenterCrop", crop_size=224),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -73,8 +73,8 @@ test_pipeline = [
         type="SampleFrames", clip_len=1, frame_interval=1, num_clips=25, test_mode=True
     ),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, 384)),
-    dict(type="TenCrop", crop_size=384),
+    dict(type="Resize", scale=(-1, 256)),
+    dict(type="TenCrop", crop_size=224),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -82,7 +82,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=4,
+    videos_per_gpu=16,
     workers_per_gpu=10,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
@@ -107,7 +107,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.005,  # for 4(gpus) * 16(batch)
+    lr=0.005,  # 4(gpus) * 16(batch)
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
@@ -117,7 +117,7 @@ optimizer = dict(
             ".backbone.pos_embed": dict(decay_mult=0.0),
         }
     ),
-)
+)  # this lr is used for 4 gpus
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
@@ -132,12 +132,12 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_distill_result.json"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_base_result.json"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_deit_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_deit_base_1x1x8_50e"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
