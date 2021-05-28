@@ -48,6 +48,9 @@ train_pipeline = [
     ),
     dict(type="Resize", scale=(384, 384), keep_ratio=False),
     dict(type="Flip", flip_ratio=0.5),
+    dict(type="RandomColorJitter", color_space_aug=True, p=0.8),
+    dict(type="RandomGaussianBlur", sigma_min=0.1, sigma_max=2.0, p=0.5),
+    dict(type="RandomSolarization", p=0.2),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
@@ -83,7 +86,7 @@ test_pipeline = [
 ]
 data = dict(
     videos_per_gpu=4,
-    workers_per_gpu=10,
+    workers_per_gpu=4,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
         type=dataset_type,
@@ -131,9 +134,7 @@ log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
-output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_distill_result.json"
-)
+output_config = dict(out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_result.json")
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
