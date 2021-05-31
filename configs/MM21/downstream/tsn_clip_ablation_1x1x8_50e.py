@@ -10,7 +10,7 @@ model = dict(
         in_channels=768,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
-        init_std=0.001,
+        init_std=0.02,
         fp16_enabled=True,
     ),
 )
