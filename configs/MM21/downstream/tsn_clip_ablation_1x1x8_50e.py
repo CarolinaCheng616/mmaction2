@@ -103,7 +103,7 @@ data = dict(
 )
 # optimizer
 optimizer = dict(
-    type="SGD", lr=0.00625, momentum=0.9, weight_decay=0.0005
+    type="SGD", lr=0.005, momentum=0.9, weight_decay=1e-4, nesterov=True
 )  # this lr is used for 4(gpus) * 16(batch)
 # optimizer
 # optimizer = dict(
