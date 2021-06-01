@@ -10,7 +10,7 @@ model = dict(
         in_channels=768,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
-        init_std=0.02,
+        init_std=0.001,
         fp16_enabled=True,
     ),
 )
@@ -29,8 +29,8 @@ mc_cfg = dict(
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
     sys_path="/mnt/lustre/share/pymc/py3",
 )
-# img_norm_cfg = dict(mean=[104, 117, 128], std=[1, 1, 1], to_bgr=False)
-img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
+img_norm_cfg = dict(mean=[104, 117, 128], std=[1, 1, 1], to_bgr=False)
+# img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
 train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
@@ -102,23 +102,23 @@ data = dict(
     ),
 )
 # optimizer
-optimizer = dict(
-    type="SGD", lr=0.005, momentum=0.9, weight_decay=1e-4, nesterov=True
-)  # this lr is used for 4(gpus) * 16(batch)
-# optimizer
 # optimizer = dict(
-#     type="SGD",
-#     lr=0.005,  # for 4(gpus) * 16(batch)
-#     momentum=0.9,
-#     weight_decay=1e-4,
-#     nesterov=True,
-#     paramwise_cfg=dict(
-#         custom_keys={
-#             ".backbone.cls_token": dict(decay_mult=0.0),
-#             ".backbone.pos_embed": dict(decay_mult=0.0),
-#         }
-#     ),
-# )
+#     type="SGD", lr=0.005, momentum=0.9, weight_decay=1e-4, nesterov=True
+# )  # this lr is used for 4(gpus) * 16(batch)
+# optimizer
+optimizer = dict(
+    type="SGD",
+    lr=0.005,  # for 4(gpus) * 16(batch)
+    momentum=0.9,
+    weight_decay=1e-4,
+    nesterov=True,
+    paramwise_cfg=dict(
+        custom_keys={
+            ".backbone.cls_token": dict(decay_mult=0.0),
+            ".backbone.pos_embed": dict(decay_mult=0.0),
+        }
+    ),
+)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
