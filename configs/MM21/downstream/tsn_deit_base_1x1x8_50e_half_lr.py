@@ -106,7 +106,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.005,  # 4(gpus) * 16(batch)
+    lr=0.0025,  # 4(gpus) * 16(batch)
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
@@ -131,12 +131,12 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_base_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_base_result_half_lr.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_deit_base_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_deit_base_1x1x8_50e_half_lr"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
