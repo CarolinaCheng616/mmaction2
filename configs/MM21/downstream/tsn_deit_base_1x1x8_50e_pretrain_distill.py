@@ -84,7 +84,7 @@ test_pipeline = [
 data = dict(
     videos_per_gpu=16,
     workers_per_gpu=10,
-    test_dataloader=dict(videos_per_gpu=4),
+    # test_dataloader=dict(videos_per_gpu=8),
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -101,7 +101,7 @@ data = dict(
         type=dataset_type,
         ann_file=ann_file_test,
         data_prefix=data_root_val,
-        pipeline=test_pipeline,
+        pipeline=val_pipeline,
     ),
 )
 # optimizer
