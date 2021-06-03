@@ -26,7 +26,7 @@ data_root = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
 data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
 ann_file_train = "/mnt/lustre/share_data/MM21-CLASSIFICATION/train_anno"
 ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
-ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
+ann_file_test = "/mnt/lustre/share_data/MM21-PRETRAIN/imagenet_anno"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -84,7 +84,6 @@ test_pipeline = [
 data = dict(
     videos_per_gpu=16,
     workers_per_gpu=10,
-    test_dataloader=dict(videos_per_gpu=2),
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -132,7 +131,7 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_base_result.pkl"
+    out="/mnt/lustre/share_data/MM21-PRETRAIN/pretrain_deit_base_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
