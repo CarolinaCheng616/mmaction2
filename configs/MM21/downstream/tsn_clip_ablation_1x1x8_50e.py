@@ -10,7 +10,7 @@ model = dict(
         in_channels=768,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
-        init_std=0.001,
+        init_std=0.02,
         fp16_enabled=True,
     ),
 )
@@ -29,8 +29,8 @@ mc_cfg = dict(
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
     sys_path="/mnt/lustre/share/pymc/py3",
 )
-img_norm_cfg = dict(mean=[104, 117, 128], std=[1, 1, 1], to_bgr=False)
-# img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
+# img_norm_cfg = dict(mean=[104, 117, 128], std=[1, 1, 1], to_bgr=False)
+img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
 train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
@@ -108,7 +108,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.0025,  # for 128
+    lr=0.00125,  # for 128
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
