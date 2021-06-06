@@ -30,9 +30,6 @@ class CLIPViT(nn.Module):
 
     def forward(self, x):
         # x.shape = [batch * seg, C, H, W]
-        import pdb
-
-        pdb.set_trace()
         if self.fp16_enabled:
             x = x.half()
         if self.freeze:
