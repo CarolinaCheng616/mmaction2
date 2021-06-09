@@ -108,7 +108,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.005,  # for 4(gpus) * 16(batch)
+    lr=0.0025,  # for 4(gpus) * 16(batch)
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
