@@ -24,7 +24,9 @@ test_cfg = dict(average_clips=None)
 dataset_type = "VideoDataset"
 data_root = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset"
 data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset"
-ann_file_train = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset/train_anno_subset"
+ann_file_train = (
+    "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset/train_anno_subset_clean"
+)
 ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset/val_anno_subset"
 ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset/val_anno_subset"
 mc_cfg = dict(
@@ -132,12 +134,12 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_distill_result_partial.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_distill_result_partial_clean.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_deit_distill_1x1x8_50e_partial"
+work_dir = "./work_dirs/MM21/ds/tsn_deit_distill_1x1x8_50e_partial_clean"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
