@@ -70,9 +70,6 @@ class TwoVideoDataset(BaseDataset):
                 list(range((gpus - 1) * self.num2_per_gpu, self.video_num2))
             )
             self.count_per_gpu = [0] * gpus
-            import pdb
-
-            pdb.set_trace()
 
     def load_annotations(self):
         """Load annotation file to get video information."""
@@ -152,8 +149,8 @@ class TwoVideoDataset(BaseDataset):
             return video_infos
 
     def prepare_train_frames(self, idx):
-        print(f"idx : {idx}")
         gpu_idx = idx // self.num_per_gpu
+        print(f"idx {gpu_idx}\n")
         if self.count_per_gpu[gpu_idx] == 0:
             if len(self.video_idxes1_per_gpu[gpu_idx]) == 0:
                 self.video_idxes1_per_gpu[gpu_idx] = list(
