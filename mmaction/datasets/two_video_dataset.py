@@ -150,10 +150,7 @@ class TwoVideoDataset(BaseDataset):
 
     def prepare_train_frames(self, idx):
         gpu_idx = idx % self.gpus
-        print(f"idx {idx}", flush=True)
-        print(f"gpu_idx {gpu_idx}", flush=True)
         if self.count_per_gpu[gpu_idx] == 0:
-            print("sample idx1", flush=True)
             if len(self.video_idxes1_per_gpu[gpu_idx]) == 0:
                 self.video_idxes1_per_gpu[gpu_idx] = list(
                     range(
@@ -166,7 +163,6 @@ class TwoVideoDataset(BaseDataset):
             self.video_idxes1_per_gpu[gpu_idx].remove(video_idx1)
             results = copy.deepcopy(self.video_infos1[video_idx1])
         else:
-            print("sample idx2", flush=True)
             if len(self.video_idxes2_per_gpu[gpu_idx]) == 0:
                 self.video_idxes2_per_gpu[gpu_idx] = list(
                     range(

@@ -83,5 +83,4 @@ class CLIPViT(nn.Module):
 
             features = self.model.ln_post(x[:, 0, :])
         # x.shape = [batch * seg, 768]
-        print("batch", flush=True)
         return features
