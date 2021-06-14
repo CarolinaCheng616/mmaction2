@@ -150,7 +150,8 @@ class TwoVideoDataset(BaseDataset):
 
     def prepare_train_frames(self, idx):
         gpu_idx = idx % self.gpus
-        print(f"idx {gpu_idx}")
+        print(f"idx {idx}", flush=True)
+        print(f"gpu_idx {gpu_idx}", flush=True)
         if self.count_per_gpu[gpu_idx] == 0:
             if len(self.video_idxes1_per_gpu[gpu_idx]) == 0:
                 self.video_idxes1_per_gpu[gpu_idx] = list(
