@@ -1,6 +1,8 @@
 import os.path as osp
+import copy
 
 import torch
+import numpy as np
 
 from .base import BaseDataset
 from .registry import DATASETS
@@ -37,58 +39,154 @@ class TwoVideoDataset(BaseDataset):
         **kwargs: Keyword arguments for ``BaseDataset``.
     """
 
-    def __init__(self, ann_file, pipeline, start_index=0, **kwargs):
-        super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
+    def __init__(
+        self, ann_file, pipeline, start_index=0, noise_ratio=2, gpus=1, **kwargs
+    ):
+        # make sure the gpus is correct
+
+        self.noise_ratio = noise_ratio + 1
+        self.video_infos1 = []
+        self.video_infos2 = []
         self.video_num1, self.video_num2 = 0, 0
+        self.gpus = gpus
+        super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
+        if not self.test_mode:
+            self.video_idxes1_per_gpu = []
+            self.video_idxes2_per_gpu = []
+            self.num1_per_gpu = (len(self.video_infos1) + gpus - 1) // gpus
+            self.num2_per_gpu = (len(self.video_infos2) + gpus - 1) // gpus
+            self.num_per_gpu = self.num1_per_gpu + self.num2_per_gpu
+            for i in range(gpus - 1):
+                self.video_idxes1_per_gpu.append(
+                    list(range(i * self.num1_per_gpu, (i + 1) * self.num1_per_gpu))
+                )
+                self.video_idxes2_per_gpu.append(
+                    list(range(i * self.num2_per_gpu, (i + 1) * self.num2_per_gpu))
+                )
+            self.video_idxes1_per_gpu.append(
+                list(range((gpus - 1) * self.num1_per_gpu, self.video_num1))
+            )
+            self.video_idxes2_per_gpu.append(
+                list(range((gpus - 1) * self.num2_per_gpu, self.video_num2))
+            )
+            self.count_per_gpu = [0] * gpus
 
     def load_annotations(self):
         """Load annotation file to get video information."""
-        anno1, anno2 = self.ann_file.split()
+        if not self.test_mode:
+            anno1, anno2 = self.ann_file.split()
 
-        video_infos1 = []
-        with open(anno1, "r") as fin:
-            for line in fin:
-                line_split = line.strip().split()
-                if self.multi_class:
-                    assert self.num_classes is not None
-                    filename, label = line_split[0], line_split[1:]
-                    label = list(map(int, label))
-                    onehot = torch.zeros(self.num_classes)
-                    onehot[label] = 1.0
-                else:
-                    filename, label = line_split
-                    label = int(label)
-                if self.data_prefix is not None:
-                    filename = osp.join(self.data_prefix, filename)
-                video_infos1.append(
-                    dict(filename=filename, label=onehot if self.multi_class else label)
-                )
-        self.video_num1 = len(video_infos1)
+            with open(anno1, "r") as fin:
+                for line in fin:
+                    line_split = line.strip().split()
+                    if self.multi_class:
+                        assert self.num_classes is not None
+                        filename, label = line_split[0], line_split[1:]
+                        label = list(map(int, label))
+                        onehot = torch.zeros(self.num_classes)
+                        onehot[label] = 1.0
+                    else:
+                        filename, label = line_split
+                        label = int(label)
+                    if self.data_prefix is not None:
+                        filename = osp.join(self.data_prefix, filename)
+                    self.video_infos1.append(
+                        dict(
+                            filename=filename,
+                            label=onehot if self.multi_class else label,
+                        )
+                    )
+            self.video_num1 = len(self.video_infos1)
 
-        video_infos2 = []
-        with open(anno1, "r") as fin:
-            for line in fin:
-                line_split = line.strip().split()
-                if self.multi_class:
-                    assert self.num_classes is not None
-                    filename, label = line_split[0], line_split[1:]
-                    label = list(map(int, label))
-                    onehot = torch.zeros(self.num_classes)
-                    onehot[label] = 1.0
-                else:
-                    filename, label = line_split
-                    label = int(label)
-                if self.data_prefix is not None:
-                    filename = osp.join(self.data_prefix, filename)
-                video_infos2.append(
-                    dict(filename=filename, label=onehot if self.multi_class else label)
-                )
-        self.video_num2 = len(video_infos2)
+            with open(anno2, "r") as fin:
+                for line in fin:
+                    line_split = line.strip().split()
+                    if self.multi_class:
+                        assert self.num_classes is not None
+                        filename, label = line_split[0], line_split[1:]
+                        label = list(map(int, label))
+                        onehot = torch.zeros(self.num_classes)
+                        onehot[label] = 1.0
+                    else:
+                        filename, label = line_split
+                        label = int(label)
+                    if self.data_prefix is not None:
+                        filename = osp.join(self.data_prefix, filename)
+                    self.video_infos2.append(
+                        dict(
+                            filename=filename,
+                            label=onehot if self.multi_class else label,
+                        )
+                    )
+            self.video_num2 = len(self.video_infos2)
 
-        return video_infos1 + video_infos2
+            return self.video_infos1 + self.video_infos2
+        else:
+            if self.ann_file.endswith(".json"):
+                return self.load_json_annotations()
+
+            video_infos = []
+            with open(self.ann_file, "r") as fin:
+                for line in fin:
+                    line_split = line.strip().split()
+                    if self.multi_class:
+                        assert self.num_classes is not None
+                        filename, label = line_split[0], line_split[1:]
+                        label = list(map(int, label))
+                        onehot = torch.zeros(self.num_classes)
+                        onehot[label] = 1.0
+                    else:
+                        filename, label = line_split
+                        label = int(label)
+                    if self.data_prefix is not None:
+                        filename = osp.join(self.data_prefix, filename)
+                    video_infos.append(
+                        dict(
+                            filename=filename,
+                            label=onehot if self.multi_class else label,
+                        )
+                    )
+            return video_infos
 
     def prepare_train_frames(self, idx):
-        pass
+        print(f"idx : {idx}")
+        gpu_idx = idx // self.num_per_gpu
+        if self.count_per_gpu[gpu_idx] == 0:
+            if len(self.video_idxes1_per_gpu[gpu_idx]) == 0:
+                self.video_idxes1_per_gpu[gpu_idx] = list(
+                    range(
+                        gpu_idx * self.num1_per_gpu, (gpu_idx + 1) * self.num1_per_gpu
+                    )
+                )
+            video_idx1 = np.random.choice(
+                self.video_idxes1_per_gpu[gpu_idx], 1, replace=False
+            )
+            self.video_idxes1_per_gpu[gpu_idx].remove(video_idx1)
+            results = copy.deepcopy(self.video_infos1[video_idx1])
+        else:
+            if len(self.video_idxes2_per_gpu[gpu_idx]) == 0:
+                self.video_idxes2_per_gpu[gpu_idx] = list(
+                    range(
+                        gpu_idx * self.num2_per_gpu, (gpu_idx + 1) * self.num2_per_gpu
+                    )
+                )
+            video_idx2 = np.random.choice(
+                self.video_idxes2_per_gpu[gpu_idx], 1, replace=False
+            )
+            self.video_idxes2_per_gpu[gpu_idx].remove(video_idx2)
+            results = copy.deepcopy(self.video_infos2[video_idx2])
+        self.count_per_gpu[gpu_idx] = (
+            self.count_per_gpu[gpu_idx] + 1
+        ) % self.noise_ratio
 
-    def prepare_test_frames(self, idx):
-        pass
+        results["modality"] = self.modality
+        results["start_index"] = self.start_index
+
+        # prepare tensor in getitem
+        # If HVU, type(results['label']) is dict
+        if self.multi_class and isinstance(results["label"], list):
+            onehot = torch.zeros(self.num_classes)
+            onehot[results["label"]] = 1.0
+            results["label"] = onehot
+
+        return self.pipeline(results)
