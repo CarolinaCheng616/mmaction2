@@ -21,7 +21,7 @@ test_cfg = dict(average_clips=None)
 dataset_type = "TwoVideoDataset"
 data_root = "data/mm21"
 data_root_val = "data/mm21"
-ann_file_train = "data/mm21/imagenet_distill_hard data/mm21/train_anno"
+ann_file_train = "data/mm21/train_anno data/mm21/imagenet_distill_hard"
 ann_file_val = "data/mm21/val_anno"
 ann_file_test = "data/mm21/val_anno"
 mc_cfg = dict(

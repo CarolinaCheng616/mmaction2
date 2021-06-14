@@ -163,7 +163,7 @@ class TwoVideoDataset(BaseDataset):
                 )
             video_idx1 = np.random.choice(
                 self.video_idxes1_per_gpu[gpu_idx], 1, replace=False
-            )
+            )[0]
             self.video_idxes1_per_gpu[gpu_idx].remove(video_idx1)
             results = copy.deepcopy(self.video_infos1[video_idx1])
         else:
@@ -175,7 +175,7 @@ class TwoVideoDataset(BaseDataset):
                 )
             video_idx2 = np.random.choice(
                 self.video_idxes2_per_gpu[gpu_idx], 1, replace=False
-            )
+            )[0]
             self.video_idxes2_per_gpu[gpu_idx].remove(video_idx2)
             results = copy.deepcopy(self.video_infos2[video_idx2])
         self.count_per_gpu[gpu_idx] = (
