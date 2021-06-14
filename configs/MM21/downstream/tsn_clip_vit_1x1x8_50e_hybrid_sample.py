@@ -79,7 +79,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=3,
+    videos_per_gpu=66,
     workers_per_gpu=10,
     train_dataloader=dict(shuffle=False),
     test_dataloader=dict(videos_per_gpu=2),
