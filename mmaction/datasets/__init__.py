@@ -22,6 +22,7 @@ from .msrvtt_dataset import MSRVTTDataset
 from .mp4_word2vec_dataset import Mp4Word2VecDataset
 from .rawframe_text_dataset import RawframeTextDataset
 from .video_clips_dataset import VideoClipDataset
+from .two_video_dataset import TwoVideoDataset
 
 __all__ = [
     "VideoDataset",
@@ -49,4 +50,5 @@ __all__ = [
     "MSRVTTDataset",
     "RawframeTextDataset",
     "VideoClipDataset",
+    "TwoVideoDataset",
 ]
