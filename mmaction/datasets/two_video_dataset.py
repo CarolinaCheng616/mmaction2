@@ -70,6 +70,9 @@ class TwoVideoDataset(BaseDataset):
                 list(range((gpus - 1) * self.num2_per_gpu, self.video_num2))
             )
             self.count_per_gpu = [0] * gpus
+            import pdb
+
+            pdb.set_trace()
 
     def load_annotations(self):
         """Load annotation file to get video information."""
