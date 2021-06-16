@@ -266,8 +266,8 @@ class RecognizerCo(nn.Module):
             loss_cls1 = F.cross_entropy(cls_score1, gt_labels, reduction="none")
             loss_cls2 = F.cross_entropy(cls_score2, gt_labels, reduction="none")
 
-        ind_1_sorted = np.argsort(loss_cls1.data).cuda()  # loss_cls1, loss_cls1.data
-        ind_2_sorted = np.argsort(loss_cls2.data).cuda()
+        ind_1_sorted = torch.argsort(loss_cls1)  # loss_cls1, loss_cls1.data
+        ind_2_sorted = torch.argsort(loss_cls2)
 
         # remember_rate = 1 - forget_rate
         remember_rate = 1 - 0.5
