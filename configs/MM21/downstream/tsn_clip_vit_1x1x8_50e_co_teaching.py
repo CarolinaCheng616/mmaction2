@@ -1,10 +1,22 @@
 # model settings
 model = dict(
-    type="Recognizer2D",
-    backbone=dict(
+    type="RecognizerCo",
+    backbone1=dict(
         type="CLIPViT", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
     ),  # output: [batch * segs, 768]
-    cls_head=dict(
+    backbone2=dict(
+        type="CLIPViT", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
+    ),  # output: [batch * segs, 768]
+    cls_head1=dict(
+        type="CLIPHead",
+        num_classes=240,
+        in_channels=768,
+        consensus=dict(type="AvgConsensus", dim=1),
+        dropout_ratio=0.8,
+        init_std=0.02,
+        fp16_enabled=True,
+    ),
+    cls_head2=dict(
         type="CLIPHead",
         num_classes=240,
         in_channels=768,
@@ -101,11 +113,6 @@ data = dict(
         pipeline=test_pipeline,
     ),
 )
-# # optimizer
-# optimizer = dict(
-#     type="SGD", lr=0.00625, momentum=0.9, weight_decay=0.0005
-# )  # this lr is used for 4 gpus
-# optimizer
 optimizer = dict(
     type="SGD",
     lr=0.0025,  # for 128
@@ -131,11 +138,13 @@ log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
-output_config = dict(out="/mnt/lustre/share_data/MM21-CLASSIFICATION/clip_vit.pkl")
+output_config = dict(
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/co_teaching_clip.pkl"
+)
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
