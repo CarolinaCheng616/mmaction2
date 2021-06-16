@@ -263,12 +263,8 @@ class RecognizerCo(nn.Module):
 
         pdb.set_trace()
         with torch.no_grad():
-            loss_cls1 = self.cls_head1.loss(
-                cls_score1, gt_labels, **kwargs
-            )  # check kwargs, add reduction='none'
-            loss_cls2 = self.cls_head2.loss(
-                cls_score2, gt_labels, **kwargs
-            )  # check kwargs
+            loss_cls1 = F.cross_entropy(cls_score1, gt_labels, reduction="none")
+            loss_cls2 = F.cross_entropy(cls_score2, gt_labels, reduction="none")
 
         ind_1_sorted = np.argsort(loss_cls1.data).cuda()  # loss_cls1, loss_cls1.data
         ind_2_sorted = np.argsort(loss_cls2.data).cuda()
