@@ -191,7 +191,9 @@ class RecognizerCo(nn.Module):
         losses = self(imgs, label, return_loss=True, **aux_info)
 
         loss, log_vars = self._parse_losses(losses)
+        import pdb
 
+        pdb.set_trace()
         outputs = dict(
             loss=loss,
             log_vars=log_vars,
@@ -279,13 +281,27 @@ class RecognizerCo(nn.Module):
         # exchange
         loss_1_update = self.cls_head1.loss(
             cls_score1[ind_2_update], gt_labels[ind_2_update], **kwargs
-        )
+        )  # 'top1_acc', 'top5_acc', 'loss_cls'
         loss_2_update = self.cls_head2.loss(
             cls_score2[ind_1_update], gt_labels[ind_1_update], **kwargs
         )
 
-        loss = loss_1_update + loss_2_update
-        losses.update(loss)
+        loss_1_update["top1_acc1"] = loss_1_update["top1_acc"]
+        loss_1_update["top5_acc1"] = loss_1_update["top5_acc"]
+        loss_1_update["loss_cls1"] = loss_1_update["loss_cls"]
+        del loss_1_update["top1_acc"]
+        del loss_1_update["top5_acc"]
+        del loss_1_update["loss_cls"]
+
+        loss_2_update["top1_acc2"] = loss_2_update["top1_acc"]
+        loss_2_update["top5_acc2"] = loss_2_update["top5_acc"]
+        loss_2_update["loss_cls2"] = loss_2_update["loss_cls"]
+        del loss_2_update["top1_acc"]
+        del loss_2_update["top5_acc"]
+        del loss_2_update["loss_cls"]
+
+        losses.update(loss_1_update)
+        losses.update(loss_2_update)
 
         return losses
 
