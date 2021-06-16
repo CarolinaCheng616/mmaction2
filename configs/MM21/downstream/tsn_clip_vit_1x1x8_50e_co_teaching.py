@@ -115,7 +115,7 @@ data = dict(
 )
 optimizer = dict(
     type="SGD",
-    lr=0.0025,  # for 128
+    lr=0.0025,  # for 256
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,

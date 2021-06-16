@@ -236,6 +236,7 @@ class RecognizerCo(nn.Module):
 
     def forward_train(self, imgs, labels, epoch, **kwargs):
         """Defines the computation performed at every call when training."""
+        print(f"epoch {epoch}")
         batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
@@ -290,23 +291,12 @@ class RecognizerCo(nn.Module):
             cls_score2[ind_1_update], gt_labels[ind_1_update], **kwargs
         )
 
-        loss_1_update["top1_acc1"] = loss_1_update["top1_acc"]
-        loss_1_update["top5_acc1"] = loss_1_update["top5_acc"]
-        loss_1_update["loss_cls1"] = loss_1_update["loss_cls"]
-        del loss_1_update["top1_acc"]
-        del loss_1_update["top5_acc"]
-        del loss_1_update["loss_cls"]
-
-        loss_2_update["top1_acc2"] = loss_2_update["top1_acc"]
-        loss_2_update["top5_acc2"] = loss_2_update["top5_acc"]
-        loss_2_update["loss_cls2"] = loss_2_update["loss_cls"]
-        del loss_2_update["top1_acc"]
-        del loss_2_update["top5_acc"]
-        del loss_2_update["loss_cls"]
-
-        losses.update(loss_1_update)
-        losses.update(loss_2_update)
-
+        losses["top1_acc1"] = loss_1_update["top1_acc"]
+        losses["top1_acc2"] = loss_2_update["top1_acc"]
+        losses["top5_acc1"] = loss_1_update["top5_acc"]
+        losses["top5_acc2"] = loss_2_update["top5_acc"]
+        losses["loss_cls1"] = loss_1_update["loss_cls"]
+        losses["loss_cls2"] = loss_2_update["loss_cls"]
         return losses
 
     def _do_test(self, imgs):
