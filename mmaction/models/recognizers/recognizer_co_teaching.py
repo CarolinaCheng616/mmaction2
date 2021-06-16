@@ -236,7 +236,6 @@ class RecognizerCo(nn.Module):
 
     def forward_train(self, imgs, labels, epoch, **kwargs):
         """Defines the computation performed at every call when training."""
-        print(f"epoch {epoch}")
         batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
