@@ -8,6 +8,7 @@ import torch.distributed as dist
 from mmcv.runner import auto_fp16
 
 from collections import OrderedDict
+
 import numpy as np
 
 
@@ -27,6 +28,9 @@ class RecognizerCo(nn.Module):
         neck=None,
         train_cfg=None,
         test_cfg=None,
+        tk=10,
+        c=1,
+        tau=1 * 0.3,
     ):
         super().__init__()
         self.backbone1 = builder.build_backbone(backbone1)
@@ -46,6 +50,10 @@ class RecognizerCo(nn.Module):
         self.init_weights()
 
         self.fp16_enabled = False  # might be changed
+
+        self.tk = tk
+        self.c = c
+        self.tau = tau
 
     def init_weights(self):
         """Initialize the model network weights."""
@@ -142,7 +150,7 @@ class RecognizerCo(nn.Module):
 
         return loss, log_vars
 
-    def forward(self, imgs, label=None, return_loss=True, **kwargs):
+    def forward(self, imgs, label=None, return_loss=True, epoch=0, **kwargs):
         """Define the computation performed at every call."""
         if kwargs.get("gradcam", False):
             del kwargs["gradcam"]
@@ -150,11 +158,11 @@ class RecognizerCo(nn.Module):
         if return_loss:
             if label is None:
                 raise ValueError("Label should not be None.")
-            return self.forward_train(imgs, label, **kwargs)
+            return self.forward_train(imgs, label, epoch, **kwargs)
 
         return self.forward_test(imgs, **kwargs)
 
-    def train_step(self, data_batch, optimizer, **kwargs):
+    def train_step(self, data_batch, optimizer, epoch, **kwargs):
         """The iteration step during training.
 
         This method defines an iteration step during training, except for the
@@ -168,6 +176,7 @@ class RecognizerCo(nn.Module):
             optimizer (:obj:`torch.optim.Optimizer` | dict): The optimizer of
                 runner is passed to ``train_step()``. This argument is unused
                 and reserved.
+            epoch (int): runner epoch
 
         Returns:
             dict: It should contain at least 3 keys: ``loss``, ``log_vars``,
@@ -188,12 +197,9 @@ class RecognizerCo(nn.Module):
             assert item in data_batch
             aux_info[item] = data_batch[item]
 
-        losses = self(imgs, label, return_loss=True, **aux_info)
-
+        losses = self(imgs, label, return_loss=True, epoch=epoch, **aux_info)
         loss, log_vars = self._parse_losses(losses)
-        import pdb
 
-        pdb.set_trace()
         outputs = dict(
             loss=loss,
             log_vars=log_vars,
@@ -228,7 +234,7 @@ class RecognizerCo(nn.Module):
 
         return outputs
 
-    def forward_train(self, imgs, labels, **kwargs):
+    def forward_train(self, imgs, labels, epoch, **kwargs):
         """Defines the computation performed at every call when training."""
         batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
@@ -261,9 +267,7 @@ class RecognizerCo(nn.Module):
         cls_score2 = self.cls_head2(feat2, num_segs)
 
         gt_labels = labels.squeeze()
-        import pdb
 
-        pdb.set_trace()
         with torch.no_grad():
             loss_cls1 = F.cross_entropy(cls_score1, gt_labels, reduction="none")
             loss_cls2 = F.cross_entropy(cls_score2, gt_labels, reduction="none")
@@ -272,7 +276,7 @@ class RecognizerCo(nn.Module):
         ind_2_sorted = torch.argsort(loss_cls2)
 
         # remember_rate = 1 - forget_rate
-        remember_rate = 1 - 0.5
+        remember_rate = 1 - self.tau * min(np.power(epoch, self.c) / self.tk, 1)
         num_remember = int(remember_rate * len(ind_1_sorted))
 
         ind_1_update = ind_1_sorted[:num_remember]
