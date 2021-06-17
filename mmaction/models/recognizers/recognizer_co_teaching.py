@@ -28,9 +28,9 @@ class RecognizerCo(nn.Module):
         neck=None,
         train_cfg=None,
         test_cfg=None,
-        tk=10,
+        tk=13,
         c=1,
-        tau=1 * 0.3,
+        tau=1.3 * 0.3,
     ):
         super().__init__()
         self.backbone1 = builder.build_backbone(backbone1)
@@ -272,7 +272,7 @@ class RecognizerCo(nn.Module):
             loss_cls1 = F.cross_entropy(cls_score1, gt_labels, reduction="none")
             loss_cls2 = F.cross_entropy(cls_score2, gt_labels, reduction="none")
 
-        ind_1_sorted = torch.argsort(loss_cls1)  # loss_cls1, loss_cls1.data
+        ind_1_sorted = torch.argsort(loss_cls1)
         ind_2_sorted = torch.argsort(loss_cls2)
 
         # remember_rate = 1 - forget_rate
@@ -296,6 +296,7 @@ class RecognizerCo(nn.Module):
         losses["top5_acc2"] = loss_2_update["top5_acc"]
         losses["loss_cls1"] = loss_1_update["loss_cls"]
         losses["loss_cls2"] = loss_2_update["loss_cls"]
+        losses["remember_rate"] = torch.tensor(remember_rate).cuda()
         return losses
 
     def _do_test(self, imgs):
