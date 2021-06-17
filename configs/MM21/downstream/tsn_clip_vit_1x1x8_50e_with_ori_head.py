@@ -3,11 +3,11 @@ model = dict(
     type="Recognizer2DEpoch",
     backbone=dict(
         type="CLIPWithHead", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
-    ),  # output: [batch * segs, 500]
+    ),  # output: [batch * segs, 512]
     cls_head=dict(
         type="CLIPHead",
         num_classes=240,
-        in_channels=500,
+        in_channels=512,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
         init_std=0.02,

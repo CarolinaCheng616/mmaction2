@@ -38,8 +38,5 @@ class CLIPWithHead(nn.Module):
                 features = self.model(x)
         else:
             features = self.model(x)
-        # x.shape = [batch * seg, 500]
-        import pdb
-
-        pdb.set_trace()
+        # x.shape = [batch * seg, 512]
         return features
