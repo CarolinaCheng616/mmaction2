@@ -1,3 +1,5 @@
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching"
+
 # model settings
 model = dict(
     type="RecognizerCo",
@@ -25,6 +27,9 @@ model = dict(
         init_std=0.02,
         fp16_enabled=True,
     ),
+    tk=10,
+    tau=1 * 0.3,
+    log_file=f"{work_dir}/pos_neg_file.txt",
 )
 # model training and testing settings
 train_cfg = None
@@ -144,7 +149,6 @@ output_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
