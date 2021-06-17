@@ -31,6 +31,7 @@ class RecognizerCo(nn.Module):
         tk=13,
         c=1,
         tau=1.3 * 0.3,
+        inverse=False,
     ):
         super().__init__()
         self.backbone1 = builder.build_backbone(backbone1)
@@ -54,6 +55,7 @@ class RecognizerCo(nn.Module):
         self.tk = tk
         self.c = c
         self.tau = tau
+        self.inverse = inverse
 
     def init_weights(self):
         """Initialize the model network weights."""
@@ -276,7 +278,10 @@ class RecognizerCo(nn.Module):
         ind_2_sorted = torch.argsort(loss_cls2)
 
         # remember_rate = 1 - forget_rate
-        remember_rate = 1 - self.tau * min(np.power(epoch, self.c) / self.tk, 1)
+        if not self.inverse:
+            remember_rate = 1 - self.tau * min(np.power(epoch, self.c) / self.tk, 1)
+        else:
+            remember_rate = 1 / np.sqrt(epoch + 1)
         num_remember = int(remember_rate * len(ind_1_sorted))
 
         ind_1_update = ind_1_sorted[:num_remember]
