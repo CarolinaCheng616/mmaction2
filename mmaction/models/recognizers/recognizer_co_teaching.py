@@ -294,8 +294,7 @@ class RecognizerCo(nn.Module):
         ind_1_update = ind_1_sorted[:num_remember]
         ind_2_update = ind_2_sorted[:num_remember]
 
-        # if dist.get_rank() == 0 and np.random.rand() < 0.01:
-        if dist.get_rank() == 0:
+        if dist.get_rank() == 0 and np.random.rand() < 0.01:
             idx = np.array([idx1["idx"] for idx1 in idx])
             idx = idx[ind_1_sorted.cpu().numpy()]
             pos_idx = idx[:num_remember]
