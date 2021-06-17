@@ -28,6 +28,7 @@ model = dict(
         fp16_enabled=True,
     ),
     inverse=True,
+    min_rate=0.7,
     log_file=f"{work_dir}/pos_neg_file.txt",
 )
 # model training and testing settings
