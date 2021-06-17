@@ -197,9 +197,6 @@ class RecognizerCo(nn.Module):
                 DDP, it means the batch size on each GPU), which is used for
                 averaging the logs.
         """
-        import pdb
-
-        pdb.set_trace()
         imgs = data_batch["imgs"]
         label = data_batch["label"]
         idx = data_batch["idx"]
@@ -299,18 +296,16 @@ class RecognizerCo(nn.Module):
 
         # if dist.get_rank() == 0 and np.random.rand() < 0.01:
         if dist.get_rank() == 0:
-            import pdb
-
-            pdb.set_trace()
-            idx = idx[ind_1_sorted]
+            idx = np.array([idx1["idx"] for idx1 in idx])
+            idx = idx[ind_1_sorted.cpu().numpy()]
             pos_idx = idx[:num_remember]
             neg_idx = idx[num_remember:]
             self.log_file.write(
-                f"epoch {epoch}, pos {len(pos_idx)}, neg {len(neg_idx)}"
+                f"epoch {epoch}, pos {len(pos_idx)}, neg {len(neg_idx)}\n"
             )
-            self.log_file.write(",".join(str(pi) for pi in pos_idx))
-            self.log_file.write(",".join(str(ni) for ni in neg_idx))
-            self.log_file.write("\n")
+            self.log_file.write(",".join(str(pi) for pi in pos_idx) + "\n")
+            self.log_file.write(",".join(str(ni) for ni in neg_idx) + "\n")
+            self.log_file.flush()
 
         # exchange
         loss_1_update = self.cls_head1.loss(
