@@ -13,8 +13,8 @@ from .bert import BERT
 from .clip_vision import CLIPViT
 from .timesformer import TimeSformer
 from .deit import DEIT
+from .clip_with_head import CLIPWithHead
 
-# from .visual_transformer import CLIPViT
 
 __all__ = [
     "C3D",
@@ -33,4 +33,5 @@ __all__ = [
     "CLIPViT",
     "TimeSformer",
     "DEIT",
+    "CLIPWithHead",
 ]

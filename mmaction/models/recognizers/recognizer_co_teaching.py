@@ -32,6 +32,7 @@ class RecognizerCo(nn.Module):
         c=1,
         tau=1.3 * 0.3,
         inverse=False,
+        min_rate=0.5,
     ):
         super().__init__()
         self.backbone1 = builder.build_backbone(backbone1)
@@ -56,6 +57,7 @@ class RecognizerCo(nn.Module):
         self.c = c
         self.tau = tau
         self.inverse = inverse
+        self.min_rate = min_rate
 
     def init_weights(self):
         """Initialize the model network weights."""
@@ -281,7 +283,7 @@ class RecognizerCo(nn.Module):
         if not self.inverse:
             remember_rate = 1 - self.tau * min(np.power(epoch, self.c) / self.tk, 1)
         else:
-            remember_rate = 1 / np.sqrt(epoch + 1)
+            remember_rate = max(1 / np.sqrt(epoch + 1), self.min_rate)
         num_remember = int(remember_rate * len(ind_1_sorted))
 
         ind_1_update = ind_1_sorted[:num_remember]
