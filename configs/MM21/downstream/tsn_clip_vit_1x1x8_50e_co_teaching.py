@@ -64,7 +64,7 @@ train_pipeline = [
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=["idx"], meta_name="idx"),
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 val_pipeline = [
@@ -78,7 +78,7 @@ val_pipeline = [
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=["idx"], meta_name="idx"),
     dict(type="ToTensor", keys=["imgs"]),
 ]
 test_pipeline = [
@@ -92,7 +92,7 @@ test_pipeline = [
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=["idx"], meta_name="idx"),
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
