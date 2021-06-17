@@ -1,3 +1,5 @@
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching_inverse"
+
 # model settings
 model = dict(
     type="RecognizerCo",
@@ -26,6 +28,7 @@ model = dict(
         fp16_enabled=True,
     ),
     inverse=True,
+    log_file=f"{work_dir}/pos_neg_file.txt",
 )
 # model training and testing settings
 train_cfg = None
@@ -60,7 +63,7 @@ train_pipeline = [
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=["idx"]),
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 val_pipeline = [
@@ -74,7 +77,7 @@ val_pipeline = [
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=["idx"]),
     dict(type="ToTensor", keys=["imgs"]),
 ]
 test_pipeline = [
@@ -88,7 +91,7 @@ test_pipeline = [
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=["idx"]),
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
@@ -145,7 +148,6 @@ output_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching_inverse"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]

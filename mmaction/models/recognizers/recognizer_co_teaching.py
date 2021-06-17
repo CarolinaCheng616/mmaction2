@@ -33,6 +33,7 @@ class RecognizerCo(nn.Module):
         tau=1.3 * 0.3,
         inverse=False,
         min_rate=0.5,
+        log_file=None,
     ):
         super().__init__()
         self.backbone1 = builder.build_backbone(backbone1)
@@ -58,6 +59,9 @@ class RecognizerCo(nn.Module):
         self.tau = tau
         self.inverse = inverse
         self.min_rate = min_rate
+
+        if log_file is not None:
+            self.log_file = open(log_file, "w", encoding="utf-8")
 
     def init_weights(self):
         """Initialize the model network weights."""
@@ -154,17 +158,17 @@ class RecognizerCo(nn.Module):
 
         return loss, log_vars
 
-    def forward(self, imgs, label=None, return_loss=True, epoch=0, **kwargs):
+    def forward(self, imgs, label=None, return_loss=True, epoch=0, idx=None, **kwargs):
         """Define the computation performed at every call."""
         if kwargs.get("gradcam", False):
             del kwargs["gradcam"]
-            return self.forward_gradcam(imgs, **kwargs)
+            return self.forward_gradcam(imgs)
         if return_loss:
             if label is None:
                 raise ValueError("Label should not be None.")
-            return self.forward_train(imgs, label, epoch, **kwargs)
+            return self.forward_train(imgs, label, epoch, idx, **kwargs)
 
-        return self.forward_test(imgs, **kwargs)
+        return self.forward_test(imgs)
 
     def train_step(self, data_batch, optimizer, epoch, **kwargs):
         """The iteration step during training.
@@ -195,13 +199,14 @@ class RecognizerCo(nn.Module):
         """
         imgs = data_batch["imgs"]
         label = data_batch["label"]
+        idx = data_batch["idx"]
 
         aux_info = {}
         for item in self.aux_info:
             assert item in data_batch
             aux_info[item] = data_batch[item]
 
-        losses = self(imgs, label, return_loss=True, epoch=epoch, **aux_info)
+        losses = self(imgs, label, return_loss=True, epoch=epoch, idx=idx, **aux_info)
         loss, log_vars = self._parse_losses(losses)
 
         outputs = dict(
@@ -238,7 +243,7 @@ class RecognizerCo(nn.Module):
 
         return outputs
 
-    def forward_train(self, imgs, labels, epoch, **kwargs):
+    def forward_train(self, imgs, labels, epoch, idx, **kwargs):
         """Defines the computation performed at every call when training."""
         batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
@@ -288,6 +293,21 @@ class RecognizerCo(nn.Module):
 
         ind_1_update = ind_1_sorted[:num_remember]
         ind_2_update = ind_2_sorted[:num_remember]
+
+        # if dist.get_rank() == 0 and np.random.rand() < 0.01:
+        if dist.get_rank() == 0:
+            import pdb
+
+            pdb.set_trace()
+            idx = idx[ind_1_sorted]
+            pos_idx = idx[:num_remember]
+            neg_idx = idx[num_remember:]
+            self.log_file.write(
+                f"epoch {epoch}, pos {len(pos_idx)}, neg {len(neg_idx)}"
+            )
+            self.log_file.write(",".join(str(pi) for pi in pos_idx))
+            self.log_file.write(",".join(str(ni) for ni in neg_idx))
+            self.log_file.write("\n")
 
         # exchange
         loss_1_update = self.cls_head1.loss(
