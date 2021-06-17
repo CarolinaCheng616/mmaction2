@@ -197,12 +197,12 @@ class RecognizerCo(nn.Module):
                 DDP, it means the batch size on each GPU), which is used for
                 averaging the logs.
         """
-        imgs = data_batch["imgs"]
-        label = data_batch["label"]
-        idx = data_batch["idx"]
         import pdb
 
         pdb.set_trace()
+        imgs = data_batch["imgs"]
+        label = data_batch["label"]
+        idx = data_batch["idx"]
 
         aux_info = {}
         for item in self.aux_info:
