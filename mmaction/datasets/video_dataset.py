@@ -43,6 +43,9 @@ class VideoDataset(BaseDataset):
         self.prob_by_class = dict()
         self.class_idx = dict()
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
+        import pdb
+
+        pdb.set_trace()
         for label in self.video_infos_by_class:
             number = len(self.video_infos_by_class[label])
             self.prob_by_class[label] = np.ones(number) / number
