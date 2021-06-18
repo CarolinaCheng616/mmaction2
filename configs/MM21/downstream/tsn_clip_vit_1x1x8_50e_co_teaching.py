@@ -1,4 +1,4 @@
-work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching"
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching_by_class"
 
 # model settings
 model = dict(
@@ -104,6 +104,9 @@ data = dict(
         ann_file=ann_file_train,
         data_prefix=data_root,
         pipeline=train_pipeline,
+        num_classes=240,
+        sample_by_class=True,
+        power=1,
     ),
     val=dict(
         type=dataset_type,
