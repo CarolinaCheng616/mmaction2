@@ -43,12 +43,10 @@ class VideoDataset(BaseDataset):
         self.prob_by_class = dict()
         self.class_idx = defaultdict(list)
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
-        import pdb
-
-        pdb.set_trace()
-        for label in self.video_infos_by_class:
-            number = len(self.video_infos_by_class[label])
-            self.prob_by_class[label] = np.ones(number) / number
+        if not self.test_mode:
+            for label in self.video_infos_by_class:
+                number = len(self.video_infos_by_class[label])
+                self.prob_by_class[label] = np.ones(number) / number
 
     def load_annotations(self):
         """Load annotation file to get video information."""
