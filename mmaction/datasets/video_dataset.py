@@ -41,7 +41,7 @@ class VideoDataset(BaseDataset):
 
     def __init__(self, ann_file, pipeline, start_index=0, **kwargs):
         self.prob_by_class = dict()
-        self.class_idx = dict()
+        self.class_idx = defaultdict(list)
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
         import pdb
 

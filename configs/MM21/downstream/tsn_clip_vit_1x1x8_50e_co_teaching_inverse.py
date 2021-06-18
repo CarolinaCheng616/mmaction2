@@ -104,6 +104,9 @@ data = dict(
         ann_file=ann_file_train,
         data_prefix=data_root,
         pipeline=train_pipeline,
+        num_classes=240,
+        sample_by_class=True,
+        power=1,
     ),
     val=dict(
         type=dataset_type,
