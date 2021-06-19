@@ -712,7 +712,9 @@ class SwinTransformer(nn.Module):
             #     self.pretrained,
             #     pretrained=True,
             # )
-            self.load_state_dict(torch.load(self.pretrained, map_location="cpu"))
+            self.load_state_dict(
+                torch.load(self.pretrained, map_location="cpu")["model"]
+            )
         else:
             raise TypeError("pretrained must be a str")
 
