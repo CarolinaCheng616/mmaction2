@@ -39,8 +39,5 @@ class Swin(nn.Module):
                 features = self.forward_features(x)
         else:
             features = self.forward_features(x)
-        import pdb
-
-        pdb.set_trace()
         # x.shape = [batch * seg, 768]
         return features

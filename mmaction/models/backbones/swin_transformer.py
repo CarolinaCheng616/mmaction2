@@ -3,6 +3,7 @@ import torch.nn as nn
 import torch.utils.checkpoint as checkpoint
 from timm.models.layers import DropPath, to_2tuple, trunc_normal_
 
+from ...utils import get_root_logger
 from ..registry import BACKBONES
 
 
@@ -600,14 +601,14 @@ class SwinTransformer(nn.Module):
 
     def __init__(
         self,
-        img_size=224,
+        img_size=384,
         patch_size=4,
         in_chans=3,
         num_classes=1000,
-        embed_dim=96,
-        depths=[2, 2, 6, 2],
-        num_heads=[3, 6, 12, 24],
-        window_size=7,
+        embed_dim=128,
+        depths=[2, 2, 18, 2],
+        num_heads=[4, 8, 16, 32],
+        window_size=12,
         mlp_ratio=4.0,
         qkv_bias=True,
         qk_scale=None,
@@ -688,7 +689,8 @@ class SwinTransformer(nn.Module):
             else nn.Identity()
         )
 
-        self.apply(self._init_weights)
+        # self.apply(self._init_weights)
+        self.pretrained = kwargs.get("pretrained", None)
 
     def _init_weights(self, m):
         if isinstance(m, nn.Linear):
@@ -698,6 +700,21 @@ class SwinTransformer(nn.Module):
         elif isinstance(m, nn.LayerNorm):
             nn.init.constant_(m.bias, 0)
             nn.init.constant_(m.weight, 1.0)
+
+    def init_weights(self):
+        """Initiate the parameters either from existing checkpoint or from
+        scratch."""
+        if isinstance(self.pretrained, str):
+            logger = get_root_logger()
+            logger.info(f"load model from: {self.pretrained}")
+            # self.model = torch.hub.load(
+            #     "rwightman/pytorch-image-models:master",
+            #     self.pretrained,
+            #     pretrained=True,
+            # )
+            self.load_state_dict(torch.load(self.pretrained, map_location="cpu"))
+        else:
+            raise TypeError("pretrained must be a str")
 
     @torch.jit.ignore
     def no_weight_decay(self):

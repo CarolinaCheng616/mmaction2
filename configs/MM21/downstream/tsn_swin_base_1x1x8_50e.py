@@ -3,9 +3,9 @@ model = dict(
     type="Recognizer2D",
     backbone=dict(
         type="SwinTransformer",
-        pretrained="swin_base_patch4_window12_384",
-        freeze=False,
-        fp16_enabled=False,
+        pretrained="ckpt/swin_base_patch4_window12_384_22kto1k.pth",
+        # freeze=False,
+        # fp16_enabled=False,
     ),  # output: ([batch * segs, 768], [batch * segs, 768])
     cls_head=dict(
         type="CLIPHead",
