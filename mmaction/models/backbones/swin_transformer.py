@@ -742,6 +742,9 @@ class SwinTransformer(nn.Module):
 
     def forward(self, x):
         x = self.forward_features(x)
+        import pdb
+
+        pdb.set_trace()
         return x
 
     def flops(self):
