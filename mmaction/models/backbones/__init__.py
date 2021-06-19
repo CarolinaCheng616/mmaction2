@@ -14,6 +14,7 @@ from .clip_vision import CLIPViT
 from .timesformer import TimeSformer
 from .deit import DEIT
 from .clip_with_head import CLIPWithHead
+from .swin import Swin
 
 
 __all__ = [
@@ -34,4 +35,5 @@ __all__ = [
     "TimeSformer",
     "DEIT",
     "CLIPWithHead",
+    "Swin",
 ]
