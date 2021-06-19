@@ -2,10 +2,7 @@
 model = dict(
     type="Recognizer2D",
     backbone=dict(
-        type="DEIT",
-        pretrained="deit_base_patch16_224",
-        freeze=False,
-        fp16_enabled=False,
+        type="CLIPViT", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
     ),  # output: [batch * segs, 768]
     cls_head=dict(
         type="CLIPHead",
@@ -14,7 +11,7 @@ model = dict(
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
         init_std=0.02,
-        fp16_enabled=False,
+        fp16_enabled=True,
     ),
 )
 # model training and testing settings
@@ -24,7 +21,7 @@ test_cfg = dict(average_clips=None)
 dataset_type = "VideoDataset"
 data_root = "data/mm21"
 data_root_val = "data/mm21"
-ann_file_train = "data/mm21/hybrid_anno"
+ann_file_train = "data/mm21/train_anno"
 ann_file_val = "data/mm21/val_anno"
 ann_file_test = "data/mm21/val_anno"
 mc_cfg = dict(
@@ -82,9 +79,9 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=16,
+    videos_per_gpu=64,
     workers_per_gpu=10,
-    # test_dataloader=dict(videos_per_gpu=8),
+    test_dataloader=dict(videos_per_gpu=2),
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -104,10 +101,14 @@ data = dict(
         pipeline=test_pipeline,
     ),
 )
+# # optimizer
+# optimizer = dict(
+#     type="SGD", lr=0.00625, momentum=0.9, weight_decay=0.0005
+# )  # this lr is used for 4 gpus
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.005,  # 4(gpus) * 16(batch)
+    lr=0.00125,  # for 128
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
@@ -117,11 +118,10 @@ optimizer = dict(
             ".backbone.pos_embed": dict(decay_mult=0.0),
         }
     ),
-)  # this lr is used for 4 gpus
+)
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
-# lr_config = dict(policy='step', step=[5, 10])
 total_epochs = 50
 checkpoint_config = dict(interval=5)
 evaluation = dict(
@@ -132,13 +132,13 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-PRETRAIN/pretrain_deit_base_hybrid_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/clip_vit_hybrid.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_deit_base_1x1x8_50e_hybrid"
-load_from = None
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_hybrid_finetune"
+load_from = "work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_hybrid_batch/epoch_50.pth"
 resume_from = None
 workflow = [("train", 1)]
 find_unused_parameters = True
