@@ -251,10 +251,6 @@ class RecognizerCo(nn.Module):
 
         losses = dict()
 
-        import pdb
-
-        pdb.set_trace()
-
         feat1, feat2 = self.extract_feat(imgs)
         if hasattr(self, "neck"):
             feat1 = [

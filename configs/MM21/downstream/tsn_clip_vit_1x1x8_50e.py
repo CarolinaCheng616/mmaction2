@@ -81,7 +81,6 @@ test_pipeline = [
 data = dict(
     videos_per_gpu=64,
     workers_per_gpu=10,
-    test_dataloader=dict(videos_per_gpu=2),
     train=dict(
         type=dataset_type,
         ann_file=ann_file_train,
@@ -131,7 +130,9 @@ log_config = dict(
     interval=20, hooks=[dict(type="TextLoggerHook"), dict(type="TensorboardLoggerHook")]
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
-output_config = dict(out="/mnt/lustre/share_data/MM21-CLASSIFICATION/clip_vit.pkl")
+output_config = dict(
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/clip_vit_result.pkl"
+)
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"

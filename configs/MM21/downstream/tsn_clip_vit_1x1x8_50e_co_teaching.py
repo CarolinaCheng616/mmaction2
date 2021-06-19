@@ -1,4 +1,4 @@
-work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching_by_class"
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_co_teaching"
 
 # model settings
 model = dict(
@@ -147,7 +147,7 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/co_teaching_clip.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/co_teaching_clip_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
