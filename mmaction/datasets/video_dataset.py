@@ -44,7 +44,7 @@ class VideoDataset(BaseDataset):
             self.prob_by_class = dict()
             self.class_idx = defaultdict(list)
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
-        if not self.test_mode and not self.sample_by_class:
+        if not self.test_mode and self.sample_by_class:
             for label in self.video_infos_by_class:
                 number = len(self.video_infos_by_class[label])
                 self.prob_by_class[label] = np.ones(number) / number
