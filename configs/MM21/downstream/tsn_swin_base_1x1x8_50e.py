@@ -10,7 +10,7 @@ model = dict(
     cls_head=dict(
         type="CLIPHead",
         num_classes=240,
-        in_channels=768,
+        in_channels=1024,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
         init_std=0.02,
