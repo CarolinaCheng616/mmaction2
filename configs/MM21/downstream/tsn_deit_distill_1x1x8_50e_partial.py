@@ -22,11 +22,11 @@ train_cfg = None
 test_cfg = dict(average_clips=None)
 # dataset settings
 dataset_type = "VideoDataset"
-data_root = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset"
-data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset"
-ann_file_train = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset/train_anno_subset"
-ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset/val_anno_subset"
-ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/subset/val_anno_subset"
+data_root = "data/mm21/subset"
+data_root_val = data_root
+ann_file_train = "data/mm21/subset/train_anno_subset_resample"
+ann_file_val = "data/mm21/subset/val_anno_subset"
+ann_file_test = "data/mm21/subset/val_anno_subset"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
