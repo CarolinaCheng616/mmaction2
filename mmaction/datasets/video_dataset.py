@@ -40,10 +40,11 @@ class VideoDataset(BaseDataset):
     """
 
     def __init__(self, ann_file, pipeline, start_index=0, **kwargs):
-        self.prob_by_class = dict()
-        self.class_idx = defaultdict(list)
+        if kwargs.get("sample_by_class", False):
+            self.prob_by_class = dict()
+            self.class_idx = defaultdict(list)
         super().__init__(ann_file, pipeline, start_index=start_index, **kwargs)
-        if not self.test_mode:
+        if not self.test_mode and not self.sample_by_class:
             for label in self.video_infos_by_class:
                 number = len(self.video_infos_by_class[label])
                 self.prob_by_class[label] = np.ones(number) / number
@@ -83,9 +84,6 @@ class VideoDataset(BaseDataset):
 
     def prepare_train_frames(self, idx):
         """Prepare the frames for training given the index."""
-        import pdb
-
-        pdb.set_trace()
         if self.sample_by_class:
             # Then, the idx is the class index
             samples = self.video_infos_by_class[idx]
@@ -114,9 +112,6 @@ class VideoDataset(BaseDataset):
 
     def prepare_test_frames(self, idx):
         """Prepare the frames for testing given the index."""
-        import pdb
-
-        pdb.set_trace()
         if self.sample_by_class:
             # Then, the idx is the class index
             samples = self.video_infos_by_class[idx]
