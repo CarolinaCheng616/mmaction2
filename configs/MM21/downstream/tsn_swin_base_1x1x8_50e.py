@@ -2,7 +2,7 @@
 model = dict(
     type="Recognizer2D",
     backbone=dict(
-        type="Swin",
+        type="SwinTransformer",
         pretrained="swin_base_patch4_window12_384",
         freeze=False,
         fp16_enabled=False,
