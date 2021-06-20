@@ -28,9 +28,9 @@ class RecognizerCo(nn.Module):
         neck=None,
         train_cfg=None,
         test_cfg=None,
-        tk=13,
+        tk=10,
         c=1,
-        tau=1.3 * 0.3,
+        tau=1.0 * 0.3,
         inverse=False,
         min_rate=0.5,
         log_file=None,
@@ -158,7 +158,7 @@ class RecognizerCo(nn.Module):
 
         return loss, log_vars
 
-    def forward(self, imgs, label=None, return_loss=True, epoch=0, idx=None, **kwargs):
+    def forward(self, imgs, label=None, return_loss=True, epoch=1, idx=None, **kwargs):
         """Define the computation performed at every call."""
         if kwargs.get("gradcam", False):
             del kwargs["gradcam"]
@@ -170,7 +170,7 @@ class RecognizerCo(nn.Module):
 
         return self.forward_test(imgs)
 
-    def train_step(self, data_batch, optimizer, epoch, **kwargs):
+    def train_step(self, data_batch, optimizer, epoch=1, **kwargs):
         """The iteration step during training.
 
         This method defines an iteration step during training, except for the
@@ -243,7 +243,7 @@ class RecognizerCo(nn.Module):
 
         return outputs
 
-    def forward_train(self, imgs, labels, epoch, idx, **kwargs):
+    def forward_train(self, imgs, labels, epoch=1, idx=0, **kwargs):
         """Defines the computation performed at every call when training."""
         batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
@@ -294,7 +294,7 @@ class RecognizerCo(nn.Module):
         ind_1_update = ind_1_sorted[:num_remember]
         ind_2_update = ind_2_sorted[:num_remember]
 
-        if dist.get_rank() == 0 and np.random.rand() < 0.01:
+        if self.log_file and dist.get_rank() == 0 and np.random.rand() < 0.01:
             idx = np.array([idx1["idx"] for idx1 in idx])
             idx = idx[ind_1_sorted.cpu().numpy()]
             pos_idx = idx[:num_remember]
