@@ -53,7 +53,6 @@ class TwoVideoDataset(BaseDataset):
         if not self.test_mode:
             self.video_idxes1_per_gpu = []
             self.video_idxes2_per_gpu = []
-            self.num_per_gpu = self.num1_per_gpu + self.num2_per_gpu
             self.indices1 = list(range(self.video_num1))
             self.indices2 = list(range(self.video_num2))
             for i in range(gpus):
