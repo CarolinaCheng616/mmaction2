@@ -53,22 +53,16 @@ class TwoVideoDataset(BaseDataset):
         if not self.test_mode:
             self.video_idxes1_per_gpu = []
             self.video_idxes2_per_gpu = []
-            self.num1_per_gpu = (len(self.video_infos1) + gpus - 1) // gpus
-            self.num2_per_gpu = (len(self.video_infos2) + gpus - 1) // gpus
             self.num_per_gpu = self.num1_per_gpu + self.num2_per_gpu
-            for i in range(gpus - 1):
+            self.indices1 = list(range(self.video_num1))
+            self.indices2 = list(range(self.video_num2))
+            for i in range(gpus):
                 self.video_idxes1_per_gpu.append(
-                    list(range(i * self.num1_per_gpu, (i + 1) * self.num1_per_gpu))
+                    self.indices1[i : self.video_num1 : gpus]
                 )
                 self.video_idxes2_per_gpu.append(
-                    list(range(i * self.num2_per_gpu, (i + 1) * self.num2_per_gpu))
+                    self.indices2[i : self.video_num2 : gpus]
                 )
-            self.video_idxes1_per_gpu.append(
-                list(range((gpus - 1) * self.num1_per_gpu, self.video_num1))
-            )
-            self.video_idxes2_per_gpu.append(
-                list(range((gpus - 1) * self.num2_per_gpu, self.video_num2))
-            )
             self.count_per_gpu = [0] * gpus
 
     def load_annotations(self):
@@ -150,25 +144,21 @@ class TwoVideoDataset(BaseDataset):
 
     def prepare_train_frames(self, idx):
         gpu_idx = idx % self.gpus
-        if self.count_per_gpu[gpu_idx] == 0:
+        if self.count_per_gpu[gpu_idx] == 0:  # sample video_infos1
             if len(self.video_idxes1_per_gpu[gpu_idx]) == 0:
-                self.video_idxes1_per_gpu[gpu_idx] = list(
-                    range(
-                        gpu_idx * self.num1_per_gpu, (gpu_idx + 1) * self.num1_per_gpu
-                    )
-                )
+                self.video_idxes1_per_gpu[gpu_idx] = self.indices1[
+                    gpu_idx : self.video_num1 : self.gpus
+                ]
             video_idx1 = np.random.choice(
                 self.video_idxes1_per_gpu[gpu_idx], 1, replace=False
             )[0]
             self.video_idxes1_per_gpu[gpu_idx].remove(video_idx1)
             results = copy.deepcopy(self.video_infos1[video_idx1])
-        else:
+        else:  # sample video_infos2
             if len(self.video_idxes2_per_gpu[gpu_idx]) == 0:
-                self.video_idxes2_per_gpu[gpu_idx] = list(
-                    range(
-                        gpu_idx * self.num2_per_gpu, (gpu_idx + 1) * self.num2_per_gpu
-                    )
-                )
+                self.video_idxes2_per_gpu[gpu_idx] = self.indices2[
+                    gpu_idx : self.video_num2, self.gpus
+                ]
             video_idx2 = np.random.choice(
                 self.video_idxes2_per_gpu[gpu_idx], 1, replace=False
             )[0]
