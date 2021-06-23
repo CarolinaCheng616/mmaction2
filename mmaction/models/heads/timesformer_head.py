@@ -24,11 +24,16 @@ class TimeSformerHead(BaseHead):
         in_channels,
         loss_cls=dict(type="CrossEntropyLoss"),
         init_std=0.02,
+        dropout_ratio=0.4,
         **kwargs
     ):
         super().__init__(num_classes, in_channels, loss_cls, **kwargs)
         self.init_std = init_std
         self.fc_cls = nn.Linear(self.in_channels, self.num_classes)
+        if dropout_ratio != 0:
+            self.dropout = nn.Dropout(p=dropout_ratio)
+        else:
+            self.dropout = None
 
     def init_weights(self):
         """Initiate the parameters from scratch."""
@@ -36,6 +41,8 @@ class TimeSformerHead(BaseHead):
 
     def forward(self, x):
         # [N, in_channels]
+        if self.dropout is not None:
+            x = self.dropout(x)
         cls_score = self.fc_cls(x)
         # [N, num_classes]
         return cls_score
