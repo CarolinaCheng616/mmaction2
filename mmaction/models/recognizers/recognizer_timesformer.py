@@ -9,10 +9,7 @@ class RecognizerTimesformer(BaseRecognizer):
     def forward_train(self, imgs, labels, **kwargs):
         """Defines the computation performed at every call when training."""
         # imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        # imgs = imgs.transpose(1, 2)
-        import pdb
-
-        pdb.set_trace()
+        imgs = imgs.transpose(1, 2)
         losses = dict()
 
         x = self.extract_feat(imgs)
