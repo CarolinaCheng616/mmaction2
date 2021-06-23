@@ -1,7 +1,5 @@
 import torch.nn as nn
 
-# import torch
-
 from ...utils import get_root_logger
 from ..registry import BACKBONES
 
@@ -41,7 +39,7 @@ class Timesformer(nn.Module):
         pass
 
     def forward(self, x):
-        feature = self.model.forward_features(x)
+        feature = self.model.model.forward_features(x)
         import pdb
 
         pdb.set_trace()
