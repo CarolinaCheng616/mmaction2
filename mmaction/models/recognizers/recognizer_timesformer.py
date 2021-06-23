@@ -8,7 +8,6 @@ class RecognizerTimesformer(BaseRecognizer):
 
     def forward_train(self, imgs, labels, **kwargs):
         """Defines the computation performed at every call when training."""
-        # imgs = imgs.reshape((-1,) + imgs.shape[2:])
         imgs = imgs.transpose(1, 2)
         losses = dict()
 
@@ -27,15 +26,13 @@ class RecognizerTimesformer(BaseRecognizer):
     def _do_test(self, imgs):
         """Defines the computation performed at every call when evaluation,
         testing and gradcam."""
-        num_segs = imgs.shape[1]
-        # imgs = imgs.reshape((-1,) + imgs.shape[2:])
+        imgs = imgs.transpose(1, 2)
 
         x = self.extract_feat(imgs)
         if hasattr(self, "neck"):
             x, _ = self.neck(x)
 
         cls_score = self.cls_head(x)
-        cls_score = self.average_clip(cls_score, num_segs)
 
         return cls_score
 
@@ -55,7 +52,7 @@ class RecognizerTimesformer(BaseRecognizer):
         Returns:
             Tensor: Class score.
         """
-        imgs = imgs.reshape((-1,) + imgs.shape[2:])
+        imgs = imgs.transpose(1, 2)
         x = self.extract_feat(imgs)
 
         if hasattr(self, "neck"):

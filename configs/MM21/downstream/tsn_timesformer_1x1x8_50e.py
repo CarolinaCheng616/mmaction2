@@ -9,15 +9,13 @@ model = dict(
         num_classes=240,
         num_frames=8,
         pretrained="ckpt/timesformer_k600.pth",
-    ),  # output: ([batch * segs, *], [batch * segs, *])
+    ),  # output: ([batch, 768], [batch, 768])
     cls_head=dict(
-        type="CLIPHead",
+        type="TimeSformerHead",
         num_classes=240,
-        in_channels=1024,  # to be changed
-        consensus=dict(type="AvgConsensus", dim=1),
+        in_channels=768,
         dropout_ratio=0.8,
         init_std=0.02,
-        fp16_enabled=False,
     ),
 )
 # model training and testing settings
@@ -85,7 +83,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=8,
+    videos_per_gpu=16,
     workers_per_gpu=10,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
