@@ -11,11 +11,10 @@ from .resnet_tsm import ResNetTSM
 from .x3d import X3D
 from .bert import BERT
 from .clip_vision import CLIPViT
-from .timesformer import TimeSformer
 from .deit import DEIT
 from .clip_with_head import CLIPWithHead
-from .swin import Swin
 from .swin_transformer import SwinTransformer
+from .timesformer import Timesformer
 
 
 __all__ = [
@@ -33,9 +32,8 @@ __all__ = [
     "ResNet3dLayer",
     "BERT",
     "CLIPViT",
-    "TimeSformer",
     "DEIT",
     "CLIPWithHead",
-    "Swin",
     "SwinTransformer",
+    "Timesformer",
 ]
