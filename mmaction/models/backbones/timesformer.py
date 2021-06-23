@@ -39,8 +39,8 @@ class Timesformer(nn.Module):
         pass
 
     def forward(self, x):
-        feature = self.model.model.forward_features(x)
         import pdb
 
         pdb.set_trace()
+        feature = self.model.model.forward_features(x)
         return feature
