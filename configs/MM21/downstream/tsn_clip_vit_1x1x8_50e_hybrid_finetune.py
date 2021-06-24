@@ -1,3 +1,5 @@
+img_size = 224
+
 # model settings
 model = dict(
     type="Recognizer2D",
@@ -38,12 +40,12 @@ train_pipeline = [
     dict(type="Resize", scale=(-1, 256)),
     dict(
         type="MultiScaleCrop",
-        input_size=224,
+        input_size=img_size,
         scales=(1, 0.875, 0.75, 0.66),
         random_crop=False,
         max_wh_scale_gap=1,
     ),
-    dict(type="Resize", scale=(224, 224), keep_ratio=False),
+    dict(type="Resize", scale=(img_size, img_size), keep_ratio=False),
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -57,7 +59,7 @@ val_pipeline = [
     ),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256)),
-    dict(type="CenterCrop", crop_size=224),
+    dict(type="CenterCrop", crop_size=img_size),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -71,7 +73,7 @@ test_pipeline = [
     ),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, 256)),
-    dict(type="TenCrop", crop_size=224),
+    dict(type="TenCrop", crop_size=img_size),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -138,7 +140,7 @@ output_config = dict(
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
 work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_hybrid_finetune"
-load_from = "work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_hybrid_batch/epoch_50.pth"
+load_from = "work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_hybrid_sample/epoch_50.pth"
 resume_from = None
 workflow = [("train", 1)]
 find_unused_parameters = True
