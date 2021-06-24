@@ -1,22 +1,17 @@
-img_size = 384
-
 # model settings
 model = dict(
     type="Recognizer2D",
     backbone=dict(
-        type="SwinTransformer",
-        pretrained="ckpt/swin_base_patch4_window12_384_22kto1k.pth",
-        # freeze=False,
-        # fp16_enabled=False,
-    ),  # output: ([batch * segs, 768], [batch * segs, 768])
+        type="CLIPViT", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
+    ),  # output: [batch * segs, 768]
     cls_head=dict(
         type="CLIPHead",
         num_classes=240,
-        in_channels=1024,
+        in_channels=768,
         consensus=dict(type="AvgConsensus", dim=1),
         dropout_ratio=0.8,
         init_std=0.02,
-        fp16_enabled=False,
+        fp16_enabled=True,
     ),
 )
 # model training and testing settings
@@ -26,7 +21,7 @@ test_cfg = dict(average_clips=None)
 dataset_type = "VideoDataset"
 data_root = "data/mm21"
 data_root_val = "data/mm21"
-ann_file_train = "data/mm21/train_anno"
+ann_file_train = "data/mm21/train_anno_filte"
 ann_file_val = "data/mm21/val_anno"
 ann_file_test = "data/mm21/val_anno"
 mc_cfg = dict(
@@ -40,15 +35,15 @@ train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, img_size)),
+    dict(type="Resize", scale=(-1, 256)),
     dict(
         type="MultiScaleCrop",
-        input_size=img_size,
+        input_size=224,
         scales=(1, 0.875, 0.75, 0.66),
         random_crop=False,
         max_wh_scale_gap=1,
     ),
-    dict(type="Resize", scale=(img_size, img_size), keep_ratio=False),
+    dict(type="Resize", scale=(224, 224), keep_ratio=False),
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -61,8 +56,8 @@ val_pipeline = [
         type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8, test_mode=True
     ),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, img_size)),
-    dict(type="CenterCrop", crop_size=img_size),
+    dict(type="Resize", scale=(-1, 256)),
+    dict(type="CenterCrop", crop_size=224),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -75,8 +70,8 @@ test_pipeline = [
         type="SampleFrames", clip_len=1, frame_interval=1, num_clips=25, test_mode=True
     ),
     dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, img_size)),
-    dict(type="TenCrop", crop_size=img_size),
+    dict(type="Resize", scale=(-1, 256)),
+    dict(type="TenCrop", crop_size=224),
     dict(type="Flip", flip_ratio=0),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
@@ -84,7 +79,7 @@ test_pipeline = [
     dict(type="ToTensor", keys=["imgs"]),
 ]
 data = dict(
-    videos_per_gpu=4,
+    videos_per_gpu=64,
     workers_per_gpu=10,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
@@ -106,6 +101,10 @@ data = dict(
         pipeline=test_pipeline,
     ),
 )
+# # optimizer
+# optimizer = dict(
+#     type="SGD", lr=0.00625, momentum=0.9, weight_decay=0.0005
+# )  # this lr is used for 4 gpus
 # optimizer
 optimizer = dict(
     type="SGD",
@@ -123,7 +122,6 @@ optimizer = dict(
 optimizer_config = dict(grad_clip=dict(max_norm=40, norm_type=2))
 # learning policy
 lr_config = dict(policy="CosineAnnealing", min_lr=0)
-# lr_config = dict(policy='step', step=[5, 10])
 total_epochs = 50
 checkpoint_config = dict(interval=5)
 evaluation = dict(
@@ -134,12 +132,12 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/swin_distill_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/clip_vit_filte_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_swin_base_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_filte"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
