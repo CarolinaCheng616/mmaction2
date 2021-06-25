@@ -22,11 +22,11 @@ train_cfg = None
 test_cfg = dict(average_clips=None)
 # dataset settings
 dataset_type = "VideoDataset"
-data_root = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
-data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
-ann_file_train = "/mnt/lustre/share_data/MM21-CLASSIFICATION/train_anno"
-ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
-ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
+data_root = "data/mm21"
+data_root_val = "data/mm21"
+ann_file_train = "data/mm21/train_val"
+ann_file_val = "data/mm21/val_anno"
+ann_file_test = "data/mm21/val_anno"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -107,7 +107,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.005,  # for 4(gpus) * 16(batch)
+    lr=0.00125,  # for 4(gpus) * 16(batch)
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
