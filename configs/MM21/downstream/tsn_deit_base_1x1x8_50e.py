@@ -22,11 +22,11 @@ train_cfg = None
 test_cfg = dict(average_clips=None)
 # dataset settings
 dataset_type = "VideoDataset"
-data_root = "/mnt/lustre/share_data/MM21-PRETRAIN/video"
-data_root_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION"
-ann_file_train = "/mnt/lustre/share_data/MM21-PRETRAIN/imagenet_distill_hard"
-ann_file_val = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
-ann_file_test = "/mnt/lustre/share_data/MM21-CLASSIFICATION/val_anno"
+data_root = "data/mm21"
+data_root_val = "data/mm21"
+ann_file_train = "data/mm21/train_anno"
+ann_file_val = "data/mm21/val_anno"
+ann_file_test = "data/mm21/test_anno"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -131,13 +131,13 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/deit_base_pretrain_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/test_result/deit_base_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_deit_base_1x1x8_50e_pretrain"
-load_from = "work_dirs/MM21/ds/tsn_deit_base_1x1x8_50e/epoch_50.pth"
+work_dir = "./work_dirs/MM21/ds/tsn_deit_base_1x1x8_50e"
+load_from = None
 resume_from = None
 workflow = [("train", 1)]
 find_unused_parameters = True
