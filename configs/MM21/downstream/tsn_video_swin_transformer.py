@@ -34,7 +34,7 @@ mc_cfg = dict(
 img_norm_cfg = dict(mean=[127.5, 127.5, 127.5], std=[127.5, 127.5, 127.5], to_bgr=False)
 train_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
-    dict(type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8),
+    dict(type="SampleFrames", clip_len=8, frame_interval=4, num_clips=1),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, img_size)),
     dict(
@@ -54,7 +54,7 @@ train_pipeline = [
 val_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(
-        type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8, test_mode=True
+        type="SampleFrames", clip_len=8, frame_interval=4, num_clips=1, test_mode=True
     ),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, img_size)),
@@ -68,7 +68,7 @@ val_pipeline = [
 test_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(
-        type="SampleFrames", clip_len=1, frame_interval=1, num_clips=8, test_mode=True
+        type="SampleFrames", clip_len=8, frame_interval=4, num_clips=4, test_mode=True
     ),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, img_size)),
