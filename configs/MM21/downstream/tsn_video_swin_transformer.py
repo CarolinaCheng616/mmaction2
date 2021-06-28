@@ -5,7 +5,7 @@ model = dict(
     type="Recognizer3D",
     backbone=dict(
         type="SwinTransformer3D",
-        pretrained="ckpt/swin_base_patch244_window877_kinetics600_22k.pth",
+        pretrained="ckpt/video_swin_base_patch244_window877_kinetics600_22k.pth",
     ),  # output: ([batch, 768], [batch, 768])
     cls_head=dict(
         type="TimeSformerHead",
