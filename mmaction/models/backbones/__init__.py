@@ -15,6 +15,7 @@ from .deit import DEIT
 from .clip_with_head import CLIPWithHead
 from .swin_transformer import SwinTransformer
 from .timesformer import Timesformer
+from .video_swin_transformer import SwinTransformer3D
 
 
 __all__ = [
@@ -36,4 +37,5 @@ __all__ = [
     "CLIPWithHead",
     "SwinTransformer",
     "Timesformer",
+    "SwinTransformer3D",
 ]
