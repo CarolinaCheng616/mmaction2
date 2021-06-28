@@ -138,7 +138,7 @@ output_config = dict(
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
 work_dir = "./work_dirs/MM21/ds/tsn_deit_distill_1x1x8_50e"
-load_from = None
+load_from = "work_dirs/MM21/ds/tsn_deit_distill_1x1x8_50e/epoch_25.pth"
 resume_from = None
 workflow = [("train", 1)]
 find_unused_parameters = True
