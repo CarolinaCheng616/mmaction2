@@ -40,6 +40,9 @@ class TimeSformerHead(BaseHead):
         trunc_normal_init(self.fc_cls, std=self.init_std)
 
     def forward(self, x):
+        import pdb
+
+        pdb.set_trace()
         # [N, in_channels]
         if self.dropout is not None:
             x = self.dropout(x)

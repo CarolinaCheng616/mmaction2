@@ -795,9 +795,6 @@ class SwinTransformer3D(nn.Module):
 
     def forward(self, x):
         """Forward function."""
-        import pdb
-
-        pdb.set_trace()
         x = self.patch_embed(x)
 
         x = self.pos_drop(x)
