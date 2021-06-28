@@ -8,7 +8,7 @@ model = dict(
         pretrained="ckpt/video_swin_base_patch244_window877_kinetics600_22k.pth",
     ),  # output: ([batch, 768], [batch, 768])
     cls_head=dict(
-        type="TimeSformerHead",
+        type="I3DHead",
         num_classes=240,
         in_channels=1024,
         dropout_ratio=0.8,
