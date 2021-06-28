@@ -134,7 +134,7 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/test_result/swin_distill_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/test_result/swin_base_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
