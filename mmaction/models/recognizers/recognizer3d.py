@@ -8,6 +8,9 @@ class Recognizer3D(BaseRecognizer):
 
     def forward_train(self, imgs, labels, **kwargs):
         """Defines the computation performed at every call when training."""
+        import pdb
+
+        pdb.set_trace()
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         losses = dict()
 
