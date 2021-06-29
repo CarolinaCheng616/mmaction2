@@ -22,7 +22,7 @@ test_cfg = dict(average_clips=None)
 dataset_type = "VideoDataset"
 data_root = "data/mm21"
 data_root_val = "data/mm21"
-ann_file_train = "data/mm21/train_anno"
+ann_file_train = "data/mm21/train_val"
 ann_file_val = "data/mm21/val_anno"
 ann_file_test = "data/mm21/test_anno"
 mc_cfg = dict(
@@ -105,7 +105,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.0025,  # for 32
+    lr=0.00125,  # for 32
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
