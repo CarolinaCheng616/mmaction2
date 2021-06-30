@@ -26,7 +26,7 @@ data_root = "data/mm21"
 data_root_val = "data/mm21"
 ann_file_train = "data/mm21/train_val"
 ann_file_val = "data/mm21/val_anno"
-ann_file_test = "data/mm21/val_anno"
+ann_file_test = "data/mm21/test_anno"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -132,7 +132,7 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/val_result/deit_distill_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/test_result/deit_distill_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
