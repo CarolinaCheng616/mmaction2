@@ -22,7 +22,7 @@ test_cfg = dict(average_clips=None)
 dataset_type = "VideoDataset"
 data_root = "data/mm21"
 data_root_val = "data/mm21"
-ann_file_train = "data/mm21/train_val"
+ann_file_train = "data/mm21/train_anno"
 ann_file_val = "data/mm21/val_anno"
 ann_file_test = "data/mm21/val_anno"
 mc_cfg = dict(
@@ -65,20 +65,21 @@ val_pipeline = [
     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
     dict(type="ToTensor", keys=["imgs"]),
 ]
-test_pipeline = [
-    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
-    dict(
-        type="SampleFrames", clip_len=8, frame_interval=4, num_clips=1, test_mode=True
-    ),
-    dict(type="DecordDecode"),
-    dict(type="Resize", scale=(-1, img_size)),
-    dict(type="TenCrop", crop_size=img_size),
-    dict(type="Flip", flip_ratio=0),
-    dict(type="Normalize", **img_norm_cfg),
-    dict(type="FormatShape", input_format="NCTHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
-    dict(type="ToTensor", keys=["imgs"]),
-]
+# test_pipeline = [
+#     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
+#     dict(
+#         type="SampleFrames", clip_len=8, frame_interval=4, num_clips=1, test_mode=True
+#     ),
+#     dict(type="DecordDecode"),
+#     dict(type="Resize", scale=(-1, img_size)),
+#     dict(type="TenCrop", crop_size=img_size),
+#     dict(type="Flip", flip_ratio=0),
+#     dict(type="Normalize", **img_norm_cfg),
+#     dict(type="FormatShape", input_format="NCTHW"),
+#     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+#     dict(type="ToTensor", keys=["imgs"]),
+# ]
+test_pipeline = val_pipeline
 data = dict(
     videos_per_gpu=8,
     workers_per_gpu=10,
@@ -95,11 +96,17 @@ data = dict(
         data_prefix=data_root_val,
         pipeline=val_pipeline,
     ),
+    # test=dict(
+    #     type=dataset_type,
+    #     ann_file=ann_file_test,
+    #     data_prefix=data_root_val,
+    #     pipeline=test_pipeline,
+    # ),
     test=dict(
         type=dataset_type,
-        ann_file=ann_file_test,
+        ann_file=ann_file_val,
         data_prefix=data_root_val,
-        pipeline=test_pipeline,
+        pipeline=val_pipeline,
     ),
 )
 # optimizer
@@ -135,7 +142,7 @@ output_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_video_swin_base_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_video_swin_base_1x1x8_50e_train"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]

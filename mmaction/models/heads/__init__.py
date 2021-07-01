@@ -21,6 +21,7 @@ from .neg_sim_video_head import NegSimVideoHead
 from .clip_head import CLIPHead
 from .deit_head import DEITHead
 from .timesformer_head import TimeSformerHead
+from .distill_head import DistillHead
 
 __all__ = [
     "TSNHead",
@@ -46,4 +47,5 @@ __all__ = [
     "CLIPHead",
     "DEITHead",
     "TimeSformerHead",
+    "DistillHead",
 ]
