@@ -58,10 +58,7 @@ class RecognizerSelfTraining(nn.Module):
 
     def forward_train(self, imgs, labels, img_metas=None, **kwargs):
         """Defines the computation performed at every call when training."""
-        import pdb
-
-        pdb.set_trace()
-        batches = imgs.shape[0]
+        # batches = imgs.shape[0]
         num_segs = imgs.shape[1]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         # num_segs = imgs.shape[0] // batches
