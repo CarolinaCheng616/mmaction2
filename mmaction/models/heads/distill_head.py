@@ -11,16 +11,17 @@ class DistillHead(nn.Module):
         DistillHead for self-training
     """
 
-    def __init__(self, alpha=0.99, temperature=1, **kwargs):
+    def __init__(self, alpha=0.99, temperature=1, labeled=False, **kwargs):
 
         super(DistillHead, self).__init__()
         self.alpha = alpha
         self.temperature = temperature
+        self.labeled = labeled
 
     def init_weights(self):
         pass
 
-    def forward(self, teacher_cls_score, student_cls_score, gt_labels):
+    def forward(self, teacher_cls_score, student_cls_score, gt_labels, labeled=None):
         """Defines the computation performed at every call.
         Args:
         """
@@ -33,7 +34,15 @@ class DistillHead(nn.Module):
             F.softmax(teacher_cls_score / T, dim=1),
         ) * (alpha * T * T)
 
-        cls_loss = F.cross_entropy(student_cls_score, gt_labels) * (1.0 - alpha)
+        if self.labeled and labeled is not None:
+            if sum(labeled) > 0:
+                cls_loss = F.cross_entropy(
+                    student_cls_score[labeled], gt_labels[labeled]
+                ) * (1.0 - alpha)
+            else:
+                cls_loss = 0
+        else:
+            cls_loss = F.cross_entropy(student_cls_score, gt_labels) * (1.0 - alpha)
         losses["kl_loss"] = torch.mean(kl_loss)
         losses["cls_loss"] = torch.mean(cls_loss)
 

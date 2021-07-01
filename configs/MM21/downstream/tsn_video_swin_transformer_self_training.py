@@ -25,7 +25,7 @@ model = dict(
         dropout_ratio=0.8,
         init_std=0.02,
     ),
-    distill_head=dict(type="DistillHead", alpha=0.5, temperature=10, labeled=True),
+    distill_head=dict(type="DistillHead", alpha=0.5, temperature=10, labeled=False),
     fp16_enabled=False,
 )
 # model training and testing settings
@@ -159,7 +159,7 @@ output_config = dict(
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "work_dirs/MM21/st/tsn_video_swin_base_1x1x8_50e_semi_sup"
+work_dir = "work_dirs/MM21/st/tsn_video_swin_base_1x1x8_50e_self_training"
 load_from = "ckpt/video_swin_teacher.pth"
 resume_from = None
 workflow = [("train", 1)]

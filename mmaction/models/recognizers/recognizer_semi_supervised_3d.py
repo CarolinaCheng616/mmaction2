@@ -62,10 +62,13 @@ class RecognizerSemiSupervised3D(nn.Module):
         imgs = imgs.reshape((-1,) + imgs.shape[2:])  # N,C,T,H,W
 
         labeled = list()
-        for l in img_metas:
-            labeled.append(l["labeled"])
-        labeled = torch.tensor(labeled).cuda()
-        gt_labels = labels[labeled].squeeze()
+        if img_metas is not None:
+            for l in img_metas:
+                labeled.append(l["labeled"])
+            labeled = torch.tensor(labeled).cuda()
+        else:
+            labeled = None
+        gt_labels = labels.squeeze()
 
         losses = dict()
         with torch.no_grad():
@@ -78,7 +81,7 @@ class RecognizerSemiSupervised3D(nn.Module):
         student_cls_score = self.average_clip(student_cls_score, num_segs)
 
         loss_cls = self.distill_head(
-            teacher_cls_score, student_cls_score, labeled, gt_labels, **kwargs
+            teacher_cls_score, student_cls_score, gt_labels, labeled=labeled, **kwargs
         )
         losses.update(loss_cls)
 
