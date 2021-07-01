@@ -61,11 +61,16 @@ class RecognizerSemiSupervised(nn.Module):
         import pdb
 
         pdb.set_trace()
-        # labeled = kwargs.get("labeled", None)
-        labeled = img_metas["labeled"]
-        if labeled:
-            labeled_imgs = imgs[labeled]
-            # unlabeled_imgs = imgs[]
+        labeled = list()
+        unlabeled = list()
+        for l in img_metas:
+            labeled.append(l["labeled"])
+            unlabeled.append(not l["labeled"])
+        labeled = torch.tensor(labeled).cuda()
+        unlabeled = torch.tensor(unlabeled).cuda()
+        labeled_imgs = imgs[labeled]
+        unlabeled_imgs = imgs[unlabeled]
+
         batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
         num_segs = imgs.shape[0] // batches
