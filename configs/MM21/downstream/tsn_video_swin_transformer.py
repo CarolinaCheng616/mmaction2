@@ -54,7 +54,7 @@ train_pipeline = [
 val_pipeline = [
     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
     dict(
-        type="SampleFrames", clip_len=8, frame_interval=4, num_clips=4, test_mode=True
+        type="SampleFrames", clip_len=8, frame_interval=4, num_clips=1, test_mode=True
     ),
     dict(type="DecordDecode"),
     dict(type="Resize", scale=(-1, img_size)),
@@ -81,7 +81,7 @@ val_pipeline = [
 # ]
 test_pipeline = val_pipeline
 data = dict(
-    videos_per_gpu=8,
+    videos_per_gpu=5,
     workers_per_gpu=10,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
