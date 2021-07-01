@@ -1,4 +1,4 @@
-GPUS = 4
+GPUS = 8
 img_size = 224
 # model settings
 model = dict(
