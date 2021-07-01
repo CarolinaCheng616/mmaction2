@@ -27,7 +27,7 @@ model = dict(
         init_std=0.02,
         fp16_enabled=True,
     ),
-    distill_head=dict(type="DistillHead", alpha=0.99, temperature=5),
+    distill_head=dict(type="DistillHead", alpha=0.5, temperature=10, labeled=False),
     fp16_enabled=True,
 )
 # model training and testing settings
@@ -158,8 +158,8 @@ eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/st/tsn_clip_vit_1x1x8_50e_self_training"
-load_from = "../ckpt/clip_teacher.pth"
+work_dir = "work_dirs/MM21/st/clip_vit_self_training_liwei"
+load_from = "ckpt/clip_teacher.pth"
 resume_from = None
 workflow = [("train", 1)]
 find_unused_parameters = True

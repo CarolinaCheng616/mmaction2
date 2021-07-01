@@ -2,7 +2,7 @@ GPUS = 4
 img_size = 224
 # model settings
 model = dict(
-    type="RecognizerSemiSupervised",
+    type="RecognizerSelfTraining",
     teacher_backbone=dict(
         type="CLIPViT", pretrained="ViT-B/32", freeze=False, fp16_enabled=True
     ),
@@ -27,7 +27,7 @@ model = dict(
         init_std=0.02,
         fp16_enabled=True,
     ),
-    distill_head=dict(type="DistillHead", alpha=0.5, temperature=10),
+    distill_head=dict(type="DistillHead", alpha=0.5, temperature=10, labeled=False),
     fp16_enabled=True,
 )
 # model training and testing settings
@@ -63,7 +63,7 @@ train_pipeline = [
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=["labeled"]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 val_pipeline = [
@@ -131,7 +131,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.0025,  # for 256
+    lr=0.0025,  # for 128
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
@@ -158,7 +158,7 @@ eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "work_dirs/MM21/st/tsn_clip_vit_1x1x8_50e_semi_supervised"
+work_dir = "work_dirs/MM21/st/clip_vit_self_training_haoyue"
 load_from = "ckpt/clip_teacher.pth"
 resume_from = None
 workflow = [("train", 1)]

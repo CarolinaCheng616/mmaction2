@@ -30,7 +30,7 @@ model = dict(
 )
 # model training and testing settings
 train_cfg = None
-test_cfg = dict(average_clips=None)
+test_cfg = dict(average_clips="score")
 # dataset settings
 dataset_type = "TwoVideoDataset"
 data_root = "data/mm21"

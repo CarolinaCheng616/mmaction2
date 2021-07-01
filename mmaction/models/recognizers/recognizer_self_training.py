@@ -58,9 +58,22 @@ class RecognizerSelfTraining(nn.Module):
 
     def forward_train(self, imgs, labels, labeled=None, **kwargs):
         """Defines the computation performed at every call when training."""
+        import pdb
+
+        pdb.set_trace()
         batches = imgs.shape[0]
+        num_segs = imgs.shape[1]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        num_segs = imgs.shape[0] // batches
+        # num_segs = imgs.shape[0] // batches
+
+        labeled = list()
+        if img_metas is not None:
+            for l in img_metas:
+                labeled.append(l["labeled"])
+            labeled = torch.tensor(labeled).cuda()
+        else:
+            labeled = None
+        gt_labels = labels.squeeze()
 
         losses = dict()
 
@@ -71,10 +84,8 @@ class RecognizerSelfTraining(nn.Module):
         x = self.student_backbone(imgs)
         student_cls_score = self.student_cls_head(x, num_segs)
 
-        gt_labels = labels.squeeze()
-
         loss_cls = self.distill_head(
-            teacher_cls_score, student_cls_score, gt_labels, **kwargs
+            teacher_cls_score, student_cls_score, gt_labels, labeled=labeled, **kwargs
         )
         losses.update(loss_cls)
 
