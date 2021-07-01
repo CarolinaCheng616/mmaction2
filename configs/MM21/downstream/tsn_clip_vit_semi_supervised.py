@@ -27,7 +27,7 @@ model = dict(
         init_std=0.02,
         fp16_enabled=True,
     ),
-    distill_head=dict(type="DistillHead", alpha=0.5, temperature=10, labeled=False),
+    distill_head=dict(type="DistillHead", alpha=0.5, temperature=10, labeled=True),
     fp16_enabled=True,
 )
 # model training and testing settings
