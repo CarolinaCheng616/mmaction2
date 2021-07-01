@@ -12,7 +12,7 @@ from collections import OrderedDict
 
 
 @RECOGNIZERS.register_module()
-class RecognizerSemiSupervised(nn.Module):
+class RecognizerSemiSupervised3D(nn.Module):
     """2D recognizer model framework for self-training."""
 
     def __init__(
@@ -61,33 +61,30 @@ class RecognizerSemiSupervised(nn.Module):
         import pdb
 
         pdb.set_trace()
+
+        num_segs = imgs.shape[1]
+        imgs = imgs.reshape((-1,) + imgs.shape[2:])  # N,C,T,H,W
+
         labeled = list()
         unlabeled = list()
         for l in img_metas:
             labeled.append(l["labeled"])
             unlabeled.append(not l["labeled"])
         labeled = torch.tensor(labeled).cuda()
-        unlabeled = torch.tensor(unlabeled).cuda()
-        labeled_imgs = imgs[labeled]
-        unlabeled_imgs = imgs[unlabeled]
-
-        batches = imgs.shape[0]
-        imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        num_segs = imgs.shape[0] // batches
+        gt_labels = labels[labeled].squeeze()
 
         losses = dict()
-
         with torch.no_grad():
             x = self.teacher_backbone(imgs)
-            teacher_cls_score = self.teacher_cls_head(x, num_segs)
+            teacher_cls_score = self.teacher_cls_head(x)  # i3d head
+            teacher_cls_score = self.average_clip(teacher_cls_score, num_segs)
 
         x = self.student_backbone(imgs)
-        student_cls_score = self.student_cls_head(x, num_segs)
-
-        gt_labels = labels.squeeze()
+        student_cls_score = self.student_cls_head(x)  # i3d head
+        student_cls_score = self.average_clip(student_cls_score, num_segs)
 
         loss_cls = self.distill_head(
-            teacher_cls_score, student_cls_score, gt_labels, **kwargs
+            teacher_cls_score, student_cls_score, labeled, gt_labels, **kwargs
         )
         losses.update(loss_cls)
 
@@ -96,18 +93,20 @@ class RecognizerSemiSupervised(nn.Module):
     def _do_test(self, imgs):
         """Defines the computation performed at every call when evaluation,
         testing and gradcam."""
-        batches = imgs.shape[0]
+        num_segs = imgs.shape[1]
+        # batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        num_segs = imgs.shape[0] // batches
+        # num_segs = imgs.shape[0] // batches
 
         x = self.student_backbone(imgs)
-        student_cls_score = self.student_cls_head(x, num_segs)
+        student_cls_score = self.student_cls_head(x)
 
-        assert student_cls_score.size()[0] % batches == 0
+        # assert student_cls_score.size()[0] % batches == 0
         # calculate num_crops automatically
-        cls_score = self.average_clip(
-            student_cls_score, student_cls_score.size()[0] // batches
-        )
+        # cls_score = self.average_clip(
+        #     student_cls_score, student_cls_score.size()[0] // batches
+        # )
+        cls_score = self.average_clip(student_cls_score, num_segs)
 
         return cls_score
 

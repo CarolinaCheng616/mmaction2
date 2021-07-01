@@ -22,6 +22,7 @@ from .clip_head import CLIPHead
 from .deit_head import DEITHead
 from .timesformer_head import TimeSformerHead
 from .distill_head import DistillHead
+from .distill_head_2 import DistillHead2
 
 __all__ = [
     "TSNHead",
@@ -48,4 +49,5 @@ __all__ = [
     "DEITHead",
     "TimeSformerHead",
     "DistillHead",
+    "DistillHead2",
 ]
