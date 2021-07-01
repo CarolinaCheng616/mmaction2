@@ -189,13 +189,14 @@ class RecognizerSemiSupervised(nn.Module):
 
         imgs = data_batch["imgs"]
         label = data_batch["label"]
+        img_metas = data_batch["img_metas"]
 
         aux_info = {}
         for item in self.aux_info:
             assert item in data_batch
             aux_info[item] = data_batch[item]
 
-        losses = self(imgs, label, return_loss=True, **aux_info)
+        losses = self(imgs, label, return_loss=True, img_metas=img_metas, **aux_info)
         loss, log_vars = self._parse_losses(losses)
 
         outputs = dict(
