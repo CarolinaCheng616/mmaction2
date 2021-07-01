@@ -21,9 +21,9 @@ test_cfg = dict(average_clips=None)
 dataset_type = "VideoDataset"
 data_root = "data/mm21"
 data_root_val = "data/mm21"
-ann_file_train = "data/mm21/train_val"
+ann_file_train = "data/mm21/train_anno"
 ann_file_val = "data/mm21/val_anno"
-ann_file_test = "data/mm21/test_anno"
+ann_file_test = "data/mm21/val_anno"
 mc_cfg = dict(
     server_list_cfg="/mnt/lustre/share/memcached_client/server_list.conf",
     client_cfg="/mnt/lustre/share/memcached_client/client.conf",
@@ -108,7 +108,7 @@ data = dict(
 # optimizer
 optimizer = dict(
     type="SGD",
-    lr=0.00125,  # for 128
+    lr=0.0025,  # for 128
     momentum=0.9,
     weight_decay=1e-4,
     nesterov=True,
@@ -132,12 +132,12 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/test_result/clip_vit_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/val_result/clip_vit_result.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e"
+work_dir = "./work_dirs/MM21/ds/tsn_clipvit_1x1x8_50e_train"
 load_from = None
 resume_from = None
 workflow = [("train", 1)]
