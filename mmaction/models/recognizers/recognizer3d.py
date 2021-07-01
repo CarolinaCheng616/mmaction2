@@ -26,9 +26,6 @@ class Recognizer3D(BaseRecognizer):
     def _do_test(self, imgs):
         """Defines the computation performed at every call when evaluation,
         testing and gradcam."""
-        import pdb
-
-        pdb.set_trace()
         num_segs = imgs.shape[1]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
 

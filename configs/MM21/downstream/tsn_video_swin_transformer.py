@@ -17,7 +17,7 @@ model = dict(
 )
 # model training and testing settings
 train_cfg = None
-test_cfg = dict(average_clips=None)
+test_cfg = dict(average_clips="score")
 # dataset settings
 dataset_type = "VideoDataset"
 data_root = "data/mm21"
@@ -65,23 +65,22 @@ val_pipeline = [
     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
     dict(type="ToTensor", keys=["imgs"]),
 ]
-# test_pipeline = [
-#     dict(type="DecordInit", io_backend="memcached", **mc_cfg),
-#     dict(
-#         type="SampleFrames", clip_len=8, frame_interval=4, num_clips=1, test_mode=True
-#     ),
-#     dict(type="DecordDecode"),
-#     dict(type="Resize", scale=(-1, img_size)),
-#     dict(type="TenCrop", crop_size=img_size),
-#     dict(type="Flip", flip_ratio=0),
-#     dict(type="Normalize", **img_norm_cfg),
-#     dict(type="FormatShape", input_format="NCTHW"),
-#     dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
-#     dict(type="ToTensor", keys=["imgs"]),
-# ]
-test_pipeline = val_pipeline
+test_pipeline = [
+    dict(type="DecordInit", io_backend="memcached", **mc_cfg),
+    dict(
+        type="SampleFrames", clip_len=8, frame_interval=4, num_clips=4, test_mode=True
+    ),
+    dict(type="DecordDecode"),
+    dict(type="Resize", scale=(-1, img_size)),
+    dict(type="TenCrop", crop_size=img_size),
+    dict(type="Flip", flip_ratio=0),
+    dict(type="Normalize", **img_norm_cfg),
+    dict(type="FormatShape", input_format="NCTHW"),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="ToTensor", keys=["imgs"]),
+]
 data = dict(
-    videos_per_gpu=5,
+    videos_per_gpu=8,
     workers_per_gpu=10,
     test_dataloader=dict(videos_per_gpu=2),
     train=dict(
@@ -96,17 +95,11 @@ data = dict(
         data_prefix=data_root_val,
         pipeline=val_pipeline,
     ),
-    # test=dict(
-    #     type=dataset_type,
-    #     ann_file=ann_file_test,
-    #     data_prefix=data_root_val,
-    #     pipeline=test_pipeline,
-    # ),
     test=dict(
         type=dataset_type,
-        ann_file=ann_file_val,
+        ann_file=ann_file_test,
         data_prefix=data_root_val,
-        pipeline=val_pipeline,
+        pipeline=test_pipeline,
     ),
 )
 # optimizer
