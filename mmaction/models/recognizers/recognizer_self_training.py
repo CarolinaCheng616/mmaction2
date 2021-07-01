@@ -56,7 +56,7 @@ class RecognizerSelfTraining(nn.Module):
         if hasattr(self, "neck"):
             self.neck.init_weights()
 
-    def forward_train(self, imgs, labels, labeled=None, **kwargs):
+    def forward_train(self, imgs, labels, img_metas=None, **kwargs):
         """Defines the computation performed at every call when training."""
         import pdb
 
@@ -114,7 +114,7 @@ class RecognizerSelfTraining(nn.Module):
         testing."""
         return self._do_test(imgs).cpu().numpy()
 
-    def forward(self, imgs, label=None, return_loss=True, labeled=None, **kwargs):
+    def forward(self, imgs, label=None, return_loss=True, img_metas=None, **kwargs):
         """Define the computation performed at every call."""
         if kwargs.get("gradcam", False):
             del kwargs["gradcam"]
@@ -122,7 +122,7 @@ class RecognizerSelfTraining(nn.Module):
         if return_loss:
             if label is None:
                 raise ValueError("Label should not be None.")
-            return self.forward_train(imgs, label, labeled=labeled, **kwargs)
+            return self.forward_train(imgs, label, img_metas=img_metas, **kwargs)
 
         return self.forward_test(imgs, **kwargs)
 
@@ -192,14 +192,14 @@ class RecognizerSelfTraining(nn.Module):
 
         imgs = data_batch["imgs"]
         label = data_batch["label"]
-        labeled = data_batch["labeled"]
+        img_metas = data_batch["img_metas"]
 
         aux_info = {}
         for item in self.aux_info:
             assert item in data_batch
             aux_info[item] = data_batch[item]
 
-        losses = self(imgs, label, return_loss=True, labeled=labeled, **aux_info)
+        losses = self(imgs, label, return_loss=True, img_metas=img_metas, **aux_info)
         loss, log_vars = self._parse_losses(losses)
 
         outputs = dict(
