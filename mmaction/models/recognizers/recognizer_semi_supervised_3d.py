@@ -69,9 +69,6 @@ class RecognizerSemiSupervised3D(nn.Module):
         else:
             labeled = None
         gt_labels = labels.squeeze()
-        import pdb
-
-        pdb.set_trace()
 
         losses = dict()
         with torch.no_grad():
