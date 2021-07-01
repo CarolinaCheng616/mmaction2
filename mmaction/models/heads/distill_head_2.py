@@ -24,9 +24,6 @@ class DistillHead2(nn.Module):
         """Defines the computation performed at every call.
         Args:
         """
-        import pdb
-
-        pdb.set_trace()
         T = self.temperature
         alpha = self.alpha
         losses = dict()

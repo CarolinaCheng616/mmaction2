@@ -58,18 +58,12 @@ class RecognizerSemiSupervised3D(nn.Module):
 
     def forward_train(self, imgs, labels, img_metas, **kwargs):
         """Defines the computation performed at every call when training."""
-        import pdb
-
-        pdb.set_trace()
-
         num_segs = imgs.shape[1]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])  # N,C,T,H,W
 
         labeled = list()
-        unlabeled = list()
         for l in img_metas:
             labeled.append(l["labeled"])
-            unlabeled.append(not l["labeled"])
         labeled = torch.tensor(labeled).cuda()
         gt_labels = labels[labeled].squeeze()
 
@@ -94,18 +88,11 @@ class RecognizerSemiSupervised3D(nn.Module):
         """Defines the computation performed at every call when evaluation,
         testing and gradcam."""
         num_segs = imgs.shape[1]
-        # batches = imgs.shape[0]
         imgs = imgs.reshape((-1,) + imgs.shape[2:])
-        # num_segs = imgs.shape[0] // batches
 
         x = self.student_backbone(imgs)
         student_cls_score = self.student_cls_head(x)
 
-        # assert student_cls_score.size()[0] % batches == 0
-        # calculate num_crops automatically
-        # cls_score = self.average_clip(
-        #     student_cls_score, student_cls_score.size()[0] // batches
-        # )
         cls_score = self.average_clip(student_cls_score, num_segs)
 
         return cls_score
