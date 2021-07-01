@@ -56,12 +56,13 @@ class RecognizerSemiSupervised(nn.Module):
         if hasattr(self, "neck"):
             self.neck.init_weights()
 
-    def forward_train(self, imgs, labels, labeled, **kwargs):
+    def forward_train(self, imgs, labels, img_metas, **kwargs):
         """Defines the computation performed at every call when training."""
         import pdb
 
         pdb.set_trace()
-        labeled = kwargs.get("labeled", None)
+        # labeled = kwargs.get("labeled", None)
+        labeled = img_metas["labeled"]
         if labeled:
             labeled_imgs = imgs[labeled]
             # unlabeled_imgs = imgs[]
@@ -110,7 +111,7 @@ class RecognizerSemiSupervised(nn.Module):
         testing."""
         return self._do_test(imgs).cpu().numpy()
 
-    def forward(self, imgs, label=None, return_loss=True, labeled=None, **kwargs):
+    def forward(self, imgs, label=None, return_loss=True, img_metas=None, **kwargs):
         """Define the computation performed at every call."""
         if kwargs.get("gradcam", False):
             del kwargs["gradcam"]
@@ -118,7 +119,7 @@ class RecognizerSemiSupervised(nn.Module):
         if return_loss:
             if label is None:
                 raise ValueError("Label should not be None.")
-            return self.forward_train(imgs, label, labeled, **kwargs)
+            return self.forward_train(imgs, label, img_metas, **kwargs)
 
         return self.forward_test(imgs, **kwargs)
 
