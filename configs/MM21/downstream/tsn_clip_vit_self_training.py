@@ -63,7 +63,7 @@ train_pipeline = [
     dict(type="Flip", flip_ratio=0.5),
     dict(type="Normalize", **img_norm_cfg),
     dict(type="FormatShape", input_format="NCHW"),
-    dict(type="Collect", keys=["imgs", "label"], meta_keys=[]),
+    dict(type="Collect", keys=["imgs", "label"], meta_keys=["labeled"]),
     dict(type="ToTensor", keys=["imgs", "label"]),
 ]
 val_pipeline = [
