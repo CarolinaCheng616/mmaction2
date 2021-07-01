@@ -153,6 +153,7 @@ class TwoVideoDataset(BaseDataset):
             )[0]
             self.video_idxes1_per_gpu[gpu_idx].remove(video_idx1)
             results = copy.deepcopy(self.video_infos1[video_idx1])
+            results["labeled"] = True
         else:  # sample video_infos2
             if len(self.video_idxes2_per_gpu[gpu_idx]) == 0:
                 self.video_idxes2_per_gpu[gpu_idx] = self.indices2[
@@ -163,6 +164,7 @@ class TwoVideoDataset(BaseDataset):
             )[0]
             self.video_idxes2_per_gpu[gpu_idx].remove(video_idx2)
             results = copy.deepcopy(self.video_infos2[video_idx2])
+            results["labeled"] = False
         self.count_per_gpu[gpu_idx] = (
             self.count_per_gpu[gpu_idx] + 1
         ) % self.noise_ratio
