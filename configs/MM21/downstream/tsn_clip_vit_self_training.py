@@ -158,8 +158,8 @@ eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
 log_level = "INFO"
-work_dir = "work_dirs/MM21/st/clip_vit_self_training_liwei"
-load_from = "ckpt/clip_teacher.pth"
+work_dir = "work_dirs/MM21/st/clip_vit_self_training_liwei_iter1"
+load_from = "ckpt/clip_teacher_iter1.pth"
 resume_from = None
 workflow = [("train", 1)]
 find_unused_parameters = True
