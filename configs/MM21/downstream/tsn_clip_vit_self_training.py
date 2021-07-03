@@ -155,7 +155,7 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/test_result/clip_vit_result_student1.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/val_result/clip_vit_result_student1.pkl"
 )
 # runtime settings
 dist_params = dict(backend="nccl", port=25698)
