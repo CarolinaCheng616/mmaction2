@@ -17,6 +17,7 @@ class DistillHead(nn.Module):
         self.alpha = alpha
         self.temperature = temperature
         self.labeled = labeled
+        self.klloss = nn.KLDivLoss(reduction="batchmean")
 
     def init_weights(self):
         pass
@@ -29,7 +30,7 @@ class DistillHead(nn.Module):
         alpha = self.alpha
         losses = dict()
 
-        kl_loss = nn.KLDivLoss()(
+        kl_loss = self.klloss(
             F.log_softmax(student_cls_score / T, dim=1),
             F.softmax(teacher_cls_score / T, dim=1),
         ) * (alpha * T * T)
