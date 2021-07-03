@@ -17,7 +17,7 @@ class DistillHead(nn.Module):
         self.alpha = alpha
         self.temperature = temperature
         self.labeled = labeled
-        self.klloss = nn.KLDivLoss(reduction="batchmean")
+        self.klloss = nn.KLDivLoss()
 
     def init_weights(self):
         pass
