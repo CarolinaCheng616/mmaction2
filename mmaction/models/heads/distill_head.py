@@ -44,9 +44,7 @@ class DistillHead(nn.Module):
                 cls_loss = 0
         else:
             cls_loss = F.cross_entropy(student_cls_score, gt_labels) * (1.0 - alpha)
-        import pdb
 
-        pdb.set_trace()
         losses["kl_loss"] = torch.mean(kl_loss)
         losses["cls_loss"] = torch.mean(cls_loss)
 
