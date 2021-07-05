@@ -153,7 +153,7 @@ log_config = dict(
 )
 eval_config = dict(metrics=["top_k_accuracy", "mean_class_accuracy"])
 output_config = dict(
-    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/test_result/video_swin_semi_sup_result.pkl"
+    out="/mnt/lustre/share_data/MM21-CLASSIFICATION/val_result/video_swin_semi_sup_result.pkl"
 )
 
 # runtime settings
